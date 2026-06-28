@@ -106,41 +106,41 @@
     }
     .plate .title {
       font-family: 'Manrope', sans-serif;
-      font-size: 10px; font-weight: 400; letter-spacing: 0.18em;
-      text-transform: uppercase; color: var(--ink); opacity: 0.6;
+      font-size: 13px; font-weight: 400; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--ink); opacity: 0.75;
     }
     .plate .title em { font-style: normal; }
-    .plate .day { opacity: 0.7; }
+    .plate .day { opacity: 0.6; }
     .plate .sub {
-      margin-top: 8px;
+      margin-top: 9px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 7.5px; font-weight: 300; letter-spacing: 0.14em;
-      text-transform: uppercase; color: var(--ink); opacity: 0.32;
+      font-size: 9.5px; font-weight: 300; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--ink); opacity: 0.5;
     }
     .plate .sub .dot {
-      display: inline-block; width: 4px; height: 4px; border-radius: 50%;
-      background: #2a9d8f; margin-right: 6px; vertical-align: middle;
+      display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+      background: #2a9d8f; margin-right: 7px; vertical-align: middle;
     }
     .plate .medium {
-      margin-top: 8px;
+      margin-top: 9px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 7px; font-weight: 300; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--ink); opacity: 0.22;
+      font-size: 8.5px; font-weight: 300; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--ink); opacity: 0.38;
     }
     /* raw biometric body — hidden until the plate is opened */
     .plate .metrics {
-      margin-top: 9px;
+      margin-top: 10px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 7.5px; font-weight: 300; letter-spacing: 0.05em;
+      font-size: 9px; font-weight: 300; letter-spacing: 0.05em;
       text-transform: uppercase; color: var(--ink); opacity: 0;
       max-height: 0; overflow: hidden;
       transition: max-height .4s ease, opacity .4s ease, margin .4s ease;
     }
-    .plate.open .metrics { max-height: 40px; opacity: 0.3; }
+    .plate.open .metrics { max-height: 50px; opacity: 0.45; }
     .plate .hint {
-      margin-top: 8px; font-family: 'JetBrains Mono', monospace;
-      font-size: 6.5px; letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--ink); opacity: 0.2;
+      margin-top: 9px; font-family: 'JetBrains Mono', monospace;
+      font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--ink); opacity: 0.32;
     }
 
     /* === EPITAPH — the silence/death state, neutral === */
@@ -149,12 +149,12 @@
       font-family: 'JetBrains Mono', monospace; color: var(--ink);
     }
     .epitaph .big {
-      font-size: 9px; font-weight: 400; letter-spacing: 0.2em;
-      text-transform: uppercase; opacity: 0.55;
+      font-size: 12px; font-weight: 400; letter-spacing: 0.2em;
+      text-transform: uppercase; opacity: 0.65;
     }
     .epitaph .small {
-      margin-top: 7px; font-size: 7.5px; letter-spacing: 0.14em;
-      text-transform: uppercase; opacity: 0.32;
+      margin-top: 9px; font-size: 9.5px; letter-spacing: 0.14em;
+      text-transform: uppercase; opacity: 0.5;
     }
     body.silent .plate { display: none; }
     body.silent .epitaph { display: block; }
@@ -212,13 +212,18 @@
     .overlay-content::-webkit-scrollbar { width: 0; }
 
     @media (max-width: 640px) {
-      body { padding: 12px 8px 16px; }
+      body { padding: 12px 8px 18px; }
       .artist { top: 12px; left: 14px; font-size: 10px; }
       .about-link, .overlay-close { top: 12px; right: 14px; font-size: 10px; }
-      .stage { gap: 10px; }
-      .plate .title { font-size: 9px; }
-      .plate .metrics { display: none; }   /* no raw data on mobile */
-      .overlay-content { padding: 72px 20px 56px; font-size: 12px; }
+      .stage { gap: 12px; }
+      .plate .title { font-size: 11px; letter-spacing: 0.12em; }
+      .plate .sub { font-size: 8.5px; }
+      .plate .medium { font-size: 7.5px; letter-spacing: 0.06em; }
+      .plate .metrics, .plate .hint { display: none; }   /* no raw data / no click hint on mobile */
+      .plate { cursor: default; }
+      .epitaph .big { font-size: 11px; }
+      .epitaph .small { font-size: 8.5px; }
+      .overlay-content { padding: 72px 20px 56px; font-size: 12.5px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -425,7 +430,7 @@
       function fitCanvas() {
         const frame = document.getElementById('canvasFrame');
         const mobile = window.innerWidth <= 640;
-        const maxH = window.innerHeight - (mobile ? 110 : 150);
+        const maxH = window.innerHeight - (mobile ? 132 : 168);
         const maxW = window.innerWidth - (mobile ? 20 : 90);
         const s = Math.min(1, maxH / CANVAS_H, maxW / CANVAS_W);
         frame.style.width = CANVAS_W + 'px';
