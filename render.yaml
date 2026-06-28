@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: nikolaigrigoriev
-    runtime: node
-    buildCommand: echo "No build needed"
-    startCommand: node server.js
-    envVars:
-      - key: NODE_ENV
-        value: production

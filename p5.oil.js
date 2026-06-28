@@ -458,8 +458,6 @@ const oil = {
   spline: function(points, curvature) { drawSpline(_engine, points, curvature); },
   flush: function() { if (_engine && _engine.ready) _engine.flush(); },
   scaleBrushes: function(s) {},
-  reset: function() { _bound = false; _engine = new GLEngine(); },
-  initGL: function(gl) { if (gl) { _engine.init(gl); _bound = true; } },
 };
 
 if (typeof globalThis !== "undefined") globalThis.oil = oil;
@@ -470,14 +468,11 @@ function registerP5Addon(_p5, fn, lifecycles) {
   lifecycles.postsetup = function () {
     _p5Instance = this;
     const gl = getGL(this);
-    if (gl) {
-      if (!_bound || _engine.gl !== gl) { _engine = new GLEngine(); _engine.init(gl); _bound = true; }
-    }
+    if (gl && !_bound) { _engine.init(gl); _bound = true; }
   };
   lifecycles.predraw = function () {
     _p5Instance = this;
-    const gl = getGL(this);
-    if (gl && (!_bound || _engine.gl !== gl)) { _engine = new GLEngine(); _engine.init(gl); _bound = true; }
+    if (!_bound) { const gl = getGL(this); if (gl) { _engine.init(gl); _bound = true; } }
   };
   lifecycles.postdraw = function () {
     if (_engine.ready) _engine.flush();
