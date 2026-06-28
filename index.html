@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nikolai Grigoriev — Variations 87 (2025– )</title>
+  <title>Nikolai Grigoriev — Variations 87 (2022– )</title>
   <meta name="description" content="Variations 87, a symbiotic painting by Nikolai Grigoriev: generative oil driven live by the artist's own Oura Ring biometrics. One body, one day, one canvas — the work opens on the present self and dies when the signal stops.">
 
   <!-- Open Graph / Twitter -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Nikolai Grigoriev — Variations 87">
-  <meta property="og:description" content="A symbiotic painting: generative oil driven live by the artist's own biometrics. One body, one day, one canvas — until the signal stops.">
+  <meta property="og:description" content="A symbiotic painting: generative oil driven live by the artist's own biometrics. One body, one day, one canvas — until the signal stops and the work dies.">
   <meta property="og:image" content="https://nikolaigrigoriev.onrender.com/og.jpg">
   <meta property="og:url" content="https://nikolaigrigoriev.onrender.com/">
   <meta name="twitter:card" content="summary_large_image">
@@ -196,6 +196,12 @@
       margin-bottom: 26px; opacity: 0.95;
     }
     .overlay-content .lead em { font-style: italic; }
+    .overlay-content .lifespan {
+      margin: -8px 0 28px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      opacity: 0.55;
+    }
     .overlay-content h3 {
       font-size: 11px; font-weight: 400; letter-spacing: 0.12em;
       text-transform: uppercase; margin-top: 32px; margin-bottom: 12px; opacity: 0.5;
@@ -235,15 +241,17 @@
   <div class="artist">Nikolai Grigoriev</div>
   <button class="about-link" id="aboutOpen" aria-label="About the work">About</button>
 
-  <div class="loader" id="loader">syncing the present body…</div>
+  <div class="loader" id="loader">reading the present body…</div>
 
   <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="About">
     <button class="overlay-close" id="aboutClose">Close</button>
     <div class="overlay-content">
       <p class="lead"><em>Variations 87</em> is a symbiotic artwork — a genre originated by <a href="https://www.instagram.com/nikolaigrigorievofficial?igsh=dHUzaXRhZTRlM2th&amp;utm_source=qr" target="_blank" rel="noopener">Nikolai Grigoriev</a>, in which a painting is not composed by the artist but grown from a single living body. The body is both the subject and the instrument.</p>
 
-      <p>The painting is generated from my own physiological data, recorded continuously by a wearable biometric sensor (Oura Ring). It is not a fixed picture but a living loop: each night the body writes the next day, the work syncs it the following morning, and the canvas opens on the most recent self. The image you see is only the current frame of an ongoing relationship.</p>
-      <p>Fourteen physiological measurements are read from each 24-hour cycle, normalized against my own history, and mapped to independent visual parameters. The same body-state always produces the same painting — the process is deterministic; the seed is the body, not the date.</p>
+      <p class="lifespan" id="lifespan"></p>
+
+      <p>The painting is generated from the artist's own physiological data, recorded continuously by a wearable biometric sensor (Oura Ring). It is not a fixed picture but a living loop: each night the body writes the next day, the work takes it in the following morning, and the canvas opens on the most recent self. The image you see is only the current frame of an ongoing relationship.</p>
+      <p>Fourteen physiological measurements are read from each 24-hour cycle, normalized against the artist's own history, and mapped to independent visual parameters. The same body-state always produces the same painting — the process is deterministic; the seed is the body, not the date.</p>
 
       <h3>Silence</h3>
       <p>The loop can break. When the signal stops — the ring removed, the body still — the work does not pretend. The last day freezes, its colour drains, and it dissolves toward nothing in proportion to the silence. A gap is not smoothed over; it is the most honest image the work can hold. The painting is built to register an ending, not to outlive one.</p>
@@ -257,7 +265,7 @@
         <tr><td>Readiness · Sleep · HRV</td><td>Overall key: palette boundary, density, axis tilt</td></tr>
         <tr><td>Deep sleep · HRV · Sleep</td><td>Foundation register — broad grounds</td></tr>
         <tr><td>Readiness · Activity</td><td>Modulation register — waking gestures</td></tr>
-        <tr><td>Restlessness · Breath · Pulse</td><td>Tremor register — small beaded marks</td></tr>
+        <tr><td>Restlessness · Breath · Elevated pulse</td><td>Tremor register — small beaded marks</td></tr>
         <tr><td>Heart-rate variability</td><td>Variation of size and touch in every register</td></tr>
         <tr><td>Resting heart rate</td><td>Gesture length and weight</td></tr>
         <tr><td>REM sleep</td><td>Curvature of the marks</td></tr>
@@ -281,9 +289,9 @@
     <div class="plate" id="plate" role="button" tabindex="0" aria-label="Show this day's biometrics">
       <div class="title"><em>Variations 87</em> <span class="day" id="dayLabel"></span></div>
       <div class="sub" id="subLine"></div>
-      <div class="medium">Symbiotic painting · generative oil · live Oura biometrics · edition of 1, continuous</div>
+      <div class="medium">Symbiotic painting · generative oil · live Oura Ring biometrics · edition of 1, continuous</div>
       <div class="metrics" id="metrics"></div>
-      <div class="hint" id="plateHint">click for the body of this day</div>
+      <div class="hint" id="plateHint">read the body of this day</div>
     </div>
 
     <div class="epitaph" id="epitaph">
@@ -331,14 +339,13 @@
 
       if (isSilent) {
         document.getElementById('epitaphBig').textContent =
-          gap > 7 ? 'Signal lost' : 'Silence';
+          gap > 7 ? 'Long Silence' : 'Silence';
         document.getElementById('epitaphSmall').textContent =
-          `${gap} days without signal · last ${fmtDate(meta.lastDataDay || day.day)}`;
+          `${gap} days without signal · last seen ${fmtDate(meta.lastDataDay || day.day)}`;
       } else {
         // museum label
         document.getElementById('dayLabel').textContent = `— Day ${currentIdx + 1}`;
-        const statusToken = !meta.live ? 'Archive'
-          : (meta.status === 'stable' ? 'Live' : 'Live');
+        const statusToken = !meta.live ? 'Last synced' : 'Live';
         const dot = meta.live ? '<span class="dot"></span>' : '';
         document.getElementById('subLine').innerHTML =
           `${dot}${fmtDate(day.day)} · ${statusToken}`;
@@ -355,6 +362,7 @@
           `T ${day.tempDeviation != null ? (day.tempDeviation>=0?'+':'')+day.tempDeviation.toFixed(2) : '—'}`,
         ].join('  ·  ');
       }
+      updateLifespan();
       updateFade();
     }
 
@@ -372,6 +380,19 @@
       frame.style.filter = gray > 0 ? `grayscale(${gray.toFixed(3)})` : 'none';
       // never fight the first reveal: only show once first paint happened
       frame.style.opacity = firstPaintDone ? alpha.toFixed(3) : '0';
+    }
+
+    // The work's age — truthful and self-updating: recomputed from the first
+    // recorded day to the server's current date, so the day count grows daily.
+    function updateLifespan() {
+      const el = document.getElementById('lifespan');
+      if (!el || !DATA || !DATA.days.length) return;
+      const first = DATA.days[0].day;
+      const today = (META && META.serverDate) || new Date().toISOString().slice(0, 10);
+      const days = Math.max(0, Math.round((Date.parse(today) - Date.parse(first)) / 86400000));
+      const years = Math.floor(days / 365.25);
+      const yWord = years === 1 ? 'year' : 'years';
+      el.textContent = `Alive for ${years} ${yWord} · ${days.toLocaleString('en-US')} days.`;
     }
 
     function updateNavZones() {
@@ -398,7 +419,7 @@
     function togglePlate() {
       plate.classList.toggle('open');
       document.getElementById('plateHint').textContent =
-        plate.classList.contains('open') ? 'click to hide' : 'click for the body of this day';
+        plate.classList.contains('open') ? 'hide the body of this day' : 'read the body of this day';
     }
     plate.addEventListener('click', togglePlate);
     plate.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); togglePlate(); } });

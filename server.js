@@ -18,7 +18,9 @@ let REFRESH_TOKEN = process.env.OURA_REFRESH || '';   // optional, enables auto-
 const CLIENT_ID     = process.env.OURA_CLIENT_ID     || '';
 const CLIENT_SECRET = process.env.OURA_CLIENT_SECRET || '';
 
-const SYNC_DAYS     = 180;                  // rolling window pulled from Oura
+// Full history: ring data begins 2022-05-24; pull everything from a safe earlier
+// date through today. The whole life of the body feeds the work.
+const SYNC_START    = '2022-01-01';
 const SYNC_INTERVAL = 6 * 60 * 60 * 1000;   // re-sync every 6h
 
 // === IN-MEMORY STATE ===
@@ -94,23 +96,35 @@ async function ouraGetAuthed(urlStr) {
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// Fetch one collection with retry + backoff on transient failures (network
-// errors, timeouts, 429, 5xx). 401 still triggers the refresh path; other 4xx
-// fail fast (no point retrying a bad request).
-async function fetchCollection(name, qs, attempt = 0) {
-  const url = `https://api.ouraring.com/v2/usercollection/${name}?${qs}`;
+// Fetch one page with retry + backoff on transient failures (network errors,
+// timeouts, 429, 5xx). 401 triggers the refresh path; other 4xx fail fast.
+async function fetchPage(url, attempt = 0) {
   try {
     const r = await ouraGetAuthed(url);
-    if (r.status === 200) return JSON.parse(r.body).data || [];
+    if (r.status === 200) return JSON.parse(r.body);
     const transient = r.status === 429 || r.status >= 500;
-    if (transient && attempt < 2) { await sleep([1500, 6000][attempt]); return fetchCollection(name, qs, attempt + 1); }
-    throw new Error(`${name} ${r.status}: ${r.body.slice(0, 120)}`);
+    if (transient && attempt < 2) { await sleep([1500, 6000][attempt]); return fetchPage(url, attempt + 1); }
+    throw new Error(`${r.status}: ${r.body.slice(0, 120)}`);
   } catch (e) {
     if (attempt < 2 && /timeout|ECONN|ENOTFOUND|EAI_AGAIN|socket/i.test(e.message)) {
-      await sleep([1500, 6000][attempt]); return fetchCollection(name, qs, attempt + 1);
+      await sleep([1500, 6000][attempt]); return fetchPage(url, attempt + 1);
     }
     throw e;
   }
+}
+
+// Fetch a full collection, following Oura's next_token pagination so multi-year
+// windows are never silently truncated.
+async function fetchCollection(name, qs) {
+  const base = `https://api.ouraring.com/v2/usercollection/${name}`;
+  let url = `${base}?${qs}`;
+  let all = [];
+  for (let guard = 0; url && guard < 100; guard++) {
+    const j = await fetchPage(url);
+    if (Array.isArray(j.data)) all = all.concat(j.data);
+    url = j.next_token ? `${base}?${qs}&next_token=${encodeURIComponent(j.next_token)}` : null;
+  }
+  return all;
 }
 
 // ---------- raw Oura -> daily metrics (mirror of build_30d_summary.py:build_day) ----------
@@ -190,9 +204,8 @@ async function sync() {
   if (!ACCESS_TOKEN && !(REFRESH_TOKEN && CLIENT_ID)) { console.warn('[oura] no token configured — serving fallback'); return; }
   STATE.syncing = true;
   try {
-    const end   = new Date();
-    const start = new Date(end.getTime() - SYNC_DAYS * 864e5);
-    const qs = `start_date=${isoDate(start)}&end_date=${isoDate(end)}`;
+    const end = new Date();
+    const qs = `start_date=${SYNC_START}&end_date=${isoDate(end)}`;
 
     // allSettled: one failing collection (e.g. workout) must not lose the rest.
     const settled = await Promise.allSettled([
