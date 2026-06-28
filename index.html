@@ -110,6 +110,7 @@
       text-transform: uppercase; color: var(--ink); opacity: 0.75;
     }
     .plate .title em { font-style: normal; }
+    .plate .year { opacity: 0.5; }
     .plate .day { opacity: 0.6; }
     .plate .sub {
       margin-top: 9px;
@@ -287,8 +288,9 @@
     </div>
 
     <div class="plate" id="plate" role="button" tabindex="0" aria-label="Show this day's biometrics">
-      <div class="title"><em>Variations 87</em> <span class="day" id="dayLabel"></span></div>
+      <div class="title"><em>Variations 87</em><span class="year" id="yearLabel"></span></div>
       <div class="sub" id="subLine"></div>
+      <span class="day" id="dayLabel" hidden></span>
       <div class="medium">Symbiotic painting · generative oil · live Oura Ring biometrics · edition of 1, continuous</div>
       <div class="metrics" id="metrics"></div>
       <div class="hint" id="plateHint">read the body of this day</div>
@@ -343,12 +345,14 @@
         document.getElementById('epitaphSmall').textContent =
           `${gap} days without signal · last seen ${fmtDate(meta.lastDataDay || day.day)}`;
       } else {
-        // museum label
-        document.getElementById('dayLabel').textContent = `— Day ${currentIdx + 1}`;
+        // museum label: title + creation year (open range), then day · date · status
+        const firstYear = ((DATA.days[0] && DATA.days[0].day) || '').slice(0, 4);
+        document.getElementById('yearLabel').textContent = firstYear ? ` · ${firstYear}–` : '';
+        document.getElementById('dayLabel').textContent = `Day ${currentIdx + 1}`;
         const statusToken = !meta.live ? 'Last synced' : 'Live';
         const dot = meta.live ? '<span class="dot"></span>' : '';
         document.getElementById('subLine').innerHTML =
-          `${dot}${fmtDate(day.day)} · ${statusToken}`;
+          `${dot}Day ${currentIdx + 1} · ${fmtDate(day.day)} · ${statusToken}`;
 
         // raw biometric body (revealed on click) — full provenance detail
         const v = (x, s = '') => (x == null || isNaN(x)) ? '—' : x + s;
@@ -392,7 +396,7 @@
       const days = Math.max(0, Math.round((Date.parse(today) - Date.parse(first)) / 86400000));
       const years = Math.floor(days / 365.25);
       const yWord = years === 1 ? 'year' : 'years';
-      el.textContent = `Alive for ${years} ${yWord} · ${days.toLocaleString('en-US')} days.`;
+      el.textContent = `Alive for ${years} ${yWord} · ${days.toLocaleString('en-US')} days · since ${fmtDate(first)}.`;
     }
 
     function updateNavZones() {
