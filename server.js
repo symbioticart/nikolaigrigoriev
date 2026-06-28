@@ -3,10 +3,11 @@
 // The painting is a continuous loop: the body feeds the work daily; a gap in
 // the data is left visible — the silence of a stopped signal is part of the work.
 
-const http  = require('http');
-const https = require('https');
-const fs    = require('fs');
-const path  = require('path');
+const http   = require('http');
+const https  = require('https');
+const fs     = require('fs');
+const path   = require('path');
+const crypto = require('crypto');
 
 const dir  = __dirname;
 const port = process.env.PORT || 3457;
@@ -27,11 +28,28 @@ const STATE = {
   syncing: false,
 };
 
+// Whitelisted static types. Note: '.map' is intentionally absent — source maps
+// are never served in production.
 const mimeTypes = {
-  '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json',
-  '.map': 'application/json',
+  '.html': 'text/html; charset=utf-8',
+  '.js':   'text/javascript; charset=utf-8',
+  '.css':  'text/css; charset=utf-8',
+  '.png':  'image/png',
+  '.jpg':  'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.svg':  'image/svg+xml',
+  '.ico':  'image/x-icon',
+  '.json': 'application/json',
 };
+// Files that must never be served even though their extension is whitelisted.
+const DENY_FILES = new Set(['server.js', 'package.json', 'package-lock.json']);
+
+// Security headers applied to every response.
+function setSecurity(res) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader('Content-Security-Policy', "frame-ancestors 'self'");
+}
 
 // ---------- Oura HTTP ----------
 function ouraGet(urlStr) {
@@ -39,7 +57,9 @@ function ouraGet(urlStr) {
     const req = https.request(new URL(urlStr),
       { method: 'GET', headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
       res => { let d = ''; res.on('data', c => d += c); res.on('end', () => resolve({ status: res.statusCode, body: d })); });
-    req.on('error', reject); req.end();
+    req.on('error', reject);
+    req.setTimeout(15000, () => req.destroy(new Error('oura request timeout')));
+    req.end();
   });
 }
 
@@ -72,11 +92,25 @@ async function ouraGetAuthed(urlStr) {
   return r;
 }
 
-async function fetchCollection(name, qs) {
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// Fetch one collection with retry + backoff on transient failures (network
+// errors, timeouts, 429, 5xx). 401 still triggers the refresh path; other 4xx
+// fail fast (no point retrying a bad request).
+async function fetchCollection(name, qs, attempt = 0) {
   const url = `https://api.ouraring.com/v2/usercollection/${name}?${qs}`;
-  const r = await ouraGetAuthed(url);
-  if (r.status !== 200) throw new Error(`${name} ${r.status}: ${r.body.slice(0,120)}`);
-  return JSON.parse(r.body).data || [];
+  try {
+    const r = await ouraGetAuthed(url);
+    if (r.status === 200) return JSON.parse(r.body).data || [];
+    const transient = r.status === 429 || r.status >= 500;
+    if (transient && attempt < 2) { await sleep([1500, 6000][attempt]); return fetchCollection(name, qs, attempt + 1); }
+    throw new Error(`${name} ${r.status}: ${r.body.slice(0, 120)}`);
+  } catch (e) {
+    if (attempt < 2 && /timeout|ECONN|ENOTFOUND|EAI_AGAIN|socket/i.test(e.message)) {
+      await sleep([1500, 6000][attempt]); return fetchCollection(name, qs, attempt + 1);
+    }
+    throw e;
+  }
 }
 
 // ---------- raw Oura -> daily metrics (mirror of build_30d_summary.py:build_day) ----------
@@ -160,12 +194,18 @@ async function sync() {
     const start = new Date(end.getTime() - SYNC_DAYS * 864e5);
     const qs = `start_date=${isoDate(start)}&end_date=${isoDate(end)}`;
 
-    const [sleepRaw, dailySleep, dailyReady, workoutRaw] = await Promise.all([
+    // allSettled: one failing collection (e.g. workout) must not lose the rest.
+    const settled = await Promise.allSettled([
       fetchCollection('sleep', qs),
       fetchCollection('daily_sleep', qs),
       fetchCollection('daily_readiness', qs),
       fetchCollection('workout', qs),
     ]);
+    const [sleepRaw, dailySleep, dailyReady, workoutRaw] = settled.map(s => s.status === 'fulfilled' ? s.value : []);
+    const failed = settled.map((s, i) => s.status === 'rejected' ? ['sleep','daily_sleep','daily_readiness','workout'][i] : null).filter(Boolean);
+    if (failed.length) console.warn('[oura] partial sync, failed:', failed.join(', '));
+    // Need at least the core sleep/readiness data to build a meaningful day.
+    if (!sleepRaw.length && !dailySleep.length && !dailyReady.length) throw new Error('all core collections failed');
 
     const days = buildDays(sleepRaw, dailySleep, dailyReady, workoutRaw);
     if (!days.length) throw new Error('no days built');
@@ -181,9 +221,11 @@ async function sync() {
       meta: { lastDataDay, serverDate, gapDays, status, live: true, syncedAt: new Date().toISOString() },
     };
     STATE.lastSync = new Date().toISOString();
+    STATE.tokenError = false;
     console.log(`[oura] synced ${days.length} days, last=${lastDataDay}, gap=${gapDays}d, status=${status}`);
   } catch (e) {
     console.error('[oura] sync failed:', e.message);
+    if (/401|refresh|token/i.test(e.message)) STATE.tokenError = true;
     if (!STATE.payload) loadFallback();
   } finally {
     STATE.syncing = false;
@@ -210,6 +252,9 @@ function loadFallback() {
 
 // ---------- HTTP server ----------
 http.createServer((req, res) => {
+  setSecurity(res);
+  if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405); res.end('Method Not Allowed'); return; }
+
   let url = req.url.split('?')[0];
 
   if (url === '/data/daily-metrics.json') {
@@ -219,18 +264,36 @@ http.createServer((req, res) => {
     return;
   }
   if (url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ ok: true, lastSync: STATE.lastSync, meta: STATE.payload && STATE.payload.meta }));
+    const m = STATE.payload && STATE.payload.meta;
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify({ ok: true, live: !!(m && m.live), status: m ? m.status : 'dormant', tokenError: !!STATE.tokenError }));
     return;
   }
 
   if (url === '/') url = '/index.html';
-  const filePath = path.join(dir, decodeURIComponent(url));
-  const ext = path.extname(filePath);
-  fs.readFile(filePath, (err, data) => {
-    if (err) { res.writeHead(404); res.end('Not found: ' + url); return; }
-    res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'text/plain' });
-    res.end(data);
+
+  // Resolve and keep strictly within the served directory (no path traversal),
+  // serve only whitelisted file types, and never expose runtime files.
+  const filePath = path.normalize(path.join(dir, decodeURIComponent(url)));
+  if (filePath !== dir && !filePath.startsWith(dir + path.sep)) { res.writeHead(403); res.end('Forbidden'); return; }
+  const ext = path.extname(filePath).toLowerCase();
+  if (!mimeTypes[ext] || DENY_FILES.has(path.basename(filePath))) { res.writeHead(404); res.end('Not found'); return; }
+
+  fs.stat(filePath, (err, st) => {
+    if (err || !st.isFile()) { res.writeHead(404); res.end('Not found'); return; }
+    const etag = '"' + st.size.toString(16) + '-' + Math.round(st.mtimeMs).toString(16) + '"';
+    const cache = ext === '.html' ? 'public, max-age=300' : 'public, max-age=86400';
+    if (req.headers['if-none-match'] === etag) {
+      res.writeHead(304, { 'ETag': etag, 'Cache-Control': cache }); res.end(); return;
+    }
+    if (req.method === 'HEAD') {
+      res.writeHead(200, { 'Content-Type': mimeTypes[ext], 'Cache-Control': cache, 'ETag': etag }); res.end(); return;
+    }
+    fs.readFile(filePath, (e2, data) => {
+      if (e2) { res.writeHead(404); res.end('Not found'); return; }
+      res.writeHead(200, { 'Content-Type': mimeTypes[ext], 'Cache-Control': cache, 'ETag': etag });
+      res.end(data);
+    });
   });
 }).listen(port, () => {
   console.log(`Variations 87 — http://localhost:${port}`);

@@ -22,7 +22,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
   <style>
     :root {
       --wall: #fafafa;          /* page background, as before */
@@ -292,9 +292,9 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/p5@2.2.0/lib/p5.min.js"></script>
-  <script src="p5.oil.js"></script>
-  <script src="painter.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/p5@2.2.0/lib/p5.min.js"></script>
+  <script defer src="p5.oil.js"></script>
+  <script defer src="painter.js"></script>
 
   <script>
     const CANVAS_W = 980;
@@ -472,7 +472,9 @@
       updateNavZones();
     }
 
-    main();
+    // Scripts are deferred, so p5/painter are guaranteed ready by DOMContentLoaded.
+    if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', main);
+    else main();
   </script>
 </body>
 </html>
