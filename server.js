@@ -362,13 +362,17 @@ http.createServer((req, res) => {
   }
 
   if (url === '/') url = '/index.html';
+  // /89 — the vertical daily-story view (Variation 89). Same live data, same origin.
+  if (url === '/89' || url === '/89/') url = '/89/index.html';
 
   // Resolve and keep strictly within the served directory (no path traversal),
   // serve only whitelisted file types, and never expose runtime files.
   const filePath = path.normalize(path.join(dir, decodeURIComponent(url)));
   if (filePath !== dir && !filePath.startsWith(dir + path.sep)) { res.writeHead(403); res.end('Forbidden'); return; }
   const ext = path.extname(filePath).toLowerCase();
-  if (!mimeTypes[ext] || DENY_FILES.has(path.basename(filePath))) { res.writeHead(404); res.end('Not found'); return; }
+  const base = path.basename(filePath);
+  // never serve dotfiles / macOS AppleDouble sidecars (._*) / .git / .env, regardless of extension
+  if (!mimeTypes[ext] || DENY_FILES.has(base) || base.charAt(0) === '.') { res.writeHead(404); res.end('Not found'); return; }
 
   fs.stat(filePath, (err, st) => {
     if (err || !st.isFile()) { res.writeHead(404); res.end('Not found'); return; }

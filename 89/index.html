@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Variation 89 — daily story</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- non-blocking: if Google Fonts is slow/blocked, the page never hangs — system fonts fall back -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"></noscript>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #1a1a1a; display: flex; align-items: center; justify-content: center; }
+    #story { height: 100vh; width: auto; max-width: 100vw; box-shadow: 0 0 80px rgba(0,0,0,.5); }
+    #off { position: fixed; left: -5000px; top: 0; }
+    /* invisible save zone — tap the top-left corner to download the poster PNG */
+    #dl { position: fixed; top: 0; left: 0; width: 150px; height: 150px; z-index: 999; cursor: pointer; opacity: 0; }
+  </style>
+</head>
+<body>
+  <canvas id="story" width="1080" height="1920"></canvas>
+  <div id="dl" title="Save PNG" aria-label="Download poster"></div>
+  <div id="off"></div>
+
+  <!-- absolute /89/ paths so they resolve whether the URL is /89 or /89/ -->
+  <script src="/89/p5.min.js"></script>
+  <script src="/89/p5.oil.js"></script>
+  <script src="/89/painter.js"></script>
+  <script>
+    // ===== Variation 89 — vertical daily story, served at /89 on the main site =====
+    // It reads the SAME live /data/daily-metrics.json the landscape work uses, so the
+    // ring data and the silence=death state are always identical to nikolaigrigoriev.com.
+    const W = 1080, H = 1920;
+    const WALL = '#fafafa';               // page wall (NOT ivory) — same as the site
+    const INK  = '#1a1a1a';               // site --ink
+    const DOT_GREEN = '#2a9d8f';          // site live dot
+    const INCEPTION = '2022-05-24';       // the work has been alive since this day
+
+    // framed portrait painting, with margins / outline / shadow like the site
+    // more top air (FY 195) + ~20% taller painting downward (PH 1350); bottom = 1545
+    const FX = 80, FY = 195, PW = 920, PH = 1350;   // painting box; bottom = 1545
+
+    const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const fmtDate = d => { const [y,m,da] = d.split('-'); return da + ' ' + MONTHS[+m-1] + ' ' + y; };
+    const params = new URLSearchParams(location.search);
+
+    async function run() {
+      try {
+        // ABSOLUTE path — /89 is a subdir, the live data lives at the site root.
+        const DATA = await fetch('/data/daily-metrics.json', { cache: 'no-store' }).then(r => r.json());
+        if (!DATA || !Array.isArray(DATA.days) || !DATA.days.length) { showErr(new Error('no data days')); return; }
+        let idx = Math.max(0, DATA.days.length - 1);     // open on the present body
+        if (params.has('day')) {
+          // sanitize: floor + finite-check so ?day=abc / ?day=5.9 can't index DATA.days with NaN/fraction
+          const n = parseInt(params.get('day'), 10);
+          if (Number.isFinite(n)) idx = Math.max(0, Math.min(DATA.days.length - 1, n));
+        }
+        const day = DATA.days[idx];
+        if (!day) { showErr(new Error('no data for day ' + idx)); return; }
+
+        // try to get the brand fonts, but NEVER hang on them — cap the wait at 2.5s,
+        // then render with whatever is available (system fallback if the font CDN is blocked).
+        var fontsReady = Promise.all([
+          document.fonts.load('400 28px Manrope'),
+          document.fonts.load('300 19px "JetBrains Mono"'),
+        ]).then(function () { return document.fonts.ready; }).catch(function () {});
+        await Promise.race([fontsReady, new Promise(function (r) { setTimeout(r, 2500); })]);
+
+        var canvasEl = null, pending = true;
+        new p5(function (p) {
+          p.setup = function () {
+            if (p.pixelDensity) p.pixelDensity(1);     // export res = logical px, no retina overdraw
+            var c = p.createCanvas(PW, PH, p.WEBGL2 || p.WEBGL);  // PORTRAIT painting buffer
+            c.parent('off'); canvasEl = c.elt; p.noLoop();
+          };
+          p.draw = function () {
+            if (!pending) return; pending = false;
+            try {
+              var pd = p.pixelDensity ? p.pixelDensity() : 1;
+              OuraPainter.paintDay(p, day, DATA, PW * pd, PH * pd);   // fill the painting buffer
+              requestAnimationFrame(function () {
+                try { composite(canvasEl, DATA, day); window.__STORY_READY = true; }
+                catch (e) { showErr(e); }
+              });
+            } catch (e) { showErr(e); }
+          };
+        });
+      } catch (e) { showErr(e); }
+    }
+
+    function showErr(e) {
+      window.__STORY_ERR = String((e && e.stack) || e);
+      var ctx = document.getElementById('story').getContext('2d');
+      ctx.fillStyle = WALL; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#902020'; ctx.textAlign = 'left'; ctx.font = '300 26px "JetBrains Mono"';
+      ctx.fillText('ERROR: ' + String((e && e.message) || e).slice(0, 70), 60, 200);
+    }
+
+    function alphaInk(a) { return 'rgba(26,26,26,' + a + ')'; }
+
+    // durational line — same source of truth as the main site's updateLifespan():
+    // derive inception from the FIRST recorded day, not a hardcode, so /89 and the
+    // landscape page always tell the same age. Fallback to INCEPTION if data is empty.
+    function inceptionOf(DATA) {
+      return (DATA.days && DATA.days[0] && DATA.days[0].day) || INCEPTION;
+    }
+    function lifespanText(DATA) {
+      var first = inceptionOf(DATA);
+      var today = (DATA.meta && DATA.meta.serverDate) || new Date().toISOString().slice(0, 10);
+      var days = Math.max(0, Math.round((Date.parse(today) - Date.parse(first)) / 864e5));
+      var years = Math.floor(days / 365.25);
+      var yWord = years === 1 ? 'YEAR' : 'YEARS';
+      return 'ALIVE FOR ' + years + ' ' + yWord + ' · ' + days.toLocaleString('en-US') + ' DAYS · SINCE ' + fmtDate(first);
+    }
+
+    // save the full-res 1080×1920 poster as a PNG to the device
+    function downloadPNG() {
+      if (!window.__STORY_READY) return;          // ignore taps before the poster is composited
+      var canvas = document.getElementById('story');
+      var d = window.__dlDay;
+      var name = 'variation-89-' + (d && d.day ? d.day : 'today') + '.png';
+      // iOS Safari ignores <a download> and won't save a blob — open the PNG so the user long-presses → Save to Photos
+      var isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (isIOS) {
+        var url = canvas.toDataURL('image/png');
+        var w = window.open();
+        if (w) {
+          w.document.title = name;
+          w.document.body.style.margin = '0';
+          w.document.body.innerHTML = '<img src="' + url + '" style="width:100%;display:block" alt="' + name + '">';
+        } else {
+          location.href = url;                    // popup blocked → navigate to the image
+        }
+        return;
+      }
+      canvas.toBlob(function (blob) {              // desktop / Android: real file download
+        if (!blob) return;
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        document.body.appendChild(a); a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+      }, 'image/png');
+    }
+    document.getElementById('dl').addEventListener('click', downloadPNG);
+
+    function composite(p5canvas, DATA, day) {
+      window.__dlDay = day;                 // remember which day, for the PNG filename
+      var ctx = document.getElementById('story').getContext('2d');
+
+      // ===== silence = death (parity with the main site) =====
+      // The painting opens on the present day; when the signal stops (gap > 1 day) the
+      // colour drains and the work dissolves in proportion to the silence.
+      var meta = DATA.meta || {};
+      var gap = meta.gapDays || 0;
+      var liveSilent = !!meta.live && gap > 1;
+      var manualDead = params.has('dead');
+      var dead = liveSilent || manualDead;
+      var gray = 0, alpha = 1;
+      if (liveSilent)      { gray = Math.min(1, (gap - 1) / 13); alpha = Math.max(0, 1 - (gap - 1) / 29); }
+      else if (manualDead) { gray = 0.85; alpha = 0.5; }
+
+      // ===== wall =====
+      ctx.fillStyle = WALL; ctx.fillRect(0, 0, W, H);
+
+      // ===== framed painting: soft drop shadow + #000 backing + thin outline (the site frame) =====
+      // shadow kept faint + even (a plate-mounted work, not a poster bevel), per artist
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.09)';
+      ctx.shadowBlur = 55; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 18;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(FX, FY, PW, PH);
+      ctx.restore();
+
+      if (dead) {
+        ctx.save();
+        ctx.filter = 'grayscale(' + gray.toFixed(3) + ') opacity(' + alpha.toFixed(3) + ')';
+        ctx.drawImage(p5canvas, FX, FY, PW, PH);
+        ctx.restore();
+      } else {
+        ctx.drawImage(p5canvas, FX, FY, PW, PH);
+      }
+
+      // thin outline, like .canvas-frame outline: 1px rgba(0,0,0,.08)
+      ctx.strokeStyle = 'rgba(0,0,0,0.09)'; ctx.lineWidth = 1;
+      ctx.strokeRect(FX + 0.5, FY + 0.5, PW - 1, PH - 1);
+
+      // ===== plate (museum label) — site DNA, larger + legible, above IG reply-bar (≤~1745) =====
+      ctx.textAlign = 'center';
+      var cx = W / 2;
+
+      // TITLE — Manrope 400, 28px, ls 0.15em, uppercase. main @.78 / year @.55
+      var tY = 1606;
+      ctx.font = '400 28px Manrope';
+      try { ctx.letterSpacing = '4.2px'; } catch (e) {}
+      var titleMain = 'VARIATION 89';
+      var titleYear = '   ·   ' + inceptionOf(DATA).slice(0, 4) + '—TODAY';
+      var wMain = ctx.measureText(titleMain).width;
+      var wYear = ctx.measureText(titleYear).width;
+      var startX = cx - (wMain + wYear) / 2;
+      ctx.textAlign = 'left';
+      ctx.fillStyle = alphaInk(0.78); ctx.fillText(titleMain, startX, tY);
+      ctx.fillStyle = alphaInk(0.55); ctx.fillText(titleYear, startX + wMain, tY);
+      ctx.textAlign = 'center';
+
+      // SUB — JetBrains Mono 300, 19px, ls 0.14em, uppercase, @.55.
+      // alive → lifespan line + green dot ; silent → SIGNAL LOST (no dot)
+      var sY = 1656;
+      ctx.font = '300 19px "JetBrains Mono"';
+      try { ctx.letterSpacing = '2.6px'; } catch (e) {}
+      ctx.fillStyle = alphaInk(0.55);
+      if (dead) {
+        var deadText = liveSilent ? ('SIGNAL LOST · ' + gap + ' DAYS WITHOUT SIGNAL') : 'SIGNAL LOST';
+        ctx.fillText(deadText, cx, sY);
+      } else {
+        var subText = lifespanText(DATA);
+        // center the WHOLE unit (dot + gap + text), not the text alone
+        var r = 4, g = 13;
+        var subW = ctx.measureText(subText).width;
+        var unitW = r * 2 + g + subW;
+        var uStart = cx - unitW / 2;
+        ctx.save(); ctx.beginPath(); ctx.arc(uStart + r, sY - 6, r, 0, Math.PI * 2);
+        ctx.fillStyle = DOT_GREEN; ctx.fill(); ctx.restore();
+        ctx.textAlign = 'left'; ctx.fillStyle = alphaInk(0.55);
+        ctx.fillText(subText, uStart + r * 2 + g, sY);
+        ctx.textAlign = 'center';
+      }
+
+      // MEDIUM — provenance credit, two meaning-grouped lines (museum credit wrap).
+      ctx.font = '300 16px "JetBrains Mono"';
+      try { ctx.letterSpacing = '1.6px'; } catch (e) {}
+      ctx.fillStyle = alphaInk(0.45);
+      ctx.fillText('SYMBIOTIC PAINTING · GENERATIVE OIL', cx, 1696);
+      ctx.fillStyle = alphaInk(0.42);
+      ctx.fillText('LIVE OURA RING BIOMETRICS', cx, 1724);
+      try { ctx.letterSpacing = '0px'; } catch (e) {}
+
+      window.__STORY_READY = true;
+    }
+
+    run();
+  </script>
+</body>
+</html>
