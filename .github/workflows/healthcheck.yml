@@ -1,0 +1,50 @@
+name: healthcheck
+
+# The artwork's data is daily, and the site is always-on (paid tier), so we do
+# NOT poll continuously. Process-liveness is handled by Render's native health
+# check; this is the data-quality observer: once in the evening (after Oura has
+# finalized the day), a retry a few hours later, and on every deploy.
+on:
+  schedule:
+    - cron: '0 18 * * *'   # 20:00 Europe/Madrid (CEST) — Oura day is ready
+    - cron: '0 21 * * *'   # 23:00 — retry, avoids false alarms from a transient blip
+  push:
+    branches: [main]       # the riskiest moment: a fresh deploy
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe /health and assert
+        id: probe
+        run: |
+          set -e
+          H=$(curl -fsS --max-time 90 https://nikolaigrigoriev.onrender.com/health)
+          echo "$H"
+          echo "health<<EOF" >> "$GITHUB_OUTPUT"; echo "$H" >> "$GITHUB_OUTPUT"; echo "EOF" >> "$GITHUB_OUTPUT"
+          H="$H" node -e '
+            const h = JSON.parse(process.env.H);
+            const fail = [];
+            if (!h.ok)        fail.push("ok=false");
+            if (!h.live)      fail.push("not live (serving fallback)");
+            if (h.tokenError) fail.push("Oura tokenError");
+            if (h.degraded)   fail.push("degraded: " + (h.degradedReasons||[]).join(", "));
+            if ((h.gapDays ?? 99) > 2)        fail.push("date frozen: gapDays=" + h.gapDays + " (last " + h.lastDataDay + ")");
+            if ((h.lastSyncAgeSec ?? 1e9) > 25200) fail.push("stale sync: " + h.lastSyncAgeSec + "s");
+            if ((h.dayCount ?? 0) < (h.lastKnownGoodDayCount ?? 0)) fail.push("dayCount shrank: " + h.dayCount + " < " + h.lastKnownGoodDayCount);
+            for (const [k, v] of Object.entries(h.perCollection || {})) if (!v.ok) fail.push("collection failed: " + k);
+            if (fail.length) { console.error("HEALTH FAIL — " + fail.join(" | ")); process.exit(1); }
+            console.log("HEALTH OK — day " + h.lastDataDay + ", " + h.dayCount + " days, gap " + h.gapDays);
+          '
+      - name: Telegram alert on failure
+        if: failure()
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          [ -z "$TG_BOT_TOKEN" ] && { echo "no telegram secret; GitHub will email the owner"; exit 0; }
+          curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TG_CHAT_ID}" \
+            --data-urlencode "text=[Variations 87] healthcheck FAILED — open the Actions log: https://github.com/symbioticart/nikolaigrigoriev/actions" \
+            || true

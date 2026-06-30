@@ -23,12 +23,36 @@ const CLIENT_SECRET = process.env.OURA_CLIENT_SECRET || '';
 const SYNC_START    = '2022-01-01';
 const SYNC_INTERVAL = 6 * 60 * 60 * 1000;   // re-sync every 6h
 
+const BUILD_SHA = (process.env.RENDER_GIT_COMMIT || 'dev').slice(0, 7);
+const BOOT_TIME = Date.now();
+
 // === IN-MEMORY STATE ===
 const STATE = {
   payload: null,     // { stats, days, meta } served to the browser
   lastSync: null,    // ISO timestamp of last successful sync
   syncing: false,
+  tokenError: false,
+  degraded: false,
+  degradedReasons: [],
+  perCollection: {}, // { name: { ok, count } }
+  lastKnownGoodCount: 0,
+  lastDataDayPrev: null,
+  alertedBad: false, // dedup: true while in a degraded/alerted state
 };
+
+// === ALERTING (Telegram, optional — no-op until configured) ===
+function alert(text) {
+  const tok = process.env.TG_BOT_TOKEN, chat = process.env.TG_CHAT_ID;
+  if (!tok || !chat) return;
+  try {
+    const body = JSON.stringify({ chat_id: chat, text: `[Variations 87] ${text}`, disable_notification: false });
+    const req = https.request(`https://api.telegram.org/bot${tok}/sendMessage`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } });
+    req.on('error', () => {});
+    req.setTimeout(8000, () => req.destroy());
+    req.write(body); req.end();
+  } catch (e) { /* never let alerting break the server */ }
+}
 
 // Whitelisted static types. Note: '.map' is intentionally absent — source maps
 // are never served in production.
@@ -198,6 +222,20 @@ function buildStats(days) {
 function isoDate(d) { return d.toISOString().slice(0, 10); }
 function daysBetween(a, b) { return Math.round((Date.parse(b) - Date.parse(a)) / 864e5); }
 
+// Set the degraded flag and alert ONLY on state transitions (ok->bad, bad->ok),
+// so a problem that persists across 6h syncs doesn't spam Telegram.
+function setDegraded(reasons) {
+  STATE.degraded = reasons.length > 0 || STATE.tokenError;
+  STATE.degradedReasons = STATE.degraded ? (reasons.length ? reasons : ['tokenError']) : [];
+  if (STATE.degraded && !STATE.alertedBad) {
+    STATE.alertedBad = true;
+    alert('⚠ degraded — ' + STATE.degradedReasons.join('; '));
+  } else if (!STATE.degraded && STATE.alertedBad) {
+    STATE.alertedBad = false;
+    alert('✓ recovered — sync healthy again');
+  }
+}
+
 // ---------- sync ----------
 async function sync() {
   if (STATE.syncing) return;
@@ -228,6 +266,23 @@ async function sync() {
     const gapDays     = Math.max(0, daysBetween(lastDataDay, serverDate));
     const status      = gapDays <= 1 ? 'fresh' : gapDays <= 7 ? 'stable' : 'dormant';
 
+    // per-collection observability
+    const names = ['sleep', 'daily_sleep', 'daily_readiness', 'workout'];
+    STATE.perCollection = {};
+    settled.forEach((s, i) => {
+      STATE.perCollection[names[i]] = { ok: s.status === 'fulfilled', count: s.status === 'fulfilled' ? s.value.length : 0 };
+    });
+
+    // self-check: catch silent degradation (data malfunction, not slow Oura).
+    // Note: gapDays/freshness is judged by the daily external check (time-of-day
+    // aware), not here — so a normal morning gap of 1 never raises a server alert.
+    const reasons = [];
+    if (failed.length) reasons.push('collections failed: ' + failed.join(','));
+    if (days.length < STATE.lastKnownGoodCount) reasons.push(`dayCount ${days.length} < known-good ${STATE.lastKnownGoodCount}`);
+    if (STATE.lastDataDayPrev && lastDataDay < STATE.lastDataDayPrev) reasons.push(`lastDataDay regressed ${STATE.lastDataDayPrev}->${lastDataDay}`);
+    if (days.length >= STATE.lastKnownGoodCount) STATE.lastKnownGoodCount = days.length;
+    STATE.lastDataDayPrev = lastDataDay;
+
     STATE.payload = {
       stats: buildStats(days),
       days,
@@ -235,11 +290,13 @@ async function sync() {
     };
     STATE.lastSync = new Date().toISOString();
     STATE.tokenError = false;
-    console.log(`[oura] synced ${days.length} days, last=${lastDataDay}, gap=${gapDays}d, status=${status}`);
+    setDegraded(reasons);
+    console.log(`[oura] synced ${days.length} days, last=${lastDataDay}, gap=${gapDays}d, status=${status}${reasons.length ? ' DEGRADED: ' + reasons.join('; ') : ''}`);
   } catch (e) {
     console.error('[oura] sync failed:', e.message);
     if (/401|refresh|token/i.test(e.message)) STATE.tokenError = true;
     if (!STATE.payload) loadFallback();
+    setDegraded(['sync failed: ' + e.message]);
   } finally {
     STATE.syncing = false;
   }
@@ -277,9 +334,30 @@ http.createServer((req, res) => {
     return;
   }
   if (url === '/health') {
-    const m = STATE.payload && STATE.payload.meta;
+    const m = (STATE.payload && STATE.payload.meta) || {};
+    const dayCount = (STATE.payload && STATE.payload.days && STATE.payload.days.length) || 0;
+    // Always 200 while the process is alive (Render's native health check restarts
+    // only on process death/hang). Data problems are signalled by `degraded`, not 5xx.
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
-    res.end(JSON.stringify({ ok: true, live: !!(m && m.live), status: m ? m.status : 'dormant', tokenError: !!STATE.tokenError }));
+    res.end(JSON.stringify({
+      ok: true,
+      live: !!m.live,
+      status: m.status || 'dormant',
+      tokenError: !!STATE.tokenError,
+      degraded: !!STATE.degraded,
+      degradedReasons: STATE.degradedReasons || [],
+      lastDataDay: m.lastDataDay || null,
+      serverDate: isoDate(new Date()),
+      gapDays: m.gapDays != null ? m.gapDays : null,
+      dayCount,
+      lastKnownGoodDayCount: STATE.lastKnownGoodCount || 0,
+      dataAdvancing: dayCount > 0 && dayCount >= (STATE.lastKnownGoodCount || 0),
+      lastSyncAgeSec: STATE.lastSync ? Math.round((Date.now() - Date.parse(STATE.lastSync)) / 1000) : null,
+      syncedAt: STATE.lastSync,
+      perCollection: STATE.perCollection || {},
+      buildSha: BUILD_SHA,
+      uptimeSec: Math.round((Date.now() - BOOT_TIME) / 1000),
+    }));
     return;
   }
 

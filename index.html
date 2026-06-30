@@ -351,8 +351,11 @@
         document.getElementById('dayLabel').textContent = `Day ${currentIdx + 1}`;
         const statusToken = !meta.live ? 'Last synced' : 'Live';
         const dot = meta.live ? '<span class="dot"></span>' : '';
+        // On the latest day, name the data's freshness so a normal overnight lag
+        // (Oura finalizes the day later) doesn't read as the work being stuck.
+        const fresh = (onLatest && meta.live && gap === 1) ? ' · latest data: yesterday' : '';
         document.getElementById('subLine').innerHTML =
-          `${dot}Day ${currentIdx + 1} · ${fmtDate(day.day)} · ${statusToken}`;
+          `${dot}Day ${currentIdx + 1} · ${fmtDate(day.day)} · ${statusToken}${fresh}`;
 
         // raw biometric body (revealed on click) — full provenance detail
         const v = (x, s = '') => (x == null || isNaN(x)) ? '—' : x + s;
