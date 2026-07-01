@@ -364,6 +364,8 @@ http.createServer((req, res) => {
   if (url === '/') url = '/index.html';
   // /89 — the vertical daily-story view (Variation 89). Same live data, same origin.
   if (url === '/89' || url === '/89/') url = '/89/index.html';
+  // /weekly — HOSQ R&D lab canvas (Voronoi × curved edges). Same origin.
+  if (url === '/weekly' || url === '/weekly/') url = '/weekly/index.html';
 
   // Resolve and keep strictly within the served directory (no path traversal),
   // serve only whitelisted file types, and never expose runtime files.
