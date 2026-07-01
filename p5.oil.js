@@ -327,7 +327,7 @@ function _drawBristleStroke(engine, x0, y0, len, baseAngle, def) {
   const chaos = randRange(def.chaos);
   const baseAlpha = randRange(def.opacity) * _opacity;
   const twist = rand(-0.4, 0.4);
-  const dryBrush = Math.random() < def.dryBrush ? rand(0.3, 1) : 0;
+  const dryBrush = rand01() < def.dryBrush ? rand(0.3, 1) : 0;
   const pressureFn = makePressureCurve();
 
   const steps = max(8, floor(len / 1));
@@ -348,7 +348,7 @@ function _drawBristleStroke(engine, x0, y0, len, baseAngle, def) {
     path[idx] = px; path[idx + 1] = py; path[idx + 2] = curA;
   }
 
-  const layers = width > 15 && Math.random() > 0.4 ? 2 : 1;
+  const layers = width > 15 && rand01() > 0.4 ? 2 : 1;
 
   for (let layer = 0; layer < layers; layer++) {
     const lr = clamp(_color[0] + rand(-0.04, 0.04) * chaos, 0, 1);
@@ -384,7 +384,7 @@ function _drawBristleStroke(engine, x0, y0, len, baseAngle, def) {
         const deplF = 1 - t * deplete;
         const twistF = 1 + twist * sin(t * PI * rand(1, 3));
 
-        if (dryBrush > 0 && Math.random() < bGrain * dryBrush && t > 0.3) continue;
+        if (dryBrush > 0 && rand01() < bGrain * dryBrush && t > 0.3) continue;
 
         const totalOff = bOff * taperF * ovalF * pressure * twistF * deplF;
         const wander = noise.fbm(t * 6 * bStiff + b * 0.7 + layer * 3, 3) * bWand * 3;
@@ -398,7 +398,7 @@ function _drawBristleStroke(engine, x0, y0, len, baseAngle, def) {
     }
   }
 
-  if (Math.random() > 0.5) {
+  if (rand01() > 0.5) {
     const hlStart = floor(steps * rand(0.15, 0.4));
     const hlEnd = floor(steps * rand(0.5, 0.85));
     for (let i = hlStart; i <= hlEnd; i += max(1, floor(spacing * 3))) {
