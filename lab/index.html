@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6/dist/d3-delaunay.min.js"></script>
+<script src="/lab/print-texture.js"></script>
 <style>
   :root{ --ink:#0a0a0a; --paper:#eee9dd; --paper2:#e2dccb; --line:#d8d1c0; --muted:#6b6659; --lite:#f2f0ea;
     --mono:"IBM Plex Mono", ui-monospace, "SF Mono", monospace;
@@ -193,6 +194,17 @@ function curvySilhouette(poly, bow, sharpP){
 }
 function inPoly(x,y,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))inside=!inside;}return inside;}
 
+// quadratic Bézier point, and the t where the curve is distance R from an endpoint
+function qpt(A,C,B,t){const u=1-t;return [u*u*A.x+2*u*t*C.x+t*t*B.x, u*u*A.y+2*u*t*C.y+t*t*B.y];}
+function tFromStart(A,C,B,R){ let prev=0;
+  for(let k=1;k<=60;k++){ const t=k/60, p=qpt(A,C,B,t), d=Math.hypot(p[0]-A.x,p[1]-A.y);
+    if(d>=R){ let lo=prev,hi=t; for(let it=0;it<14;it++){const m=(lo+hi)/2,pm=qpt(A,C,B,m); if(Math.hypot(pm[0]-A.x,pm[1]-A.y)<R) lo=m; else hi=m;} return (lo+hi)/2; } prev=t; }
+  return 0.5; }
+function tFromEnd(A,C,B,R){ let prev=1;
+  for(let k=1;k<=60;k++){ const t=1-k/60, p=qpt(A,C,B,t), d=Math.hypot(p[0]-B.x,p[1]-B.y);
+    if(d>=R){ let lo=t,hi=prev; for(let it=0;it<14;it++){const m=(lo+hi)/2,pm=qpt(A,C,B,m); if(Math.hypot(pm[0]-B.x,pm[1]-B.y)<R) hi=m; else lo=m;} return (lo+hi)/2; } prev=t; }
+  return 0.5; }
+
 // place [n] label at a deterministic random interior point where it fully fits
 function placeLabel(cell, ci, label, fs){
   const w=label.length*fs*0.6, h=fs;
@@ -212,24 +224,37 @@ function placeLabel(cell, ci, label, fs){
   return {x:cell.cx,y:cell.cy};  // fallback
 }
 
+// ---- generative print texture: reusable module print-texture.js (PrintTexture) ----
+let TEX=null;
+function ensureTex(){
+  if(!TEX || TEX.seed!==S.seed || TEX.W!==W || TEX.H!==H)
+    TEX=PrintTexture.create(W, H, S.seed, { grain:46 });
+}
+
 function draw(){
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle=css('--paper');ctx.fillRect(0,0,W,H);
   const cells=buildCells();
   const bow=(S.bow/100)*0.55, sharpP=S.sharp/100, th=S.bal/100, g=S.gap/100;
-  const ink=css('--ink'),paper=css('--paper');
+  const paper=css('--paper');
   cells.forEach(c=>{ const sil=curvySilhouette(insetPolygon(c.poly,c.cx,c.cy,g),bow,sharpP);
     c.path=sil.path; c.outline=sil.outline; const oc=polyCentroid(c.outline); c.cx=oc[0]; c.cy=oc[1];
     c.black=c.r<th; });
-  cells.forEach(c=>{ ctx.fillStyle=c.black?ink:paper; ctx.fill(c.path); });
-  // assign one text per form (by build index) + draw [n] at form centre
-  const fs=Math.max(11, Math.min(16, Math.round(Math.min(W,H)*0.0128)));   // 20% smaller
+  ensureTex();
+  // fill each black form with the generative print texture (grain + clouds + edge bleed)
+  cells.forEach(c=>{
+    if(!c.black){ ctx.fillStyle=paper; ctx.fill(c.path); return; }
+    PrintTexture.paintForm(ctx, c.path, TEX);
+  });
+  PrintTexture.overlayGrain(ctx, TEX);   // paper grain over the whole sheet
+  // numbers on top (crisp, above grain) — half the previous size
+  const fs=Math.max(7, Math.min(11, Math.round(Math.min(W,H)*0.0064)));
   cells.forEach((c,i)=>{ c.text = i<TEXTS.length ? TEXTS[i] : null; });
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.font=`400 ${fs}px "IBM Plex Mono", ui-monospace, monospace`;         // thinner mono
+  ctx.font=`400 ${fs}px "IBM Plex Mono", ui-monospace, monospace`;
   if('letterSpacing' in ctx) ctx.letterSpacing='0.03em';
   cells.forEach((c,i)=>{ if(!c.text||!c.black) return;
-    c.anchor={x:c.cx, y:c.cy};                                            // centred on the form
+    c.anchor={x:c.cx, y:c.cy};
     ctx.fillStyle='#f2f0ea'; ctx.fillText('['+c.text.num+']', c.anchor.x, c.anchor.y);
   });
   if('letterSpacing' in ctx) ctx.letterSpacing='0px';
@@ -245,16 +270,24 @@ function buildMap(){
   const nodes=CELLS.filter(c=>c.text&&c.anchor);
   // arcs between numbers in numeric order
   const ord=nodes.slice().sort((a,b)=>(+a.text.num)-(+b.text.num));
-  const trim=22;   // gap so the arc doesn't strike through the digit
+  const fs=Math.max(7, Math.min(11, Math.round(Math.min(W,H)*0.0064)));
+  const R=fs*1.15+5;   // ring around each digit where the arc cleanly begins/ends
   for(let i=0;i<ord.length-1;i++){
     const A=ord[i].anchor, B=ord[i+1].anchor;
     const dx=B.x-A.x, dy=B.y-A.y, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L;
-    const ax=A.x+ux*trim, ay=A.y+uy*trim, bx=B.x-ux*trim, by=B.y-uy*trim;
-    const mx=(ax+bx)/2, my=(ay+by)/2;
-    const off=Math.min(160, L*0.40), cx=mx-uy*off, cy=my+ux*off;   // bigger arc
+    // full arc from digit-centre A to digit-centre B (so its ends aim at the digits)
+    const mx=(A.x+B.x)/2, my=(A.y+B.y)/2, off=Math.min(160, L*0.40);
+    const C={x:mx-uy*off, y:my+ux*off};
+    // trim a ring of radius R off each end along the curve (De Casteljau split)
+    const t1=tFromStart(A,C,B,R), t2=tFromEnd(A,C,B,R);
+    if(t2-t1<0.05) continue;                        // digits too close → skip
+    const P1=qpt(A,C,B,t1), P2=qpt(A,C,B,t2);
+    const s=(t2-t1)/(1-t1);
+    const R1={x:C.x+(B.x-C.x)*t1, y:C.y+(B.y-C.y)*t1};
+    const Q={x:P1[0]+(R1.x-P1[0])*s, y:P1[1]+(R1.y-P1[1])*s};   // sub-curve control
     const p=document.createElementNS('http://www.w3.org/2000/svg','path');
-    p.setAttribute('d',`M ${ax} ${ay} Q ${cx} ${cy} ${bx} ${by}`);
-    const len=Math.hypot(ax-cx,ay-cy)+Math.hypot(bx-cx,by-cy);
+    p.setAttribute('d',`M ${P1[0]} ${P1[1]} Q ${Q.x} ${Q.y} ${P2[0]} ${P2[1]}`);
+    const len=Math.hypot(P1[0]-Q.x,P1[1]-Q.y)+Math.hypot(P2[0]-Q.x,P2[1]-Q.y);
     p.style.setProperty('--len',len); p.style.animationDelay=(i*0.05)+'s';
     arcsEl.appendChild(p);
   }
