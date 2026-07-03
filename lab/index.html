@@ -1,18 +1,22 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HOSQ R&D · Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Source+Serif+4:wght@400;500;600&family=Fraunces:opsz,wght,SOFT,WONK@9..144,100..900,0..100,0..1&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6/dist/d3-delaunay.min.js"></script>
 <script src="/lab/print-texture.js"></script>
 <style>
   :root{ --ink:#0a0a0a; --paper:#eee9dd; --paper2:#e2dccb; --line:#d8d1c0; --muted:#6b6659; --lite:#f2f0ea;
     --mono:"IBM Plex Mono", ui-monospace, "SF Mono", monospace;
-    --sans:"Helvetica Neue",Arial,sans-serif; }
+    --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+    --fraunces:"Fraunces", Georgia, "Times New Roman", serif;
+    --sans:"Helvetica Neue",Arial,sans-serif;
+    --artbg:#141210; --abody:#ded7c6; --atitle:#ece6d8; --agold:#8f7d5e; --amuted:#6f6250;
+    --SOFT:0; }   /* live axis: Fraunces Softness, driven by data (Oura) */
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:var(--sans);overflow:hidden}
   canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block;z-index:0;cursor:pointer}
@@ -24,6 +28,7 @@
     stroke-dasharray:var(--len);stroke-dashoffset:var(--len);
     animation:draw .55s ease forwards}
   @keyframes draw{to{stroke-dashoffset:0}}
+  #arcs path.hand{stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
   .box{position:absolute;pointer-events:auto;cursor:pointer;transform:scale(.96);transform-origin:top left;
     background:var(--paper);color:var(--ink);border:1px solid rgba(10,10,10,.10);
     font-family:var(--mono);font-size:10.5px;line-height:1.35;font-weight:400;
@@ -56,18 +61,42 @@
   .foot b{color:var(--ink)}
 
   /* full-text reader — 90% black wash */
-  .reader{position:fixed;inset:0;z-index:40;background:rgba(10,10,10,.9);color:#f2f0ea;
+  .reader{position:fixed;inset:0;z-index:40;color:var(--abody);
     display:none;opacity:0;transition:opacity .28s ease;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .reader.open{display:block;opacity:1}
-  .reader .inner{max-width:640px;margin:0 auto;padding:13vh 8vw 16vh;font-family:var(--mono)}
-  .reader .num{font-family:var(--sans);font-weight:700;font-size:15px;letter-spacing:.12em;color:#b8b4a8}
-  .reader .ttl{font-size:22px;line-height:1.25;letter-spacing:.01em;margin:12px 0 26px;font-weight:500}
-  .reader .body{font-size:16px;line-height:1.65;letter-spacing:.01em;font-weight:400;color:#e2ded2;white-space:pre-wrap}
-  .reader .close{position:fixed;top:18px;right:20px;width:44px;height:44px;border-radius:50%;
-    border:1.5px solid #cfccc2;background:transparent;color:#f2f0ea;cursor:pointer;font-size:17px;
-    display:flex;align-items:center;justify-content:center;z-index:41}
+  .reader .rbg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;opacity:.96;pointer-events:none}  /* ~95% textured fill */
+  .reader .ranchor{position:fixed;right:clamp(20px,6vw,130px);top:11vh;z-index:1;pointer-events:none;user-select:none;
+    font-family:var(--serif);font-weight:600;font-size:clamp(90px,13vw,150px);line-height:1;color:rgba(232,226,212,.06)}
+  .article{position:relative;z-index:2;max-width:660px;margin:0 0 0 clamp(88px,14vw,220px);
+    padding:clamp(80px,13vh,140px) 40px 180px}
+  .article .issue{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--agold);margin:0 0 22px}
+  .article .title{font-family:var(--fraunces);font-size:40px;line-height:1.12;letter-spacing:-.01em;
+    color:var(--atitle);margin:0 0 20px;max-width:14em;
+    font-variation-settings:"opsz" 80,"wght" 600,"SOFT" var(--SOFT),"WONK" 0;
+    transition:font-variation-settings .55s cubic-bezier(.4,0,.2,1)}
+  .article .rule{display:block;width:56px;height:14px;margin:0 0 38px;overflow:visible}
+  .article .rule path{fill:none;stroke:var(--agold);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+  .article .body{font-family:var(--fraunces);font-size:20px;line-height:1.6;color:var(--abody);max-width:34em;
+    font-variation-settings:"opsz" 26,"wght" 400,"SOFT" var(--SOFT),"WONK" 0;
+    transition:font-variation-settings .55s cubic-bezier(.4,0,.2,1)}
+  .article .body p{margin:0 0 1.35em}
+  .article .body p:last-child{margin:0}
+  .article .rnav{margin-top:64px;display:flex;gap:28px;font-family:var(--mono);font-size:13px;letter-spacing:.08em}
+  .article .rnav a{color:var(--amuted);cursor:pointer;transition:color .2s}
+  .article .rnav a:hover{color:var(--abody)}
+  .reader .close{position:fixed;top:22px;right:24px;z-index:3;border:0;background:transparent;
+    color:rgba(240,238,230,.38);font-size:20px;line-height:1;cursor:pointer;padding:10px;transition:color .2s,transform .2s}
+  .reader .close:hover{color:rgba(240,238,230,.82);transform:rotate(90deg)}
+  .softctl{position:fixed;left:24px;bottom:22px;z-index:4;display:flex;align-items:center;gap:10px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--amuted)}
+  .softctl input[type=range]{-webkit-appearance:none;width:120px;height:2px;background:var(--amuted);outline:0}
+  .softctl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--agold);cursor:pointer}
+  .softctl .softval{width:2em;text-align:right;color:var(--agold);font-variant-numeric:tabular-nums}
   @media(max-width:640px){
-    .reader .ttl{font-size:19px} .reader .body{font-size:15px}
+    .article{margin-left:0;max-width:none;padding:80px 24px 100px}
+    .article .title{font-size:28px;line-height:1.2;letter-spacing:0;max-width:none}
+    .article .body{font-size:17px;line-height:1.58;max-width:none;hyphens:auto}
+    .reader .ranchor{font-size:74px;right:14px;top:8vh;color:rgba(232,226,212,.05)}
     .box{font-size:10px;max-width:166px;padding:8px 12px}
   }
 </style>
@@ -76,76 +105,99 @@
   <canvas id="c"></canvas>
   <div id="map"><svg id="arcs"></svg></div>
 
-  <button class="toggle" id="toggle" aria-label="Панель управления">≡</button>
+  <button class="toggle" id="toggle" aria-label="Controls">≡</button>
 
   <aside class="panel" id="panel">
     <h1>HOSQ&nbsp;R&amp;D</h1>
-    <div class="sub">Lab · еженедельный дайджест</div>
+    <div class="sub">Lab · weekly digest</div>
 
-    <div class="ctl"><div class="row"><label>Формы</label><span class="val" id="v-n">7</span></div>
+    <div class="ctl"><div class="row"><label>Forms</label><span class="val" id="v-n">7</span></div>
       <input type="range" id="n" min="6" max="60" value="7">
-      <div class="hint">число зон → <span class="bio">события / тексты</span></div></div>
+      <div class="hint">number of zones → <span class="bio">events / texts</span></div></div>
 
-    <div class="ctl"><div class="row"><label>Спокойствие</label><span class="val" id="v-calm">9</span></div>
+    <div class="ctl"><div class="row"><label>Calm</label><span class="val" id="v-calm">9</span></div>
       <input type="range" id="calm" min="0" max="40" value="9">
-      <div class="hint">итерации Ллойда → <span class="bio">HRV</span></div></div>
+      <div class="hint">Lloyd iterations → <span class="bio">HRV</span></div></div>
 
-    <div class="ctl"><div class="row"><label>Разброс размеров</label><span class="val" id="v-var">8</span></div>
+    <div class="ctl"><div class="row"><label>Size spread</label><span class="val" id="v-var">8</span></div>
       <input type="range" id="var" min="0" max="100" value="8">
-      <div class="hint">неравномерность зон → <span class="bio">доли сна / зон пульса</span></div></div>
+      <div class="hint">zone unevenness → <span class="bio">sleep / heart-rate zones</span></div></div>
 
-    <div class="ctl"><div class="row"><label>Отрыв форм</label><span class="val" id="v-gap">14</span></div>
+    <div class="ctl"><div class="row"><label>Detachment</label><span class="val" id="v-gap">14</span></div>
       <input type="range" id="gap" min="4" max="40" value="14">
-      <div class="hint">белый зазор вокруг форм</div></div>
+      <div class="hint">white gap around each form</div></div>
 
-    <div class="ctl"><div class="row"><label>Изгиб краёв</label><span class="val" id="v-bow">36</span></div>
+    <div class="ctl"><div class="row"><label>Edge bow</label><span class="val" id="v-bow">36</span></div>
       <input type="range" id="bow" min="0" max="100" value="36">
-      <div class="hint">амплитуда дуги на ребре → <span class="bio">тонус</span></div></div>
+      <div class="hint">arc amplitude on the edge → <span class="bio">tone</span></div></div>
 
-    <div class="ctl"><div class="row"><label>Острота</label><span class="val" id="v-sharp">10</span></div>
+    <div class="ctl"><div class="row"><label>Sharpness</label><span class="val" id="v-sharp">10</span></div>
       <input type="range" id="sharp" min="0" max="100" value="10">
-      <div class="hint">доля острых мысов → <span class="bio">напряжение</span></div></div>
+      <div class="hint">share of sharp cusps → <span class="bio">tension</span></div></div>
 
-    <div class="ctl"><div class="row"><label>Чёрное / белое</label><span class="val" id="v-bal">100</span></div>
+    <div class="ctl"><div class="row"><label>Black / white</label><span class="val" id="v-bal">100</span></div>
       <input type="range" id="bal" min="0" max="100" value="100">
-      <div class="hint">доля залитых зон</div></div>
+      <div class="hint">share of filled zones</div></div>
 
-    <div class="ctl"><div class="row"><label>День (seed)</label><span class="val" id="v-seed">72</span></div>
+    <div class="ctl"><div class="row"><label>Day (seed)</label><span class="val" id="v-seed">72</span></div>
       <input type="range" id="seed" min="1" max="120" value="72">
-      <div class="hint">детерминированно: один день = одно полотно</div></div>
+      <div class="hint">deterministic: one day = one canvas</div></div>
 
     <div class="foot">
-      7 форм — 7 текстов. У каждой формы номер в скобках. Клик по форме раскрывает
-      карту: заголовки у номеров + дуги между ними. Клик по заголовку — полный текст.
-      Клик мимо форм — карта скрывается.
+      7 forms — 7 texts. Each form carries a bracketed number. Click a form to reveal
+      the map: titles beside the numbers + arcs between them. Click a title for the full
+      text. Click outside the forms to hide the map.
     </div>
   </aside>
 
   <div class="reader" id="reader">
-    <button class="close" id="readerClose" aria-label="Закрыть">✕</button>
-    <div class="inner">
-      <div class="num" id="readerNum"></div>
-      <div class="ttl" id="readerTtl"></div>
-      <div class="body" id="readerBody"></div>
+    <canvas class="rbg" id="rbg"></canvas>
+    <div class="ranchor" id="ranchor" aria-hidden="true"></div>
+    <button class="close" id="readerClose" aria-label="Close">✕</button>
+    <div class="softctl" id="softctl">
+      <span>Oura&nbsp;→&nbsp;SOFT</span>
+      <input type="range" id="softRange" min="0" max="100" value="0">
+      <span class="softval" id="softVal">0</span>
     </div>
+    <article class="article" id="article">
+      <div class="issue" id="rIssue"></div>
+      <h1 class="title" id="rTitle"></h1>
+      <svg class="rule" id="rRule" viewBox="0 0 60 14" preserveAspectRatio="none"><path d=""/></svg>
+      <div class="body" id="rBody"></div>
+      <nav class="rnav" id="rNav"></nav>
+    </article>
   </div>
 
 <script>
 const TEXTS = [
- { num:'1', title:'Состояние лаборатории',
-   body:'Это первое письмо из лаборатории — и заодно обещание: раз в неделю, коротко и по-человечески, мы рассказываем, над чем работаем. Чтобы вы всегда знали, чем занята HOSQ Digital, без необходимости спрашивать.' },
- { num:'2', title:'Мы перевезли платформу в новый дом',
-   body:'Новый дом устроен иначе прежнего: он сам себя описывает. Раньше инфраструктура была россыпью решений, принятых когда-то и живущих в памяти отдельных людей. Теперь она записана как код — любой её кусок можно восстановить, повторить и объяснить, не полагаясь на то, что кто-то вспомнит, как оно было устроено. Расходы под присмотром, данные под замком, резервные копии делаются сами, без нашего участия.' },
- { num:'3', title:'Метрика для партнёров',
-   body:'Метрика для партнёров живёт своей жизнью: GreenRock получил восемнадцатую версию, Keron — восьмую. Каждая итерация честнее предыдущей — точнее считает, аккуратнее сравнивает, меньше врёт себе.' },
- { num:'4', title:'Качество и своевременность',
-   body:'Пока мы делали эти метрики, стало видно интересное: оценка проекта естественно распадается надвое. Есть качество самого проекта — и есть его своевременность, попадание в момент, в контекст, в готовность среды вокруг. Это разные вещи, и смешивать их — терять обе. В следующем году метрика HOSQ будет мерить оба измерения раздельно.' },
- { num:'5', title:'Клиентские порталы фондов',
-   body:'У каждого фонда теперь есть свой клиентский портал. Видно, чем мы заняты прямо сейчас, что нам нужно от фонда и куда мы идём дальше. Наша работа стала прозрачной по умолчанию — не по запросу, а всегда.' },
- { num:'6', title:'Карта платформы из кода',
-   body:'Строим инструмент, который читает наш собственный код и сам рисует карту платформы: где какие сущности, что меняет их состояние, какие события происходят, что с чем связано. Идея простая и немного дерзкая — чтобы архитектура перестала жить в голове одного разработчика и стала картой, которую видит каждый: новый коллега, партнёр, инвестор. Система, которая умеет показать саму себя.' },
- { num:'7', title:'Премьера ищет сцену',
-   body:'Конференция в Вене, где мы хотели впервые показать Cult Tech, закрылась. Обидно — но премьера от этого никуда не денется, просто ищем ей новую сцену.' },
+ { num:'1', title:'State of the lab', body:[
+   'This is the first letter from the lab — and also a promise: once a week, briefly and in plain language, we tell you what we are working on. So you always know what HOSQ Digital is up to, without having to ask.',
+   'The format is simple: a few short notes on what moved this week. No release fanfare, no reporting for reporting’s sake — only what actually changed the picture.',
+   'If anything here is worth discussing or clarifying, just reply. These letters are meant as a conversation, not a one-way broadcast.' ] },
+ { num:'2', title:'We moved the platform into a new home', body:[
+   'The new home is built differently: it describes itself. Infrastructure used to be a scatter of decisions made long ago and living in a few people’s memory. Now it is written as code — any part of it can be restored, repeated, and explained without relying on someone recalling how it worked.',
+   'In practice, moving to a new machine or a new region is no longer an event. It used to be a week of manual work and a sleepless night; now it is a few lines of configuration and a confirmation.',
+   'Spending is watched, data is locked, backups run on their own. On this foundation the rest is easier to build: experiment environments spin up in minutes, and a fault shows up where it happened, not where it finally surfaced.' ] },
+ { num:'3', title:'The partner metric', body:[
+   'The partner metric has a life of its own: GreenRock reached its eighteenth version, Keron its eighth. Each iteration is more honest than the last — it counts more precisely, compares more carefully, lies to itself less.',
+   'We deliberately do not chase one universal formula. Every partner has their own context, and the metric adapts to it rather than the other way around — otherwise the number is pretty but empty.',
+   'The clearest sign a version worked: the partner looks at the result and recognizes their own work, instead of arguing with the methodology. That is what we are moving toward — slowly, but honestly.' ] },
+ { num:'4', title:'Quality and timing', body:[
+   'While building these metrics, something interesting surfaced: a project’s evaluation naturally splits in two. There is the quality of the project itself — and there is its timing, how well it lands in the moment, the context, the readiness of the world around it.',
+   'These are different things, and mixing them loses both. A good project at the wrong moment and a mediocre one at the right moment are two different stories, and averaging them into a single score means understanding neither.',
+   'Next year the HOSQ metric will measure both dimensions separately. That lets us speak more honestly with authors: where to keep refining the work itself, and where to simply wait for the right window. Often the second matters more.' ] },
+ { num:'5', title:'Client portals for the funds', body:[
+   'Every fund now has its own client portal. You can see what we are working on right now, what we need from the fund, and where we are heading next. Our work is transparent by default — not on request, but always.',
+   'A project’s status used to live in email threads and calls; now it is on a single page, updates itself, and does not require anyone to assemble it by hand before a reporting date.',
+   'The side effect turned out to matter more than the intent: when everything is visible, there are fewer questions and more trust. Transparency saves not only time but also needless explaining.' ] },
+ { num:'6', title:'A map of the platform, from code', body:[
+   'We are building a tool that reads our own code and draws a map of the platform on its own: which entities live where, what changes their state, which events occur, what connects to what.',
+   'The idea is simple and a little bold — to stop the architecture living in one developer’s head and turn it into a map everyone can see: a new colleague, a partner, an investor. A system that can show itself.',
+   'The map is built from the same code that runs in production, so it never goes stale: the system changes and its picture changes with it, with no separate ritual of updating the docs. We treat clarity as a feature, not a nice-to-have.' ] },
+ { num:'7', title:'A premiere looking for a stage', body:[
+   'The conference in Vienna, where we wanted to show Cult Tech for the first time, has closed. A shame — but the premiere is not going anywhere; we are just finding it a new stage.',
+   'The project itself is ready to show; it is only a question of the venue and the right audience to unveil it to first.',
+   'If you have an event or a stage where this belongs, let us know. A good premiere is half about the stage, and that is exactly what we are hunting for right now.' ] },
 ];
 
 const cv=document.getElementById('c'), ctx=cv.getContext('2d');
@@ -205,6 +257,29 @@ function tFromEnd(A,C,B,R){ let prev=1;
     if(d>=R){ let lo=t,hi=prev; for(let it=0;it<14;it++){const m=(lo+hi)/2,pm=qpt(A,C,B,m); if(Math.hypot(pm[0]-B.x,pm[1]-B.y)<R) hi=m; else lo=m;} return (lo+hi)/2; } prev=t; }
   return 0.5; }
 
+// a wavy, hand-drawn line from digit A to digit B (starts/ends R off each centre,
+// perpendicular sine wobble with two frequencies + slight tremor, tapered at the ends)
+function wavyLine(A,B,R,mr){
+  const dx=B.x-A.x, dy=B.y-A.y, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L, px=-uy, py=ux;
+  const seg=L-2*R; if(seg<24) return null;
+  const P1={x:A.x+ux*R,y:A.y+uy*R}, P2={x:B.x-ux*R,y:B.y-uy*R};
+  const A1=Math.min(30, seg*0.13), A2=A1*0.45;
+  const k1=2+Math.floor(mr()*2), k2=5+Math.floor(mr()*3);
+  const ph1=mr()*6.283, ph2=mr()*6.283, tilt=(mr()*2-1)*6;   // small overall drift
+  const N=Math.max(18, Math.round(seg/9)), pts=[];
+  for(let i=0;i<=N;i++){ const s=i/N, env=Math.sin(Math.PI*s);
+    let o=env*(A1*Math.sin(k1*6.283*s+ph1)+A2*Math.sin(k2*6.283*s+ph2)) + env*tilt*Math.sin(3.1*s);
+    o+=(mr()*2-1)*1.6*env;                                   // hand tremor
+    pts.push([P1.x+(P2.x-P1.x)*s+px*o, P1.y+(P2.y-P1.y)*s+py*o]);
+  }
+  let d='M '+pts[0][0].toFixed(1)+' '+pts[0][1].toFixed(1), len=0;
+  for(let i=1;i<pts.length-1;i++){ const mx=(pts[i][0]+pts[i+1][0])/2, my=(pts[i][1]+pts[i+1][1])/2;
+    d+=' Q '+pts[i][0].toFixed(1)+' '+pts[i][1].toFixed(1)+' '+mx.toFixed(1)+' '+my.toFixed(1); }
+  d+=' L '+pts[pts.length-1][0].toFixed(1)+' '+pts[pts.length-1][1].toFixed(1);
+  for(let i=1;i<pts.length;i++) len+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);
+  return {d,len};
+}
+
 // place [n] label at a deterministic random interior point where it fully fits
 function placeLabel(cell, ci, label, fs){
   const w=label.length*fs*0.6, h=fs;
@@ -246,16 +321,16 @@ function draw(){
     if(!c.black){ ctx.fillStyle=paper; ctx.fill(c.path); return; }
     PrintTexture.paintForm(ctx, c.path, TEX);
   });
-  PrintTexture.overlayGrain(ctx, TEX);   // paper grain over the whole sheet
-  // numbers on top (crisp, above grain) — half the previous size
-  const fs=Math.max(7, Math.min(11, Math.round(Math.min(W,H)*0.0064)));
+  PrintTexture.overlayGrain(ctx, TEX);   // paper grain over the whole sheet (forms + ground)
+  // numbers on top (crisp, above grain)
+  const fs=Math.max(9, Math.min(14, Math.round(Math.min(W,H)*0.0083)));   // +30%
   cells.forEach((c,i)=>{ c.text = i<TEXTS.length ? TEXTS[i] : null; });
   ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.font=`400 ${fs}px "IBM Plex Mono", ui-monospace, monospace`;
   if('letterSpacing' in ctx) ctx.letterSpacing='0.03em';
   cells.forEach((c,i)=>{ if(!c.text||!c.black) return;
     c.anchor={x:c.cx, y:c.cy};
-    ctx.fillStyle='#f2f0ea'; ctx.fillText('['+c.text.num+']', c.anchor.x, c.anchor.y);
+    ctx.fillStyle='#f2f0ea'; ctx.fillText('[ '+c.text.num+' ]', c.anchor.x, c.anchor.y);
   });
   if('letterSpacing' in ctx) ctx.letterSpacing='0px';
   CELLS=cells;
@@ -270,24 +345,33 @@ function buildMap(){
   const nodes=CELLS.filter(c=>c.text&&c.anchor);
   // arcs between numbers in numeric order
   const ord=nodes.slice().sort((a,b)=>(+a.text.num)-(+b.text.num));
-  const fs=Math.max(7, Math.min(11, Math.round(Math.min(W,H)*0.0064)));
-  const R=fs*1.15+5;   // ring around each digit where the arc cleanly begins/ends
+  const fs=Math.max(9, Math.min(14, Math.round(Math.min(W,H)*0.0083)));
+  const R=fs*1.25+6;   // ring around each digit where the line cleanly begins/ends
+  const mr=mulberry32((S.seed*40503+7)>>>0);
+  const wavyIndex=Math.floor(mr()*(ord.length-1));   // one link is a hand-drawn wavy line
   for(let i=0;i<ord.length-1;i++){
     const A=ord[i].anchor, B=ord[i+1].anchor;
-    const dx=B.x-A.x, dy=B.y-A.y, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L;
-    // full arc from digit-centre A to digit-centre B (so its ends aim at the digits)
-    const mx=(A.x+B.x)/2, my=(A.y+B.y)/2, off=Math.min(160, L*0.40);
-    const C={x:mx-uy*off, y:my+ux*off};
-    // trim a ring of radius R off each end along the curve (De Casteljau split)
-    const t1=tFromStart(A,C,B,R), t2=tFromEnd(A,C,B,R);
-    if(t2-t1<0.05) continue;                        // digits too close → skip
-    const P1=qpt(A,C,B,t1), P2=qpt(A,C,B,t2);
-    const s=(t2-t1)/(1-t1);
-    const R1={x:C.x+(B.x-C.x)*t1, y:C.y+(B.y-C.y)*t1};
-    const Q={x:P1[0]+(R1.x-P1[0])*s, y:P1[1]+(R1.y-P1[1])*s};   // sub-curve control
     const p=document.createElementNS('http://www.w3.org/2000/svg','path');
-    p.setAttribute('d',`M ${P1[0]} ${P1[1]} Q ${Q.x} ${Q.y} ${P2[0]} ${P2[1]}`);
-    const len=Math.hypot(P1[0]-Q.x,P1[1]-Q.y)+Math.hypot(P2[0]-Q.x,P2[1]-Q.y);
+    let len;
+    if(i===wavyIndex){
+      const w=wavyLine(A,B,R,mr);
+      if(w){ p.setAttribute('d',w.d); p.setAttribute('class','hand'); len=w.len; }
+    }
+    if(len===undefined){
+      const dx=B.x-A.x, dy=B.y-A.y, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L;
+      // full arc from digit-centre A to digit-centre B (so its ends aim at the digits)
+      const mx=(A.x+B.x)/2, my=(A.y+B.y)/2, off=Math.min(160, L*0.40);
+      const C={x:mx-uy*off, y:my+ux*off};
+      // trim a ring of radius R off each end along the curve (De Casteljau split)
+      const t1=tFromStart(A,C,B,R), t2=tFromEnd(A,C,B,R);
+      if(t2-t1<0.05) continue;                        // digits too close → skip
+      const P1=qpt(A,C,B,t1), P2=qpt(A,C,B,t2);
+      const s=(t2-t1)/(1-t1);
+      const R1={x:C.x+(B.x-C.x)*t1, y:C.y+(B.y-C.y)*t1};
+      const Q={x:P1[0]+(R1.x-P1[0])*s, y:P1[1]+(R1.y-P1[1])*s};   // sub-curve control
+      p.setAttribute('d',`M ${P1[0]} ${P1[1]} Q ${Q.x} ${Q.y} ${P2[0]} ${P2[1]}`);
+      len=Math.hypot(P1[0]-Q.x,P1[1]-Q.y)+Math.hypot(P2[0]-Q.x,P2[1]-Q.y);
+    }
     p.style.setProperty('--len',len); p.style.animationDelay=(i*0.05)+'s';
     arcsEl.appendChild(p);
   }
@@ -321,25 +405,55 @@ function buildMap(){
 function showMap(){ mapOn=true; buildMap(); }
 function hideMap(){ mapOn=false; clearMap(); }
 
-// ---- reader ----
+// ---- reader: single-column article (Medium-grade), dark textured surface, grain at edges ----
 const reader=document.getElementById('reader');
+const rbg=document.getElementById('rbg'), ranchor=document.getElementById('ranchor');
+let readerText=null;
+
+function drawReaderBg(){
+  const w=Math.round(window.innerWidth)||600, h=Math.round(window.innerHeight)||960, dpr=Math.max(1,window.devicePixelRatio||1);
+  rbg.width=w*dpr; rbg.height=h*dpr; const cx=rbg.getContext('2d'); cx.setTransform(dpr,0,0,dpr,0,0);
+  const tex=PrintTexture.create(w,h,S.seed);
+  cx.fillStyle='#141210'; cx.fillRect(0,0,w,h);                  // warm near-black (no halation)
+  cx.save(); cx.globalCompositeOperation='overlay'; cx.globalAlpha=0.6; cx.drawImage(tex.grain,0,0,w,h); cx.restore();
+  // calm the grain under the reading column — grain stays at the edges/header only
+  const colX = w<=640 ? w*0.5 : (Math.max(88,Math.min(220,w*0.14))+320);
+  const g=cx.createRadialGradient(colX,h*0.42,40,colX,h*0.42,Math.max(w,h)*0.62);
+  g.addColorStop(0,'rgba(20,18,16,0.94)'); g.addColorStop(0.5,'rgba(20,18,16,0.5)'); g.addColorStop(1,'rgba(20,18,16,0)');
+  cx.fillStyle=g; cx.fillRect(0,0,w,h);
+}
+function wavyRulePath(){ let d='M 1 7'; const N=18;
+  for(let i=1;i<=N;i++){ const x=1+58*i/N, env=Math.sin(Math.PI*i/N), y=7+Math.sin(i/N*Math.PI*3.2)*3*env; d+=' L '+x.toFixed(1)+' '+y.toFixed(1); }
+  return d; }
+function neighbors(num){ const i=TEXTS.findIndex(t=>t.num===num);
+  return {prev:TEXTS[(i-1+TEXTS.length)%TEXTS.length], next:TEXTS[(i+1)%TEXTS.length]}; }
 function openReader(t){
-  document.getElementById('readerNum').textContent='['+t.num+']';
-  document.getElementById('readerTtl').textContent=t.title;
-  document.getElementById('readerBody').textContent=t.body;
+  readerText=t; drawReaderBg();
+  document.getElementById('rIssue').textContent='[ '+t.num+' / '+TEXTS.length+' ]';
+  document.getElementById('rTitle').textContent=t.title;
+  const body=document.getElementById('rBody'); body.innerHTML='';
+  t.body.forEach(par=>{ const el=document.createElement('p'); el.textContent=par; body.appendChild(el); });
+  ranchor.textContent=t.num;
+  document.querySelector('#rRule path').setAttribute('d', wavyRulePath());
+  const nb=neighbors(t.num), nav=document.getElementById('rNav'); nav.innerHTML='';
+  const a1=document.createElement('a'); a1.textContent='← [ '+nb.prev.num+' ]'; a1.addEventListener('click',e=>{e.stopPropagation();openReader(nb.prev);});
+  const a2=document.createElement('a'); a2.textContent='[ '+nb.next.num+' ] →'; a2.addEventListener('click',e=>{e.stopPropagation();openReader(nb.next);});
+  nav.append(a1,a2);
   reader.scrollTop=0; reader.classList.add('open');
 }
-function closeReader(){ reader.classList.remove('open'); }
+function closeReader(){ reader.classList.remove('open'); readerText=null; }
 document.getElementById('readerClose').addEventListener('click',closeReader);
+// prototype: SOFT axis driven by slider (stands in for Oura data)
+(function(){ const r=document.getElementById('softRange'), v=document.getElementById('softVal');
+  r.addEventListener('input',()=>{ document.documentElement.style.setProperty('--SOFT', r.value); v.textContent=r.value; }); })();
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(reader.classList.contains('open')) closeReader(); else hideMap(); } });
 
 // ---- interaction ----
 cv.addEventListener('click',e=>{
+  // map visible → any click that isn't a title box (boxes stop propagation) hides it
+  if(mapOn){ hideMap(); return; }
   const x=e.clientX, y=e.clientY;
-  let hit=null;
-  for(const c of CELLS){ if(c.text&&c.outline&&inPoly(x,y,c.outline)){ hit=c; break; } }
-  if(hit) showMap();          // click on a form → reveal map
-  else hideMap();             // click on empty space → hide map
+  for(const c of CELLS){ if(c.text&&c.outline&&inPoly(x,y,c.outline)){ showMap(); break; } }
 });
 
 // ---- panel ----
@@ -351,7 +465,7 @@ function setCollapsed(c){ panel.classList.toggle('collapsed',c); toggle.textCont
 toggle.addEventListener('click',()=>setCollapsed(!panel.classList.contains('collapsed')));
 setCollapsed(window.innerWidth<820);
 
-let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(resize,120);});
+let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{resize(); if(reader.classList.contains('open')) drawReaderBg();},120);});
 window.addEventListener('load',resize);
 document.fonts && document.fonts.ready.then(()=>draw());
 resize();
