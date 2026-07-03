@@ -6,17 +6,18 @@
 <title>HOSQ R&D · Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Source+Serif+4:wght@400;500;600&family=Fraunces:opsz,wght,SOFT,WONK@9..144,100..900,0..100,0..1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,slnt,wght,GRAD@8..144,-10..0,100..1000,-200..150&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6/dist/d3-delaunay.min.js"></script>
 <script src="/lab/print-texture.js"></script>
 <style>
   :root{ --ink:#0a0a0a; --paper:#eee9dd; --paper2:#e2dccb; --line:#d8d1c0; --muted:#6b6659; --lite:#f2f0ea;
-    --mono:"IBM Plex Mono", ui-monospace, "SF Mono", monospace;
-    --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
-    --fraunces:"Fraunces", Georgia, "Times New Roman", serif;
-    --sans:"Helvetica Neue",Arial,sans-serif;
+    --mono:"Roboto Flex", "Helvetica Neue", Arial, sans-serif;
+    --serif:"Roboto Flex", "Helvetica Neue", Arial, sans-serif;
+    --flex:"Roboto Flex", "Helvetica Neue", Arial, sans-serif;
+    --sans:"Roboto Flex", "Helvetica Neue", Arial, sans-serif;
     --artbg:#141210; --abody:#ded7c6; --atitle:#ece6d8; --agold:#8f7d5e; --amuted:#6f6250;
-    --SOFT:0; }   /* live axis: Fraunces Softness, driven by data (Oura) */
+    --GRAD:0;   /* live axis: Roboto Flex Grade, to be driven by data (Oura) */
+    --framecol:#f4f1ea; --fw:clamp(40px,4.5vw,72px); --fwb:clamp(64px,7vw,104px); }  /* passe-partout: warm white, asymmetric */
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:var(--sans);overflow:hidden}
   canvas{position:fixed;inset:0;width:100vw;height:100vh;display:block;z-index:0;cursor:pointer}
@@ -60,50 +61,95 @@
   .foot{font-size:10.5px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);padding-top:14px;margin-top:22px}
   .foot b{color:var(--ink)}
 
-  /* full-text reader — 90% black wash */
+  /* full-text reader — minimalist, 98% textured wash */
   .reader{position:fixed;inset:0;z-index:40;color:var(--abody);
     display:none;opacity:0;transition:opacity .28s ease;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .reader.open{display:block;opacity:1}
-  .reader .rbg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;opacity:.96;pointer-events:none}  /* ~95% textured fill */
-  .reader .ranchor{position:fixed;right:clamp(20px,6vw,130px);top:11vh;z-index:1;pointer-events:none;user-select:none;
-    font-family:var(--serif);font-weight:600;font-size:clamp(90px,13vw,150px);line-height:1;color:rgba(232,226,212,.06)}
-  .article{position:relative;z-index:2;max-width:660px;margin:0 0 0 clamp(88px,14vw,220px);
-    padding:clamp(80px,13vh,140px) 40px 180px}
-  .article .issue{font-family:var(--mono);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--agold);margin:0 0 22px}
-  .article .title{font-family:var(--fraunces);font-size:40px;line-height:1.12;letter-spacing:-.01em;
-    color:var(--atitle);margin:0 0 20px;max-width:14em;
-    font-variation-settings:"opsz" 80,"wght" 600,"SOFT" var(--SOFT),"WONK" 0;
+  .reader .rbg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;opacity:.98;pointer-events:none}
+  .article{position:relative;z-index:2;max-width:660px;margin:0 auto;
+    padding:clamp(84px,15vh,160px) 40px 180px}
+  .article .title{font-family:var(--flex);font-size:40px;line-height:1.12;letter-spacing:-.015em;
+    color:var(--atitle);margin:0 0 34px;max-width:15em;
+    font-variation-settings:"opsz" 48,"wght" 620,"GRAD" var(--GRAD);
     transition:font-variation-settings .55s cubic-bezier(.4,0,.2,1)}
-  .article .rule{display:block;width:56px;height:14px;margin:0 0 38px;overflow:visible}
-  .article .rule path{fill:none;stroke:var(--agold);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
-  .article .body{font-family:var(--fraunces);font-size:20px;line-height:1.6;color:var(--abody);max-width:34em;
-    font-variation-settings:"opsz" 26,"wght" 400,"SOFT" var(--SOFT),"WONK" 0;
+  .article .body{font-family:var(--flex);font-size:19px;line-height:1.62;color:var(--abody);max-width:36em;
+    font-variation-settings:"opsz" 20,"wght" 400,"GRAD" var(--GRAD);
     transition:font-variation-settings .55s cubic-bezier(.4,0,.2,1)}
   .article .body p{margin:0 0 1.35em}
   .article .body p:last-child{margin:0}
-  .article .rnav{margin-top:64px;display:flex;gap:28px;font-family:var(--mono);font-size:13px;letter-spacing:.08em}
-  .article .rnav a{color:var(--amuted);cursor:pointer;transition:color .2s}
-  .article .rnav a:hover{color:var(--abody)}
   .reader .close{position:fixed;top:22px;right:24px;z-index:3;border:0;background:transparent;
-    color:rgba(240,238,230,.38);font-size:20px;line-height:1;cursor:pointer;padding:10px;transition:color .2s,transform .2s}
-  .reader .close:hover{color:rgba(240,238,230,.82);transform:rotate(90deg)}
-  .softctl{position:fixed;left:24px;bottom:22px;z-index:4;display:flex;align-items:center;gap:10px;
-    font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--amuted)}
-  .softctl input[type=range]{-webkit-appearance:none;width:120px;height:2px;background:var(--amuted);outline:0}
-  .softctl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--agold);cursor:pointer}
-  .softctl .softval{width:2em;text-align:right;color:var(--agold);font-variant-numeric:tabular-nums}
+    color:rgba(240,238,230,.32);font-size:20px;line-height:1;cursor:pointer;padding:10px;transition:color .2s,transform .2s}
+  .reader .close:hover{color:rgba(240,238,230,.8);transform:rotate(90deg)}
   @media(max-width:640px){
-    .article{margin-left:0;max-width:none;padding:80px 24px 100px}
+    .article{margin:0 auto;max-width:none;padding:84px 24px 100px}
     .article .title{font-size:28px;line-height:1.2;letter-spacing:0;max-width:none}
     .article .body{font-size:17px;line-height:1.58;max-width:none;hyphens:auto}
-    .reader .ranchor{font-size:74px;right:14px;top:8vh;color:rgba(232,226,212,.05)}
     .box{font-size:10px;max-width:166px;padding:8px 12px}
+  }
+
+  /* ---- passe-partout frame (main page) ---- */
+  .frame{position:fixed;inset:0;z-index:22;pointer-events:none;border-style:solid;border-color:var(--framecol);
+    border-width:var(--fw) var(--fw) var(--fwb) var(--fw);
+    box-shadow:inset 0 0 0 1px rgba(10,10,10,.04)}
+  .frametop{position:fixed;top:0;left:var(--fw);right:calc(var(--fw) + 56px);height:var(--fw);z-index:24;
+    display:flex;align-items:center;justify-content:space-between;gap:24px;pointer-events:none;
+    font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.14em;color:var(--muted)}
+  .frametop .desc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .frametop .date{white-space:nowrap;letter-spacing:.16em;flex-shrink:0;opacity:.8}
+  .frameside{position:fixed;top:var(--fw);bottom:var(--fwb);width:var(--fw);z-index:24;
+    display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .frameside.left{left:0}.frameside.right{right:0}
+  .frameside a{pointer-events:auto;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.16em;
+    color:var(--muted);text-decoration:none;writing-mode:vertical-rl;white-space:nowrap;transition:color .2s,transform .2s}
+  .frameside.left a{transform:rotate(180deg)}
+  .frameside.left a:hover{color:var(--ink);transform:rotate(180deg) translateY(-3px)}
+  .frameside .edge{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--muted);opacity:.5;
+    writing-mode:vertical-rl;white-space:nowrap}
+  .framebottom{position:fixed;left:var(--fw);right:var(--fw);bottom:0;height:var(--fwb);z-index:24;
+    display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px;pointer-events:none}
+  .framebottom .manifest{margin:0;max-width:none;font-family:var(--mono);font-size:12px;line-height:1.5;
+    letter-spacing:.01em;color:var(--ink)}
+  .framebottom .learn{pointer-events:auto;color:var(--ink);text-decoration:none;font-weight:500;white-space:nowrap}
+  .framebottom .learn:hover{text-decoration:underline}
+  .daynav{display:none}
+  .daynav .edge{color:var(--muted);opacity:.5}
+  .toast{position:fixed;left:50%;bottom:calc(var(--fwb) + 18px);transform:translateX(-50%) translateY(8px);z-index:36;
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--paper);background:var(--ink);
+    padding:8px 15px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+  .toast.show{opacity:.94;transform:translateX(-50%) translateY(0)}
+  @media(max-width:760px){
+    .frame{border-width:0}
+    .frameside{display:none}
+    .frametop{top:0;left:0;right:0;height:auto;display:block;font-size:9.5px;line-height:1.45;letter-spacing:.1em;
+      background:var(--paper);padding:14px 64px 12px 16px;z-index:24}
+    .frametop .desc{white-space:normal;overflow:visible}
+    .frametop .date{display:block;margin-top:5px;opacity:.7}
+    .framebottom{left:0;right:0;bottom:0;height:auto;flex-direction:column;align-items:flex-start;gap:9px;
+      background:var(--paper);padding:14px 16px 12px;z-index:24}
+    .framebottom .manifest{font-size:11px;max-width:none}
+    .daynav{display:flex;gap:22px;pointer-events:none}
+    .daynav a{pointer-events:auto;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.1em;color:var(--muted);text-decoration:none}
+    .daynav .edge{writing-mode:horizontal-tb;font-size:11px;letter-spacing:.1em}
   }
 </style>
 </head>
 <body>
   <canvas id="c"></canvas>
   <div id="map"><svg id="arcs"></svg></div>
+
+  <!-- passe-partout frame -->
+  <div class="frame" aria-hidden="true"></div>
+  <div class="frametop"><span class="desc">hosq ai works as a post-singularity research and design lab of a hosq foundation</span><span class="date" id="frameDate"></span></div>
+  <nav class="frameside left"><a href="#" data-toast="Day navigation — coming soon" aria-label="Show the previous day">the day before</a></nav>
+  <div class="frameside right"><span class="edge" id="frameEdge">not yet lived</span></div>
+  <div class="framebottom">
+    <p class="manifest">Everything we build is treated as art — including this corporate interface. This site is a symbiotic digital creature that mutates continuously, fed by biometric data from Nikolai&nbsp;Grigoriev&rsquo;s body. <a href="#" class="learn" data-toast="About the work — coming soon">[ Learn more &rarr; ]</a></p>
+    <div class="daynav">
+      <a href="#" data-toast="Day navigation — coming soon">the day before</a>
+      <span class="edge">not yet lived</span>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <button class="toggle" id="toggle" aria-label="Controls">≡</button>
 
@@ -144,27 +190,17 @@
       <div class="hint">deterministic: one day = one canvas</div></div>
 
     <div class="foot">
-      7 forms — 7 texts. Each form carries a bracketed number. Click a form to reveal
-      the map: titles beside the numbers + arcs between them. Click a title for the full
-      text. Click outside the forms to hide the map.
+      7 forms — 7 texts. Click a form to reveal the map: titles joined by arcs. Click a
+      title for the full text. Click outside the forms to hide the map.
     </div>
   </aside>
 
   <div class="reader" id="reader">
     <canvas class="rbg" id="rbg"></canvas>
-    <div class="ranchor" id="ranchor" aria-hidden="true"></div>
     <button class="close" id="readerClose" aria-label="Close">✕</button>
-    <div class="softctl" id="softctl">
-      <span>Oura&nbsp;→&nbsp;SOFT</span>
-      <input type="range" id="softRange" min="0" max="100" value="0">
-      <span class="softval" id="softVal">0</span>
-    </div>
     <article class="article" id="article">
-      <div class="issue" id="rIssue"></div>
       <h1 class="title" id="rTitle"></h1>
-      <svg class="rule" id="rRule" viewBox="0 0 60 14" preserveAspectRatio="none"><path d=""/></svg>
       <div class="body" id="rBody"></div>
-      <nav class="rnav" id="rNav"></nav>
     </article>
   </div>
 
@@ -322,16 +358,14 @@ function draw(){
     PrintTexture.paintForm(ctx, c.path, TEX);
   });
   PrintTexture.overlayGrain(ctx, TEX);   // paper grain over the whole sheet (forms + ground)
-  // numbers on top (crisp, above grain)
-  const fs=Math.max(9, Math.min(14, Math.round(Math.min(W,H)*0.0083)));   // +30%
-  cells.forEach((c,i)=>{ c.text = i<TEXTS.length ? TEXTS[i] : null; });
+  // assign one text per form + draw its bracketed number
+  cells.forEach((c,i)=>{ c.text = i<TEXTS.length ? TEXTS[i] : null; c.anchor={x:c.cx, y:c.cy}; });
+  const fs=Math.max(9, Math.min(14, Math.round(Math.min(W,H)*0.0083)));
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.font=`400 ${fs}px "IBM Plex Mono", ui-monospace, monospace`;
+  ctx.font=`500 ${fs}px "Roboto Flex", "Helvetica Neue", Arial, sans-serif`;
   if('letterSpacing' in ctx) ctx.letterSpacing='0.03em';
-  cells.forEach((c,i)=>{ if(!c.text||!c.black) return;
-    c.anchor={x:c.cx, y:c.cy};
-    ctx.fillStyle='#f2f0ea'; ctx.fillText('[ '+c.text.num+' ]', c.anchor.x, c.anchor.y);
-  });
+  cells.forEach(c=>{ if(!c.text||!c.black) return;
+    ctx.fillStyle='#f2f0ea'; ctx.fillText('[ '+c.text.num+' ]', c.anchor.x, c.anchor.y); });
   if('letterSpacing' in ctx) ctx.letterSpacing='0px';
   CELLS=cells;
   if(mapOn) buildMap();
@@ -407,7 +441,7 @@ function hideMap(){ mapOn=false; clearMap(); }
 
 // ---- reader: single-column article (Medium-grade), dark textured surface, grain at edges ----
 const reader=document.getElementById('reader');
-const rbg=document.getElementById('rbg'), ranchor=document.getElementById('ranchor');
+const rbg=document.getElementById('rbg');
 let readerText=null;
 
 function drawReaderBg(){
@@ -425,27 +459,25 @@ function drawReaderBg(){
 function wavyRulePath(){ let d='M 1 7'; const N=18;
   for(let i=1;i<=N;i++){ const x=1+58*i/N, env=Math.sin(Math.PI*i/N), y=7+Math.sin(i/N*Math.PI*3.2)*3*env; d+=' L '+x.toFixed(1)+' '+y.toFixed(1); }
   return d; }
-function neighbors(num){ const i=TEXTS.findIndex(t=>t.num===num);
-  return {prev:TEXTS[(i-1+TEXTS.length)%TEXTS.length], next:TEXTS[(i+1)%TEXTS.length]}; }
 function openReader(t){
   readerText=t; drawReaderBg();
-  document.getElementById('rIssue').textContent='[ '+t.num+' / '+TEXTS.length+' ]';
   document.getElementById('rTitle').textContent=t.title;
   const body=document.getElementById('rBody'); body.innerHTML='';
   t.body.forEach(par=>{ const el=document.createElement('p'); el.textContent=par; body.appendChild(el); });
-  ranchor.textContent=t.num;
-  document.querySelector('#rRule path').setAttribute('d', wavyRulePath());
-  const nb=neighbors(t.num), nav=document.getElementById('rNav'); nav.innerHTML='';
-  const a1=document.createElement('a'); a1.textContent='← [ '+nb.prev.num+' ]'; a1.addEventListener('click',e=>{e.stopPropagation();openReader(nb.prev);});
-  const a2=document.createElement('a'); a2.textContent='[ '+nb.next.num+' ] →'; a2.addEventListener('click',e=>{e.stopPropagation();openReader(nb.next);});
-  nav.append(a1,a2);
   reader.scrollTop=0; reader.classList.add('open');
 }
 function closeReader(){ reader.classList.remove('open'); readerText=null; }
 document.getElementById('readerClose').addEventListener('click',closeReader);
-// prototype: SOFT axis driven by slider (stands in for Oura data)
-(function(){ const r=document.getElementById('softRange'), v=document.getElementById('softVal');
-  r.addEventListener('input',()=>{ document.documentElement.style.setProperty('--SOFT', r.value); v.textContent=r.value; }); })();
+
+// ---- frame: current-day indicator + placeholder links (toast) ----
+(function(){
+  const d=new Date();
+  const s=d.getFullYear()+' · '+String(d.getMonth()+1).padStart(2,'0')+' · '+String(d.getDate()).padStart(2,'0');
+  const el=document.getElementById('frameDate'); if(el) el.textContent=s;
+  const toast=document.getElementById('toast'); let th;
+  function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); clearTimeout(th); th=setTimeout(()=>toast.classList.remove('show'),1900); }
+  document.querySelectorAll('[data-toast]').forEach(a=>a.addEventListener('click',e=>{ e.preventDefault(); showToast(a.getAttribute('data-toast')); }));
+})();
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ if(reader.classList.contains('open')) closeReader(); else hideMap(); } });
 
 // ---- interaction ----
