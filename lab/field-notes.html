@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HOSQ R&D · Field Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,slnt,wght,GRAD@8..144,-10..0,100..1000,-200..150&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#0a0a0a; --paper:#eee9dd; --paper2:#e2dccb; --line:#d3ccba; --muted:#6b6659;
+    --mono:"Roboto Flex","Helvetica Neue",Arial,sans-serif; }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:var(--mono);-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:clamp(20px,4vw,40px) clamp(16px,4vw,48px) 60px;min-height:100vh;display:flex;flex-direction:column}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:20px;font-size:11px;letter-spacing:.14em;color:var(--muted)}
+  .back{text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:opacity .2s}
+  .back:hover{opacity:.6}
+  .top .id{letter-spacing:.16em}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:0 24px;margin-top:clamp(40px,9vh,90px)}
+  .kick{grid-column:1 / span 12;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;display:flex;justify-content:space-between}
+  h1{grid-column:1 / span 11;margin:18px 0 0;font-size:clamp(44px,8vw,120px);line-height:.94;letter-spacing:-.02em;font-variation-settings:"opsz" 120,"wght" 640;font-weight:640}
+  .lead{grid-column:1 / span 7;margin:30px 0 0;font-size:clamp(16px,1.7vw,20px);line-height:1.5;font-variation-settings:"opsz" 18,"wght" 400}
+  .soon{grid-column:9 / span 4;margin:34px 0 0;align-self:end;font-size:12px;letter-spacing:.06em;line-height:1.6;color:var(--muted)}
+  .soon .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted);margin-right:8px;vertical-align:middle;opacity:.5}
+  .shop{grid-column:1 / span 12;margin-top:46px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0 28px}
+  .item{border-top:1px solid var(--line);padding:22px 0 26px;display:flex;flex-direction:column;gap:9px}
+  .item .nm{font-family:"Roboto Flex";font-size:20px;font-weight:640;letter-spacing:-.01em}
+  .item .meta{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .item .pr{font-size:13px;color:var(--muted)}
+  .item .order{margin-top:6px;align-self:flex-start;text-decoration:none;font-size:11px;letter-spacing:.12em;text-transform:uppercase;border-bottom:1px solid var(--ink);padding-bottom:2px}
+  .item .order:hover{opacity:.6}
+  .fnlist{grid-column:1 / span 12;margin-top:40px}
+  .fnrow{display:grid;grid-template-columns:1.6fr 1.4fr;gap:6px 32px;border-top:1px solid var(--line);padding:22px 0}
+  .fnrow .t{font-family:"Roboto Flex";font-size:19px;font-weight:600;letter-spacing:-.01em;line-height:1.2}
+  .fnrow .m{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+  .fnrow .a{font-size:13px;line-height:1.55;color:var(--muted)}
+  .foot{margin-top:auto;padding-top:40px}
+  .idx{display:grid;grid-template-columns:repeat(12,1fr);gap:0 18px;border-top:1px solid var(--line);padding-top:14px}
+  .idx a{grid-column:span 2;text-decoration:none;display:flex;flex-direction:column;gap:3px;padding-top:2px;transition:opacity .2s}
+  .idx a.cur{opacity:.4;pointer-events:none}
+  .idx a:hover{opacity:.6}
+  .idx .n{font-size:10px;letter-spacing:.16em;color:var(--muted)}
+  .idx .t{font-size:12px;font-weight:600}
+  @media(max-width:720px){ h1{grid-column:1 / span 12} .lead{grid-column:1 / span 12} .soon{grid-column:1 / span 12;margin-top:26px} .idx{grid-template-columns:1fr 1fr;gap:12px 16px} .idx a{grid-column:auto} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top"><a class="back" href="index.html">&larr; hosq r&amp;d lab</a><span class="id">06 · Papers</span></div>
+    <div class="grid">
+      <div class="kick"><span>hosq r&amp;d — field notes</span><span>06 / 06</span></div>
+      <h1>Field Notes</h1>
+      <p class="lead">Notes, working papers and scientific writing from the lab, released openly as the research matures.</p>
+      <div class="fnlist">
+        <div class="fnrow"><div><div class="t">Self-Describing Infrastructure: Provenance as a First-Class Primitive</div><div class="m">C–I–O–S · working paper · 2026</div></div><div class="a">We formalise infrastructure whose state can reconstruct and explain itself, and measure recovery without human recall.</div></div>
+        <div class="fnrow"><div><div class="t">Effect Rows and Totality in Neo Haskell</div><div class="m">Neo Haskell · preprint · 2026</div></div><div class="a">A type discipline that keeps systems provable and expressive at once, with effects tracked directly in the row.</div></div>
+        <div class="fnrow"><div><div class="t">Two Axes of Merit: Separating Quality from Timing in Fund Scoring</div><div class="m">Consulting · methods · 2026</div></div><div class="a">Averaging a project’s quality and its moment hides both; we score the two dimensions independently.</div></div>
+        <div class="fnrow"><div><div class="t">The Body as Substrate: Biometric Feedback as an Aesthetic Material</div><div class="m">HOSQ · essay · 2026</div></div><div class="a">Notes on treating a corporate interface as a living work, fed continuously by the maker’s physiology.</div></div>
+      </div>
+    </div>
+    <div class="foot"><nav class="idx" id="idx"></nav></div>
+  </div>
+<script>
+  var SECS=[["cios","C–I–O–S"],["neo-haskell","Neo Haskell"],["consulting","Consulting"],["shop","Shop"],["about","About"],["field-notes","Field Notes"]];
+  var CUR="field-notes", el=document.getElementById("idx");
+  SECS.forEach(function(s,i){ var a=document.createElement("a"); a.href=s[0]+".html"; if(s[0]===CUR)a.className="cur"; a.innerHTML='<span class=\"n\">'+String(i+1).padStart(2,"0")+'</span><span class=\"t\">'+s[1]+'</span>'; el.appendChild(a); });
+</script>
+</body>
+</html>
