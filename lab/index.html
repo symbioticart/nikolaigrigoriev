@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,slnt,wght,GRAD@8..144,-10..0,100..1000,-200..150&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6/dist/d3-delaunay.min.js"></script>
+<script src="/lab/d3-delaunay.min.js"></script>
 <script src="/lab/print-texture.js"></script>
 <style>
   :root{ --ink:#0a0a0a; --paper:#eee9dd; --paper2:#e2dccb; --line:#d3ccba; --muted:#6b6659; --lite:#f2f0ea;
@@ -240,10 +240,12 @@ function wavyLine(A,B,R,mr){
   return {d,len};
 }
 
-// one image behind each black form; revealed on hover (single) / click (all)
-const IMG_NAMES=['form-1.png','form-2.png','form-3.png','form-4.png','form-5.png','form-6.png','form-7.png'];
-const IMAGES=IMG_NAMES.map(n=>{ const im=new Image(); im.decoding='async'; im.src=BASE+'img/'+n; return im; });
-IMAGES.forEach(im=>im.addEventListener('load',()=>{ units.forEach(u=>{ if(u.cells && (u.revealAll||u.hoverReveal)) paint(u); }); },{once:true}));
+// one image behind each black form; LAZY — bytes fetched only on first reveal, not at page load
+const IMG_NAMES=['form-1.jpg','form-2.jpg','form-3.jpg','form-4.jpg','form-5.jpg','form-6.jpg','form-7.jpg'];
+const IMAGES=IMG_NAMES.map(n=>{ const im=new Image(); im.decoding='async'; im._src=BASE+'img/'+n;
+  im.addEventListener('load',()=>{ units.forEach(u=>{ if(u.cells && (u.revealAll||u.hoverReveal)) paint(u); }); },{once:true});
+  return im; });
+function ensureImg(im){ if(im && !im.getAttribute('src')) im.src=im._src; }
 
 function drawImageInForm(ctx,c){
   const img=c.img, o=c.outline;
@@ -283,8 +285,8 @@ function paint(u){
   u.cells.forEach(c=>{
     if(!c.black){ ctx.fillStyle=paper; ctx.fill(c.path); return; }
     const reveal=u.revealAll || c===u.hoverReveal, img=c.img;
-    if(reveal && img && img.complete && img.naturalWidth) drawImageInForm(ctx,c);
-    else PrintTexture.paintForm(ctx,c.path,u.tex);
+    if(reveal){ ensureImg(img); if(img && img.complete && img.naturalWidth){ drawImageInForm(ctx,c); return; } }
+    PrintTexture.paintForm(ctx,c.path,u.tex);
   });
   PrintTexture.overlayGrain(ctx,u.tex);
   const fs=fsFor(W,H); ctx.textAlign='center'; ctx.textBaseline='middle';
@@ -432,25 +434,37 @@ function unitHTML(i, date){
 function createUnit(i){
   const date=new Date(TODAY); date.setDate(date.getDate()-i);
   const el=document.createElement('section'); el.className='unit'; el.innerHTML=unitHTML(i,date);
-  const u={ el, index:i, date, seed:seedFor(date), tex:null, pinned:null, hoverC:null };
+  const u={ el, index:i, date, seed:seedFor(date), tex:null, pinned:null, hoverC:null, live:false };
   u.canvas=el.querySelector('canvas'); u.ctx=u.canvas.getContext('2d');
   u.arcsEl=el.querySelector('.arcs'); u.bubbleEl=el.querySelector('.bubble'); u.captionEl=el.querySelector('.caption');
-  wireUnit(u);
+  el.__unit=u; wireUnit(u);
   return u;
 }
 function sizeAndRender(u){
   u.W=Math.round(window.innerWidth)||600; u.H=artH;
   u.canvas.width=u.W*DPR; u.canvas.height=u.H*DPR;
   u.canvas.style.width=u.W+'px'; u.canvas.style.height=u.H+'px';
-  renderArt(u);
+  u.live=true; renderArt(u);
 }
-function appendUnit(){ const u=createUnit(units.length); feed.appendChild(u.el); units.push(u); sizeAndRender(u); return u; }
+// free the heavy backing store of a far-offscreen unit; the box keeps its height (no scroll jank)
+function freeUnit(u){
+  if(!u.live) return; u.live=false;
+  u.pinned=null; u.hoverC=null; u.revealAll=false; u.hoverReveal=null; u.hoverArc=null;
+  hideBubble(u); u.arcsEl.innerHTML='';
+  u.canvas.width=1; u.canvas.height=1; u.tex=null;   // reclaim bitmap + texture; style height stays
+}
+const io = ('IntersectionObserver' in window) ? new IntersectionObserver(ents=>{
+  ents.forEach(en=>{ const u=en.target.__unit; if(!u) return;
+    if(en.isIntersecting){ if(!u.live) sizeAndRender(u); }
+    else freeUnit(u); });
+}, { rootMargin:'1400px 0px' }) : null;
+function appendUnit(){ const u=createUnit(units.length); feed.appendChild(u.el); units.push(u); sizeAndRender(u); if(io) io.observe(u.el); return u; }
 function layout(){
   DPR=Math.max(1,window.devicePixelRatio||1);
   const vh=window.innerHeight||900;
   const capH = units[0] ? units[0].captionEl.offsetHeight : Math.round(vh*0.24);
   artH=Math.max(Math.round(vh*0.5), Math.round(vh - capH));
-  units.forEach(sizeAndRender);
+  units.forEach(u=>{ u.canvas.style.height=artH+'px'; if(u.live) sizeAndRender(u); });
 }
 function fillEnough(){
   let guard=0;

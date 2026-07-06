@@ -8,6 +8,7 @@ const https  = require('https');
 const fs     = require('fs');
 const path   = require('path');
 const crypto = require('crypto');
+const zlib   = require('zlib');
 
 const dir  = __dirname;
 const port = process.env.PORT || 3457;
@@ -379,16 +380,30 @@ http.createServer((req, res) => {
   fs.stat(filePath, (err, st) => {
     if (err || !st.isFile()) { res.writeHead(404); res.end('Not found'); return; }
     const etag = '"' + st.size.toString(16) + '-' + Math.round(st.mtimeMs).toString(16) + '"';
-    const cache = ext === '.html' ? 'public, max-age=300' : 'public, max-age=86400';
+    // images rarely change → cache a week; html short so edits show; other assets a day
+    const cache = ext === '.html' ? 'public, max-age=300'
+      : (ext === '.jpg' || ext === '.jpeg' || ext === '.png' || ext === '.svg' || ext === '.webp') ? 'public, max-age=604800'
+      : 'public, max-age=86400';
+    // text assets compress well; images are already compressed, don't bother
+    const compressible = ext === '.html' || ext === '.js' || ext === '.css' || ext === '.svg' || ext === '.json';
+    const acceptsGzip = /\bgzip\b/.test(req.headers['accept-encoding'] || '');
+    const baseHead = { 'Content-Type': mimeTypes[ext], 'Cache-Control': cache, 'ETag': etag };
+    if (compressible) baseHead['Vary'] = 'Accept-Encoding';
     if (req.headers['if-none-match'] === etag) {
       res.writeHead(304, { 'ETag': etag, 'Cache-Control': cache }); res.end(); return;
     }
-    if (req.method === 'HEAD') {
-      res.writeHead(200, { 'Content-Type': mimeTypes[ext], 'Cache-Control': cache, 'ETag': etag }); res.end(); return;
-    }
+    if (req.method === 'HEAD') { res.writeHead(200, baseHead); res.end(); return; }
     fs.readFile(filePath, (e2, data) => {
       if (e2) { res.writeHead(404); res.end('Not found'); return; }
-      res.writeHead(200, { 'Content-Type': mimeTypes[ext], 'Cache-Control': cache, 'ETag': etag });
+      if (compressible && acceptsGzip) {
+        zlib.gzip(data, (gz, out) => {
+          if (gz) { res.writeHead(200, baseHead); return res.end(data); }   // fall back to identity on error
+          res.writeHead(200, Object.assign({ 'Content-Encoding': 'gzip' }, baseHead));
+          res.end(out);
+        });
+        return;
+      }
+      res.writeHead(200, baseHead);
       res.end(data);
     });
   });
