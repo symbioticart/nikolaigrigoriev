@@ -370,6 +370,7 @@ function dismissAll(){ units.forEach(u=>{ if(u.pinned||u.hoverC||u.revealAll||u.
 
 function wireUnit(u){
   u.canvas.addEventListener('mousemove',e=>{
+    if(!u.cells) return;
     const r=u.canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top, R=Math.max(24, fsFor(u.W,u.H)*2.6);
     let sectUnder=null, digitNear=null, blackUnder=null;
     for(const c of u.cells){ if(!c.outline) continue;
@@ -392,6 +393,7 @@ function wireUnit(u){
     if(hadImg) paint(u);
   });
   u.canvas.addEventListener('click',e=>{
+    if(!u.cells) return;
     const r=u.canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
     let sect=null, black=null;
     for(const c of u.cells){ if(!c.outline||!inPoly(x,y,c.outline)) continue; if(c.black) black=c; if(c.section) sect=c; }
@@ -453,18 +455,34 @@ function freeUnit(u){
   hideBubble(u); u.arcsEl.innerHTML='';
   u.canvas.width=1; u.canvas.height=1; u.tex=null;   // reclaim bitmap + texture; style height stays
 }
-const io = ('IntersectionObserver' in window) ? new IntersectionObserver(ents=>{
-  ents.forEach(en=>{ const u=en.target.__unit; if(!u) return;
-    if(en.isIntersecting){ if(!u.live) sizeAndRender(u); }
-    else freeUnit(u); });
-}, { rootMargin:'1400px 0px' }) : null;
-function appendUnit(){ const u=createUnit(units.length); feed.appendChild(u.el); units.push(u); sizeAndRender(u); if(io) io.observe(u.el); return u; }
+// reserve a unit's canvas box (full height, no drawing) so the page is scrollable and stable
+function reserveHeight(u){ u.canvas.style.height=artH+'px'; }
+// render/free units by proximity to the viewport — at most ONE heavy render per frame, so an
+// approaching artwork fills in smoothly instead of stalling the scroll at each art→text→art seam.
+function manageUnits(){
+  const vh=window.innerHeight||document.documentElement.clientHeight||900, M=1000; let did=0, more=false;
+  for(const u of units){
+    const r=u.canvas.getBoundingClientRect();
+    const visible = r.bottom > 0 && r.top < vh;         // actually on screen
+    const near = r.bottom > -M && r.top < vh + M;        // within a screen of it
+    if(near){ if(!u.live){
+        if(visible || did<1){ sizeAndRender(u); did++; } // visible → render now; approaching → 1 per frame
+        else more=true;
+    } }
+    else if(u.live) freeUnit(u);
+  }
+  if(more) requestAnimationFrame(manageUnits);
+}
+let mgrQueued=false;
+function scheduleManage(){ if(mgrQueued) return; mgrQueued=true; requestAnimationFrame(()=>{ mgrQueued=false; manageUnits(); }); }
+// append is cheap: DOM + reserved height only; the actual render is deferred to manageUnits
+function appendUnit(){ const u=createUnit(units.length); feed.appendChild(u.el); units.push(u); reserveHeight(u); return u; }
 function layout(){
   DPR=Math.max(1,window.devicePixelRatio||1);
-  const vh=window.innerHeight||900;
+  const vh=window.innerHeight||document.documentElement.clientHeight||900;
   const capH = units[0] ? units[0].captionEl.offsetHeight : Math.round(vh*0.24);
   artH=Math.max(Math.round(vh*0.5), Math.round(vh - capH));
-  units.forEach(u=>{ u.canvas.style.height=artH+'px'; if(u.live) sizeAndRender(u); });
+  units.forEach(u=>{ if(u.live) sizeAndRender(u); else reserveHeight(u); });
 }
 function fillEnough(){
   let guard=0;
@@ -472,7 +490,7 @@ function fillEnough(){
 }
 
 function bind(id){const el=document.getElementById(id),out=document.getElementById('v-'+id);
-  el.addEventListener('input',()=>{S[id]=+el.value; if(out)out.textContent=el.value; units.forEach(u=>{u.tex=null; sizeAndRender(u);});});}
+  el.addEventListener('input',()=>{S[id]=+el.value; if(out)out.textContent=el.value; units.forEach(u=>{u.tex=null; if(u.live) sizeAndRender(u);});});}
 ['n','calm','var','gap','bow','sharp','bal'].forEach(bind);
 const panel=document.getElementById('panel'), toggle=document.getElementById('toggle');
 function setCollapsed(c){ panel.classList.toggle('collapsed',c); toggle.textContent=c?'≡':'✕'; }
@@ -483,15 +501,16 @@ let lastY=0;
 window.addEventListener('scroll',()=>{
   const y=window.scrollY||0;
   if(Math.abs(y-lastY)>40){ dismissAll(); lastY=y; }
-  fillEnough();
+  fillEnough(); scheduleManage();
 },{passive:true});
-let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{layout();fillEnough();},140);});
+let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{layout();fillEnough();manageUnits();},140);});
 
 appendUnit();
 layout();
 fillEnough();
-document.fonts && document.fonts.ready.then(()=>{ layout(); });
-window.addEventListener('load',()=>{ layout(); fillEnough(); });
+manageUnits();   // render whatever is on screen now (unit 0); the rest fill in as they approach
+document.fonts && document.fonts.ready.then(()=>{ layout(); manageUnits(); });
+window.addEventListener('load',()=>{ layout(); fillEnough(); manageUnits(); });
 </script>
 </body>
 </html>
