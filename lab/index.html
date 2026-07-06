@@ -240,27 +240,59 @@ function wavyLine(A,B,R,mr){
   return {d,len};
 }
 
+// one image behind each black form; revealed on hover (single) / click (all)
+const IMG_NAMES=['form-1.png','form-2.png','form-3.png','form-4.png','form-5.png','form-6.png','form-7.png'];
+const IMAGES=IMG_NAMES.map(n=>{ const im=new Image(); im.decoding='async'; im.src=BASE+'img/'+n; return im; });
+IMAGES.forEach(im=>im.addEventListener('load',()=>{ units.forEach(u=>{ if(u.cells && (u.revealAll||u.hoverReveal)) paint(u); }); },{once:true}));
+
+function drawImageInForm(ctx,c){
+  const img=c.img, o=c.outline;
+  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+  for(const p of o){ if(p[0]<minX)minX=p[0]; if(p[0]>maxX)maxX=p[0]; if(p[1]<minY)minY=p[1]; if(p[1]>maxY)maxY=p[1]; }
+  const bw=maxX-minX, bh=maxY-minY, iw=img.naturalWidth, ih=img.naturalHeight;
+  const sc=Math.max(bw/iw, bh/ih), dw=iw*sc, dh=ih*sc, dx=minX+(bw-dw)/2, dy=minY+(bh-dh)/2;
+  ctx.save(); ctx.clip(c.path);
+  if('filter' in ctx) ctx.filter='grayscale(1) contrast(1.04)';   // stay within the monochrome language
+  ctx.drawImage(img,dx,dy,dw,dh);
+  if('filter' in ctx) ctx.filter='none';
+  ctx.restore();
+}
+
+// geometry + texture (heavy; per size/seed change)
 function renderArt(u){
-  const ctx=u.ctx, W=u.W, H=u.H;
-  ctx.setTransform(DPR,0,0,DPR,0,0);
-  ctx.clearRect(0,0,W,H);
-  const paper=css('--paper'); ctx.fillStyle=paper; ctx.fillRect(0,0,W,H);
+  const W=u.W, H=u.H;
   const cells=buildCells(W,H,u.seed);
   const bow=(S.bow/100)*0.55, sharpP=S.sharp/100, th=S.bal/100, g=S.gap/100;
   cells.forEach(c=>{ const sil=curvySilhouette(insetPolygon(c.poly,c.cx,c.cy,g),bow,sharpP);
     c.path=sil.path; c.outline=sil.outline; const oc=polyCentroid(c.outline); c.cx=oc[0]; c.cy=oc[1]; c.black=c.r<th; });
   if(!u.tex || u.tex.seed!==u.seed || u.tex.W!==W || u.tex.H!==H) u.tex=PrintTexture.create(W,H,u.seed,{grain:46});
-  cells.forEach(c=>{ if(!c.black){ ctx.fillStyle=paper; ctx.fill(c.path); return; } PrintTexture.paintForm(ctx,c.path,u.tex); });
+  cells.forEach((c,i)=>{ c.section=i<SECTIONS.length?SECTIONS[i]:null; c.anchor={x:c.cx,y:c.cy}; c.img=IMAGES[i % IMAGES.length]; });
+  u.cells=cells;
+  paint(u);
+  renderThumbs(u);
+  if(u.pinned){ const again=cells.find(c=>c.section && c.section.slug===u.pinned.section.slug); if(again){ u.pinned=again; } else { dismiss(u); } }
+}
+
+// cheap repaint (per reveal state change) — no geometry rebuild
+function paint(u){
+  const ctx=u.ctx, W=u.W, H=u.H, paper=css('--paper');
+  if(!u.cells) return;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=paper; ctx.fillRect(0,0,W,H);
+  u.cells.forEach(c=>{
+    if(!c.black){ ctx.fillStyle=paper; ctx.fill(c.path); return; }
+    const reveal=u.revealAll || c===u.hoverReveal, img=c.img;
+    if(reveal && img && img.complete && img.naturalWidth) drawImageInForm(ctx,c);
+    else PrintTexture.paintForm(ctx,c.path,u.tex);
+  });
   PrintTexture.overlayGrain(ctx,u.tex);
-  cells.forEach((c,i)=>{ c.section=i<SECTIONS.length?SECTIONS[i]:null; c.anchor={x:c.cx,y:c.cy}; });
   const fs=fsFor(W,H); ctx.textAlign='center'; ctx.textBaseline='middle';
   ctx.font=`500 ${fs}px "Roboto Flex", "Helvetica Neue", Arial, sans-serif`;
   if('letterSpacing' in ctx) ctx.letterSpacing='0.03em';
-  cells.forEach(c=>{ if(!c.section||!c.black) return; ctx.fillStyle='#f2f0ea'; ctx.fillText('[ '+c.section.num+' ]', c.anchor.x, c.anchor.y); });
+  u.cells.forEach(c=>{ if(!c.section||!c.black) return; if(u.revealAll||c===u.hoverReveal) return;
+    ctx.fillStyle='#f2f0ea'; ctx.fillText('[ '+c.section.num+' ]', c.anchor.x, c.anchor.y); });
   if('letterSpacing' in ctx) ctx.letterSpacing='0px';
-  u.cells=cells;
-  renderThumbs(u);
-  if(u.pinned){ const again=cells.find(c=>c.section && c.section.slug===u.pinned.section.slug); if(again){ u.pinned=again; drawConnections(u,again); } else { dismiss(u); } }
 }
 
 // section thumbnails: a mini silhouette of the exact black form carrying each section (per day)
@@ -326,26 +358,47 @@ function showBubble(u, section, mode, anchor){
   b.style.left=left+'px'; b.style.top=top+'px';
 }
 function hideBubble(u){ u.bubbleEl.classList.remove('show'); }
-function dismiss(u){ u.pinned=null; u.hoverC=null; hideBubble(u); u.arcsEl.innerHTML=''; }
-function dismissAll(){ units.forEach(u=>{ if(u.pinned||u.hoverC) dismiss(u); }); }
+function dismiss(u){
+  const had=u.pinned||u.hoverC||u.revealAll||u.hoverReveal||u.hoverArc;
+  u.pinned=null; u.hoverC=null; u.revealAll=false; u.hoverReveal=null; u.hoverArc=null;
+  hideBubble(u); u.arcsEl.innerHTML='';
+  if(had) paint(u);
+}
+function dismissAll(){ units.forEach(u=>{ if(u.pinned||u.hoverC||u.revealAll||u.hoverReveal||u.hoverArc) dismiss(u); }); }
 
 function wireUnit(u){
   u.canvas.addEventListener('mousemove',e=>{
-    if(u.pinned){ u.canvas.style.cursor='default'; return; }
     const r=u.canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top, R=Math.max(24, fsFor(u.W,u.H)*2.6);
-    let of=null, od=null;
-    for(const c of u.cells){ if(!c.section||!c.outline) continue;
-      if(Math.hypot(x-c.anchor.x,y-c.anchor.y)<=R) od=c;
-      if(inPoly(x,y,c.outline)) of=c; }
-    u.canvas.style.cursor=(of||od)?'pointer':'default';
-    if(od){ if(u.hoverC!==od){ u.hoverC=od; showBubble(u,od.section,'hint',od.anchor); } }
-    else if(u.hoverC){ u.hoverC=null; hideBubble(u); }
+    let sectUnder=null, digitNear=null, blackUnder=null;
+    for(const c of u.cells){ if(!c.outline) continue;
+      const inside=inPoly(x,y,c.outline);
+      if(inside && c.black) blackUnder=c;
+      if(inside && c.section) sectUnder=c;
+      if(c.section && Math.hypot(x-c.anchor.x,y-c.anchor.y)<=R) digitNear=c; }
+    u.canvas.style.cursor=(blackUnder||digitNear)?'pointer':'default';
+    if(u.revealAll) return;
+    // over a numbered form → arcs appear; reach its digit → that form's image, arcs vanish
+    const wantImg = digitNear || null;
+    const wantArc = (!digitNear && sectUnder) ? sectUnder : null;
+    if(u.hoverReveal!==wantImg){ u.hoverReveal=wantImg; paint(u); }
+    if(u.hoverArc!==wantArc){ u.hoverArc=wantArc; if(wantArc) drawConnections(u,wantArc); else u.arcsEl.innerHTML=''; }
+  });
+  u.canvas.addEventListener('mouseleave',()=>{
+    if(u.revealAll) return;
+    const hadImg=!!u.hoverReveal;
+    u.hoverReveal=null; if(u.hoverArc){ u.hoverArc=null; u.arcsEl.innerHTML=''; }
+    if(hadImg) paint(u);
   });
   u.canvas.addEventListener('click',e=>{
-    const r=u.canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top; let hit=null;
-    for(const c of u.cells){ if(c.section&&c.outline&&inPoly(x,y,c.outline)){ hit=c; break; } }
-    if(hit){ u.pinned=hit; u.hoverC=null; showBubble(u,hit.section,'open',hit.anchor); drawConnections(u,hit); }
-    else dismiss(u);
+    const r=u.canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+    let sect=null, black=null;
+    for(const c of u.cells){ if(!c.outline||!inPoly(x,y,c.outline)) continue; if(c.black) black=c; if(c.section) sect=c; }
+    if(black){                       // click a form → reveal images on ALL black forms
+      u.revealAll=true; u.hoverReveal=null; u.hoverArc=null; u.arcsEl.innerHTML='';
+      if(sect){ u.pinned=sect; showBubble(u,sect.section,'open',sect.anchor); }
+      else { u.pinned=null; hideBubble(u); }
+      paint(u);
+    } else dismiss(u);
   });
   u.bubbleEl.addEventListener('click',e=>{ if(u.bubbleEl.classList.contains('open')){ e.stopPropagation(); location.href=u.bubbleEl.dataset.url; } });
 }
