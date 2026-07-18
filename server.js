@@ -55,6 +55,30 @@ function alert(text) {
   } catch (e) { /* never let alerting break the server */ }
 }
 
+// === WIT36 — WITHOUT WITNESS open-call intake (served at /wit36) ===
+const wit36Hits = {};
+function wit36Limited(ip) {
+  const now = Date.now();
+  wit36Hits[ip] = (wit36Hits[ip] || []).filter(t => now - t < 60000);
+  if (wit36Hits[ip].length >= 5) return true;
+  wit36Hits[ip].push(now);
+  return false;
+}
+// Deliver each application via Telegram (reuses the same TG_* env as alert()).
+function notifyApplication(rec) {
+  const tok = process.env.TG_BOT_TOKEN, chat = process.env.TG_CHAT_ID;
+  if (!tok || !chat) return;
+  try {
+    const body = JSON.stringify({ chat_id: chat,
+      text: `WITHOUT WITNESS — application\n${rec.name}\n${rec.link}\n\n${rec.statement}\n\n${rec.ts}` });
+    const req = https.request(`https://api.telegram.org/bot${tok}/sendMessage`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } });
+    req.on('error', () => {});
+    req.setTimeout(8000, () => req.destroy());
+    req.write(body); req.end();
+  } catch (e) { /* never let notify break the server */ }
+}
+
 // Whitelisted static types. Note: '.map' is intentionally absent — source maps
 // are never served in production.
 const mimeTypes = {
@@ -324,6 +348,29 @@ function loadFallback() {
 // ---------- HTTP server ----------
 http.createServer((req, res) => {
   setSecurity(res);
+
+  // WIT36 application intake — POST /wit36/apply (must precede the GET-only guard).
+  if (req.method === 'POST' && req.url.split('?')[0] === '/wit36/apply') {
+    const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '?').toString().split(',')[0].trim();
+    if (wit36Limited(ip)) { res.writeHead(429, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: 'Too many attempts. Try again in a minute.' })); return; }
+    let body = '';
+    req.on('data', c => { body += c; if (body.length > 65536) req.destroy(); });
+    req.on('end', () => {
+      let d = {}; try { d = JSON.parse(body || '{}'); } catch (e) {}
+      if (d.website) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{"ok":true}'); return; } // honeypot filled → drop
+      const name = (d.name || '').toString().trim(), link = (d.link || '').toString().trim(), st = (d.statement || '').toString().trim();
+      if (!name || !link || !st) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: 'Please fill all three fields.' })); return; }
+      if (st.split(/\s+/).length > 150) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: 'Your statement is over 150 words.' })); return; }
+      const rec = { ts: new Date().toISOString(), name: name.slice(0, 200), link: link.slice(0, 400), statement: st.slice(0, 2000) };
+      try { fs.appendFileSync(path.join(dir, 'data', 'wit36-applications.jsonl'), JSON.stringify(rec) + '\n'); } catch (e) { console.error('[wit36] store:', e.message); }
+      console.log('[wit36] APPLICATION', rec.ts, rec.name);
+      notifyApplication(rec);
+      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{"ok":true}');
+    });
+    req.on('error', () => { try { res.writeHead(400); res.end(); } catch (e) {} });
+    return;
+  }
+
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405); res.end('Method Not Allowed'); return; }
 
   let url = req.url.split('?')[0];
@@ -367,6 +414,8 @@ http.createServer((req, res) => {
   if (url === '/89' || url === '/89/') url = '/89/index.html';
   // /lab — HOSQ R&D lab canvas (Voronoi × curved edges). Same origin.
   if (url === '/lab' || url === '/lab/') url = '/lab/index.html';
+  // /wit36 — WITHOUT WITNESS open-call (MONOMO). Same origin.
+  if (url === '/wit36' || url === '/wit36/') url = '/wit36/index.html';
 
   // Resolve and keep strictly within the served directory (no path traversal),
   // serve only whitelisted file types, and never expose runtime files.

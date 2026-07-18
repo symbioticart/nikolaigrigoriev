@@ -5,3 +5,6 @@ node_modules/
 .env
 oura_full_export/
 *_token.json
+
+# WITHOUT WITNESS application intake (runtime, never commit)
+data/wit36-applications.jsonl
