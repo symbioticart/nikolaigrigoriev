@@ -134,7 +134,7 @@
 
   /* protocol — a real time axis 00:00 → 03:00 */
   .time{grid-column:10/34;margin:0;padding:0;list-style:none;position:relative}
-  .time::before{content:"";position:absolute;left:60px;top:14px;bottom:14px;width:1px;background:var(--rule)}
+  .time li:not(:last-child)::after{content:"";position:absolute;left:60px;top:14px;height:calc(100% - 9px);width:1px;background:var(--rule)}
   .time li{position:relative;padding:0 0 30px 88px;min-height:26px}
   .time li:last-child{padding-bottom:0}
   .time li::before{content:"";position:absolute;left:56px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--white);border:1.5px solid var(--oxide)}
