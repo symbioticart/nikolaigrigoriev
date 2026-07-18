@@ -31,7 +31,9 @@
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
   html,body{margin:0;width:100%;background:var(--white)}
-  body{font-family:var(--serif);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative;font-synthesis:none}
+  body{font-family:var(--serif);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative;font-synthesis:none;
+    user-select:none;-webkit-user-select:none}  /* drag = draw, not text-select */
+  input,textarea{user-select:text;-webkit-user-select:text}
   a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid currentColor;outline-offset:3px}
   #apply,#call{scroll-margin-top:24px}
 
