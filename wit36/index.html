@@ -75,6 +75,18 @@
   .langsw button.on{color:var(--ink)}
   .langsw button:hover{color:var(--ink)}
   .topright .apply-top{margin-top:0}   /* beat base .cta{margin-top} so Apply top aligns with OPEN CALL top */
+  /* "images off" round button — hides photos, leaves bare frames + numbers */
+  #framesToggle{position:fixed;right:clamp(16px,2vw,30px);bottom:clamp(16px,2vw,30px);z-index:2147483000;
+    width:54px;height:54px;border-radius:50%;border:1px solid rgba(12,11,9,.16);background:#0C0B09;color:#ECE4D6;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(12,11,9,.22);
+    transition:background .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease}
+  #framesToggle:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(12,11,9,.28)}
+  #framesToggle:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+  #framesToggle svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  #framesToggle .slash{opacity:0;transition:opacity .18s ease}
+  #framesToggle[aria-pressed="true"]{background:#ECE4D6;color:#0C0B09;border-color:rgba(12,11,9,.32)}
+  #framesToggle[aria-pressed="true"] .slash{opacity:1}
+  body.frames-only .frame{box-shadow:none}   /* bare frames cast no photo-shadow */
   .hint{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);pointer-events:none;
     font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:0;transition:opacity .9s ease;pointer-events:none}
   .hint.show{opacity:.5;animation:breathe 2.8s ease-in-out infinite}
@@ -224,6 +236,8 @@
     .brand .bmeta{white-space:normal;line-height:1.45;margin-top:10px}
     .topright{top:20px;gap:12px}
     .langsw{display:none}   /* language switch lives in the footer on mobile */
+    #framesToggle{width:48px;height:48px}
+    #framesToggle svg{width:22px;height:22px}
     .apply-top{padding:12px 15px;font-size:10px;letter-spacing:.1em}
     .masthead{font-size:9.5px;letter-spacing:.11em;gap:8px 14px}
     .foot{flex-direction:column;gap:20px}
@@ -247,6 +261,9 @@
 <canvas id="grain"></canvas>
 <i class="reg tl"></i><i class="reg tr"></i><i class="reg bl"></i><i class="reg br"></i>
 <div id="scatter"></div>
+<button id="framesToggle" type="button" aria-pressed="false" title="Hide photographs" aria-label="Hide photographs — show only the frames">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1.5"/><circle cx="8.5" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5"/><path d="M13 15l2.5-2.5L20 17"/><path class="slash" d="M4.5 19.5L19.5 4.5"/></svg>
+</button>
 
 <section class="hero">
   <div class="brand">
@@ -466,6 +483,7 @@ const PrintTexture=(function(){
     return false;
   }
   let draggingFrame=null, dragDX=0, dragDY=0;
+  let framesOnly=false;   // "images off" toggle: photos go transparent, frames + numbers remain
 
   /* Frame + number appear at once (a blank print). The image then DEVELOPS very slowly (~4.5s),
      staying faint long enough to read the text through it, then reaching full tone. Monochrome.
@@ -477,8 +495,14 @@ const PrintTexture=(function(){
     t.el._px=x; t.el._py=y; t.el._rot=rot;
     t.el.style.transform='translate('+x+'px,'+y+'px) translate(-50%,-50%) rotate('+rot+'deg) scale(1)';
     t.el.style.opacity=1;                       // frame + number: instant
+    if(framesOnly){ t.img.style.transition='none'; t.img.style.opacity='0'; }  // hidden mode: stay a bare frame; develop on reveal
+    else develop(t);
+    placed++;
+    if(placed>=N){ done=true; hintEl.classList.remove('show'); }   // 36 reached → freeze (original)
+  }
+  /* develop (essential mechanic): latent blurry NEGATIVE → sharp positive B/W over 10s */
+  function develop(t){
     const img=t.img;
-    // develop (essential mechanic — always runs): latent blurry NEGATIVE → sharp positive B/W over 5s
     img.style.transition='none';
     img.style.filter='grayscale(1) invert(1) brightness(.45) contrast(1.15) blur(6px)';
     img.style.opacity='0';
@@ -486,9 +510,8 @@ const PrintTexture=(function(){
     img.style.transition='filter 10000ms linear, opacity 10000ms linear';
     img.style.filter='grayscale(1) invert(0) brightness(1) contrast(1) blur(0px)';
     img.style.opacity='1';
-    setTimeout(()=>makeDraggable(t.el), 10000);   // draggable once fully developed
-    placed++;
-    if(placed>=N){ done=true; hintEl.classList.remove('show'); }   // 36 reached → freeze (original)
+    if(t._devT) clearTimeout(t._devT);
+    t._devT=setTimeout(()=>{ t.developed=true; makeDraggable(t.el); }, 10000);   // draggable once fully developed
   }
 
   /* once fully developed, a frame can be picked up and moved with the mouse */
@@ -543,8 +566,8 @@ const PrintTexture=(function(){
     if(placed>=N){ done=true; return; }
     feed(x,y);
   }
-  addEventListener('pointermove', e=>{ if(draggingFrame) return; overField=isField(e.target); humanInput(e.pageX,e.pageY); }, {passive:true});
-  addEventListener('pointerdown', e=>{ if(draggingFrame) return; overField=isField(e.target); humanInput(e.pageX,e.pageY); }, {passive:true});
+  addEventListener('pointermove', e=>{ if(draggingFrame||(e.target.closest&&e.target.closest('#framesToggle'))) return; overField=isField(e.target); humanInput(e.pageX,e.pageY); }, {passive:true});
+  addEventListener('pointerdown', e=>{ if(draggingFrame||(e.target.closest&&e.target.closest('#framesToggle'))) return; overField=isField(e.target); humanInput(e.pageX,e.pageY); }, {passive:true});
 
   function ambientStep(){
     ambT+=0.02;
@@ -555,6 +578,23 @@ const PrintTexture=(function(){
   }
   function startAmbient(){ if(ambRAF||done||engaged) return; ambT=0; lastX=null; lastY=null; ambRAF=requestAnimationFrame(ambientStep); }
   function stopAmbient(){ if(ambRAF){ cancelAnimationFrame(ambRAF); ambRAF=null; } }
+
+  /* "images off" round button: hide every developed photo, keep bare frames + numbers */
+  const framesBtn=document.getElementById('framesToggle');
+  if(framesBtn){
+    framesBtn.addEventListener('click', ()=>{
+      framesOnly=!framesOnly;
+      framesBtn.setAttribute('aria-pressed', framesOnly?'true':'false');
+      framesBtn.title = framesOnly ? 'Show photographs' : 'Hide photographs';
+      document.body.classList.toggle('frames-only', framesOnly);
+      for(let i=0;i<placed;i++){
+        const t=tiles[i], img=t.img;
+        if(framesOnly){ img.style.transition='opacity .45s ease'; img.style.opacity='0'; }
+        else if(t.developed){ img.style.transition='opacity .45s ease'; img.style.opacity='1'; }
+        else develop(t);                        // never finished (placed or interrupted while hidden) → develop now
+      }
+    });
+  }
 
   hintEl.classList.add('show');
   idleTimer=setTimeout(startAmbient, 1500);   // only fires if the user hasn't moved by then
