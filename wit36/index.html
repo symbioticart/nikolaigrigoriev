@@ -28,7 +28,7 @@
     --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;  /* system mono — technical numbers */
     --pad:clamp(20px,4.5vw,64px);
   }
-  *{box-sizing:border-box}
+  *,*::before,*::after{box-sizing:border-box}
   html{scroll-behavior:smooth}
   html,body{margin:0;width:100%;background:var(--white)}
   body{font-family:var(--serif);color:var(--ink);-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative;font-synthesis:none;
@@ -63,7 +63,7 @@
 
   /* ── HERO ─────────────────────────────────────────────────────────── */
   .hero{position:relative;height:100svh;min-height:600px}   /* no z-index: children (z-6) sit above the scatter at body level */
-  .brand{position:absolute;top:clamp(48px,9vh,96px);left:var(--pad);z-index:6}
+  .brand{position:absolute;top:clamp(48px,9vh,96px);left:var(--pad)}   /* below the frames now */
   .brand h1{font-family:var(--disp);font-weight:800;font-size:clamp(48px,11vw,152px);
     letter-spacing:-.04em;line-height:.79;text-transform:uppercase;margin:0}
   .brand .kick{font-family:var(--mono);font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:22px}
@@ -72,14 +72,14 @@
   .brand .wname span{font-family:var(--mono);font-weight:400;font-size:.42em;letter-spacing:.12em;opacity:.5;margin-left:10px;white-space:nowrap}
   .brand .sub{margin-top:13px;font-family:var(--mono);font-size:11px;letter-spacing:.28em;opacity:.6;text-transform:uppercase}
   .apply-top{position:absolute;top:clamp(46px,9vh,92px);right:var(--pad);z-index:6;margin-top:0}
-  .hint{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:6;
+  .hint{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);pointer-events:none;
     font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:0;transition:opacity .9s ease;pointer-events:none}
   .hint.show{opacity:.5;animation:breathe 2.8s ease-in-out infinite}
   @keyframes breathe{0%,100%{opacity:.24}50%{opacity:.56}}
-  .thesis{position:absolute;bottom:clamp(56px,10vh,104px);left:var(--pad);z-index:6;max-width:44ch}
+  .thesis{position:absolute;bottom:clamp(56px,10vh,104px);left:var(--pad);max-width:44ch}
   .thesis .l1{font-family:var(--mono);font-size:13px;line-height:1.7}
   .thesis .l2{font-family:var(--mono);font-size:13px;line-height:1.7;opacity:.58;margin-top:5px;letter-spacing:.04em}
-  .cue{position:absolute;left:var(--pad);bottom:22px;z-index:6;font-family:var(--mono);font-size:11px;
+  .cue{position:absolute;left:var(--pad);bottom:22px;z-index:6;pointer-events:auto;font-family:var(--mono);font-size:11px;
     letter-spacing:.24em;text-transform:uppercase;color:var(--ink);text-decoration:none;opacity:.6;display:flex;gap:9px;align-items:center}
   .cue:hover{opacity:1;color:var(--oxide)}
   .cue .ch{animation:nudge 2.4s ease-in-out infinite}
@@ -155,14 +155,14 @@
   .fields .fn{font-family:var(--mono);font-size:12px;color:var(--oxide);padding-top:3px}
   .fields .q{font-size:clamp(15px,1.3vw,17.5px);line-height:1.5;margin:0}
   .note{font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--ink-soft);max-width:52ch}
-  .cta{display:inline-flex;align-items:center;gap:12px;margin-top:32px;padding:15px 28px;
+  .cta{display:inline-flex;align-items:center;gap:12px;margin-top:32px;padding:15px 28px;position:relative;z-index:6;
     border:1px solid var(--ink);background:var(--ink);color:#fff;text-decoration:none;
     font-family:var(--mono);font-size:13px;letter-spacing:.18em;text-transform:uppercase;transition:all .2s ease}
   .cta:hover{background:transparent;color:var(--ink)}
 
   /* dark beat #2 — the call to apply */
-  /* z-index:5 keeps the form ABOVE the scattered frames (z-4) so it stays clean and usable */
-  .apply-band{background:var(--ink);color:var(--bone);padding:clamp(58px,8vw,120px) var(--pad);position:relative;z-index:5}
+  /* frames scatter OVER the take-part zone too; only the Apply/submit buttons stay on top */
+  .apply-band{background:var(--ink);color:var(--bone);padding:clamp(58px,8vw,120px) var(--pad);position:relative}
   .apply-inner{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:repeat(36,1fr);column-gap:clamp(6px,1vw,14px);align-items:start}
   .apply-band .idx{grid-column:1/9;color:rgba(236,228,214,.5)}
   .apply-band .idx::after{background:rgba(236,228,214,.14)}
@@ -192,7 +192,7 @@
   .apply-band .thanks{font-family:var(--serif);font-size:clamp(18px,2vw,23px);line-height:1.45;color:var(--bone);max-width:34ch;margin:8px 0 0}
 
   /* footer */
-  footer{position:relative;z-index:5;background:var(--ink);color:var(--bone);padding:54px var(--pad) 66px}
+  footer{position:relative;background:var(--ink);color:var(--bone);padding:54px var(--pad) 66px}
   .foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;
     font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(236,228,214,.5);line-height:2}
   .foot .top{color:var(--bone);letter-spacing:.2em}
@@ -437,7 +437,9 @@ const PrintTexture=(function(){
   let order=[];
   function shuffle(){ order=Array.from({length:N},(_,i)=>i); for(let i=N-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=order[i];order[i]=order[j];order[j]=t;} }
 
-  let placed=0, done=false, acc=0, cooling=false, human=false, lastX=null, lastY=null;
+  let placed=0, done=false, acc=0, cooling=false, human=false, lastX=null, lastY=null, overField=false;
+  // don't drop a frame while the pointer is directly over one of the three form fields
+  function isField(t){ return !!(t && t.closest && t.closest('input,textarea')); }
 
   function clearAll(){ tiles.forEach(t=>{ if(t.el.getAnimations) t.el.getAnimations().forEach(a=>a.cancel()); t.el.style.opacity=0; }); placed=0; acc=0; cooling=false; shuffle(); }
 
@@ -460,7 +462,7 @@ const PrintTexture=(function(){
     const dx=x-lastX, dy=y-lastY, d=Math.hypot(dx,dy); lastX=x; lastY=y;
     if(placed>=N) return;
     acc+=d;
-    if(!cooling && acc>=nextStep){ cooling=true; acc=0; nextStep=rndStep(); const delay=DELAY_MIN+Math.random()*(DELAY_MAX-DELAY_MIN); setTimeout(()=>{ if(placed<N) place(lastX,lastY,dx,dy); cooling=false; },delay); }
+    if(!cooling && acc>=nextStep){ cooling=true; acc=0; nextStep=rndStep(); const delay=DELAY_MIN+Math.random()*(DELAY_MAX-DELAY_MIN); setTimeout(()=>{ if(placed<N && !overField) place(lastX,lastY,dx,dy); cooling=false; },delay); }
   }
 
   let ambRAF=null, ambT=0, idleTimer=null;
@@ -484,8 +486,8 @@ const PrintTexture=(function(){
     }
   }
   /* listen on the whole window in PAGE coords so frames scatter across every section */
-  addEventListener('pointermove', e=>humanInput(e.pageX,e.pageY), {passive:true});
-  addEventListener('pointerdown', e=>humanInput(e.pageX,e.pageY), {passive:true});
+  addEventListener('pointermove', e=>{ overField=isField(e.target); humanInput(e.pageX,e.pageY); }, {passive:true});
+  addEventListener('pointerdown', e=>{ overField=isField(e.target); humanInput(e.pageX,e.pageY); }, {passive:true});
 
   function ambientStep(){
     ambT+=0.02;
