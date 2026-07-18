@@ -36,7 +36,7 @@
   #apply,#call{scroll-margin-top:24px}
 
   /* paper texture — white ground, texture fades to clean edges (radial mask) */
-  #grain{position:fixed;inset:0;z-index:0;pointer-events:none;
+  #grain{position:fixed;inset:0;z-index:-1;pointer-events:none;
     -webkit-mask:radial-gradient(120% 90% at 50% 42%, #000 40%, transparent 92%);
             mask:radial-gradient(120% 90% at 50% 42%, #000 40%, transparent 92%)}
 
@@ -60,7 +60,7 @@
   .frame .no{position:absolute;right:11px;top:10px;font-family:var(--mono);font-size:8px;color:#fff;letter-spacing:.05em;opacity:.9}
 
   /* ── HERO ─────────────────────────────────────────────────────────── */
-  .hero{position:relative;height:100svh;min-height:600px;z-index:1}
+  .hero{position:relative;height:100svh;min-height:600px}   /* no z-index: children (z-6) sit above the scatter at body level */
   .brand{position:absolute;top:clamp(48px,9vh,96px);left:var(--pad);z-index:6}
   .brand h1{font-family:var(--disp);font-weight:800;font-size:clamp(48px,11vw,152px);
     letter-spacing:-.04em;line-height:.79;text-transform:uppercase;margin:0}
@@ -84,7 +84,7 @@
   @keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
 
   /* ── MASTHEAD ─────────────────────────────────────────────────────── */
-  main{position:relative;z-index:1}
+  main{position:relative}   /* no z-index: apply-band (z-5) can rise above the scatter (z-4) at body level */
   .masthead{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
     padding:14px var(--pad);border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);
     font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink)}
@@ -469,13 +469,17 @@ const PrintTexture=(function(){
        continues on its own again. If the human stops, we wait — forever — for the next move. */
   function humanInput(x,y){
     if(done) return;
-    clearTimeout(idleTimer);            // a real gesture cancels the pending auto-start
-    if(ambRAF) stopAmbient();           // take over from the machine, keep its frames
-    if(!human){
-      human=true; hintEl.classList.remove('show'); lastX=x; lastY=y;
-      if(placed>=N){ done=true; return; }
+    if(ambRAF) stopAmbient();           // moving while the machine draws → take over, keep its frames
+    if(placed>=N){ if(human) done=true; return; }
+    const before=placed;
+    feed(x,y);                          // may place a frame
+    if(placed>before && !human){        // an actual gesture DREW → lock the machine out for good
+      human=true; hintEl.classList.remove('show');
     }
-    feed(x,y);                          // NOTE: no re-scheduling — machine won't resume
+    if(!human){                         // not really drawing yet (a stray move): let the machine
+      clearTimeout(idleTimer);          // start after true stillness instead of killing it
+      idleTimer=setTimeout(startAmbient, 1500);
+    }
   }
   /* listen on the whole window in PAGE coords so frames scatter across every section */
   addEventListener('pointermove', e=>humanInput(e.pageX,e.pageY), {passive:true});
