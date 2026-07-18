@@ -16,14 +16,35 @@
   :root{
     --white:#FFFFFF;
     --ink:#0C0B09;
-    --ink-soft:rgba(12,11,9,.6);
-    --rule:rgba(12,11,9,.16);
-    --rule-soft:rgba(12,11,9,.09);
+    /* ink tint ramp — near-black on light ground (5 steps) */
+    --ink-60:rgba(12,11,9,.60);
+    --ink-30:rgba(12,11,9,.30);
+    --ink-22:rgba(12,11,9,.22);
+    --ink-15:rgba(12,11,9,.15);
+    --ink-10:rgba(12,11,9,.10);
+    /* bone tint ramp — cream on dark ground (5 steps) */
     --bone:#ECE4D6;
-    --oxide:#0C0B09;   /* colour removed — accents fold into ink (monochrome) */
-    --disp:"Activist","Helvetica Neue",Arial,sans-serif;   /* Activist — headings */
-    --serif:"Activist",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;  /* Activist — texts */
-    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;  /* system mono — technical numbers */
+    --bone-80:rgba(236,228,214,.80);
+    --bone-62:rgba(236,228,214,.62);
+    --bone-50:rgba(236,228,214,.50);
+    --bone-30:rgba(236,228,214,.30);
+    --bone-16:rgba(236,228,214,.16);
+    /* semantic aliases onto the ramp */
+    --ink-soft:var(--ink-60);
+    --rule:var(--ink-15);
+    --rule-soft:var(--ink-10);
+    --oxide:var(--ink);   /* colour removed — accents fold into ink (monochrome) */
+    /* type scale — 7 steps (+ 8px approved frame micro, + responsive H1/masthead) */
+    --fs-1:clamp(44px,10vw,138px);    /* wordmark            */
+    --fs-2:clamp(46px,12vw,186px);    /* display XL (asym)   */
+    --fs-3:clamp(40px,7vw,96px);      /* display L (h2)      */
+    --fs-4:clamp(27px,4.6vw,56px);    /* sub-display         */
+    --fs-5:clamp(15px,1.3vw,17.5px);  /* body                */
+    --fs-6:13px;                      /* mono — large        */
+    --fs-7:11px;                      /* mono — label        */
+    --disp:"Activist","Helvetica Neue",Arial,sans-serif;
+    --serif:"Activist",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
     --pad:clamp(20px,4.5vw,64px);
   }
   *,*::before,*::after{box-sizing:border-box}
@@ -53,49 +74,49 @@
     position:absolute;top:0;left:0;width:164px;height:219px;overflow:hidden;
     will-change:transform,opacity;opacity:0;pointer-events:none;   /* interior stays transparent so text reads through while latent */
     transform:translate(-50%,-50%) scale(.82);
-    box-shadow:0 10px 28px rgba(12,11,9,.14),0 2px 5px rgba(12,11,9,.11);
+    box-shadow:0 10px 28px var(--ink-15),0 2px 5px var(--ink-10);
   }
   .frame .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-  .frame .bd{position:absolute;inset:5px;border:0.5px solid rgba(12,11,9,.34)}
-  .frame .no{position:absolute;right:11px;top:10px;font-family:var(--mono);font-size:8px;color:#0C0B09;letter-spacing:.05em;opacity:.8}
+  .frame .bd{position:absolute;inset:5px;border:0.5px solid var(--ink-30)}
+  .frame .no{position:absolute;right:11px;top:10px;font-family:var(--mono);font-size:8px;color:var(--ink);letter-spacing:.05em;opacity:.8}
 
   /* ── HERO ─────────────────────────────────────────────────────────── */
   .hero{position:relative;height:100svh;min-height:600px}   /* no z-index: children (z-6) sit above the scatter at body level */
   /* three-line block, left-aligned, equal width (a rectangle) — widths equalised by JS (fitBrand) */
   .brand{position:absolute;top:clamp(48px,9vh,96px);left:var(--pad);width:fit-content}
-  .brand h1{font-family:var(--disp);font-weight:800;font-size:clamp(44px,10vw,138px);
-    letter-spacing:-.03em;line-height:.9;text-transform:uppercase;margin:0;white-space:nowrap}
+  .brand h1{font-family:var(--disp);font-weight:800;font-size:var(--fs-1);
+    letter-spacing:-.03em;line-height:.85;text-transform:uppercase;margin:0;white-space:nowrap}
   .brand .wname{margin-top:clamp(6px,0.9vw,13px);font-family:var(--disp);font-weight:800;text-transform:uppercase;
-    font-size:clamp(26px,4.4vw,58px);letter-spacing:0;line-height:1;white-space:nowrap;width:100%;display:block}
-  .brand .bmeta{margin-top:clamp(7px,1vw,14px);font-family:var(--mono);font-size:clamp(10px,1vw,12.5px);
+    font-size:var(--fs-4);letter-spacing:0;line-height:1;white-space:nowrap;width:100%;display:block}
+  .brand .bmeta{margin-top:clamp(7px,1vw,14px);font-family:var(--mono);font-size:var(--fs-7);
     letter-spacing:0;opacity:.6;text-transform:uppercase;line-height:1;white-space:nowrap;width:100%;display:block}
   .topright{position:absolute;top:calc(clamp(48px,9vh,96px) + 0.45vw);right:var(--pad);z-index:6;display:flex;align-items:flex-start;gap:clamp(14px,1.6vw,24px)}   /* +offset aligns Apply top with the visual top of the OPEN CALL letters */
-  .langsw{display:flex;gap:12px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;padding-top:15px}
+  .langsw{display:flex;gap:12px;font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.14em;padding-top:15px}
   .langsw button{background:none;border:0;padding:2px;font:inherit;letter-spacing:inherit;color:var(--ink-soft);cursor:pointer;text-transform:uppercase}
   .langsw button.on{color:var(--ink)}
   .langsw button:hover{color:var(--ink)}
   .topright .apply-top{margin-top:0}   /* beat base .cta{margin-top} so Apply top aligns with OPEN CALL top */
   /* "images off" round button — hides photos, leaves bare frames + numbers */
   #framesToggle{position:fixed;right:clamp(16px,2vw,30px);bottom:clamp(16px,2vw,30px);z-index:2147483000;
-    width:54px;height:54px;border-radius:50%;border:1px solid rgba(12,11,9,.16);background:#0C0B09;color:#FFFFFF;
-    cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(12,11,9,.22);
+    width:54px;height:54px;border-radius:50%;border:1px solid var(--ink-15);background:var(--ink);color:var(--white);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px var(--ink-22);
     transition:background .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease}
-  #framesToggle:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(12,11,9,.28)}
+  #framesToggle:hover{transform:translateY(-2px);box-shadow:0 14px 34px var(--ink-30)}
   #framesToggle:focus-visible{outline:2px solid currentColor;outline-offset:3px}
   #framesToggle svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
   #framesToggle .slash{opacity:0;transition:opacity .18s ease}
-  #framesToggle[aria-pressed="true"]{background:#FFFFFF;color:#0C0B09;border-color:rgba(12,11,9,.32)}
+  #framesToggle[aria-pressed="true"]{background:var(--white);color:var(--ink);border-color:var(--ink-30)}
   #framesToggle[aria-pressed="true"] .slash{opacity:1}
   body.frames-only .frame{box-shadow:none}   /* bare frames cast no photo-shadow */
   .hint{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);pointer-events:none;
-    font-family:var(--mono);font-size:11px;letter-spacing:.3em;text-transform:uppercase;opacity:0;transition:opacity .9s ease;pointer-events:none}
+    font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.3em;text-transform:uppercase;opacity:0;transition:opacity .9s ease;pointer-events:none}
   .hint.show{opacity:.5;animation:breathe 2.8s ease-in-out infinite}
   @keyframes breathe{0%,100%{opacity:.24}50%{opacity:.56}}
   .thesis{position:absolute;bottom:clamp(56px,10vh,104px);left:var(--pad);max-width:44ch}
-  .thesis .l1{font-family:var(--mono);font-size:13px;line-height:1.7}
-  .thesis .l2{font-family:var(--mono);font-size:13px;line-height:1.7;opacity:.58;margin-top:5px;letter-spacing:.04em}
-  .cue{position:absolute;left:var(--pad);bottom:22px;z-index:6;pointer-events:auto;font-family:var(--mono);font-size:11px;
-    letter-spacing:.24em;text-transform:uppercase;color:var(--ink);text-decoration:none;opacity:.6;display:flex;gap:9px;align-items:center}
+  .thesis .l1{font-family:var(--mono);font-size:var(--fs-6);line-height:1.7}
+  .thesis .l2{font-family:var(--mono);font-size:var(--fs-6);line-height:1.7;opacity:.58;margin-top:5px;letter-spacing:.05em}
+  .cue{position:absolute;left:var(--pad);bottom:22px;z-index:6;pointer-events:auto;font-family:var(--mono);font-size:var(--fs-7);
+    letter-spacing:.2em;text-transform:uppercase;color:var(--ink);text-decoration:none;opacity:.6;display:flex;gap:9px;align-items:center}
   .cue:hover{opacity:1;color:var(--oxide)}
   .cue .ch{animation:nudge 2.4s ease-in-out infinite}
   @keyframes nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
@@ -104,7 +125,7 @@
   main{position:relative}   /* no z-index: apply-band (z-5) can rise above the scatter (z-4) at body level */
   .masthead{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
     padding:14px var(--pad);border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);
-    font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink)}
+    font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.2em;text-transform:uppercase;color:var(--ink)}
   .masthead span{white-space:nowrap}
   .masthead .o{color:var(--oxide)}
 
@@ -121,31 +142,31 @@
 
   /* left index margin (cols 1–8), hairline divider on its right */
   .idx{grid-column:1/9;position:relative;padding-right:18px;
-    font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(12,11,9,.58);line-height:2.0}
+    font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-60);line-height:1.85}
   .idx::after{content:"";position:absolute;top:2px;right:8px;bottom:-40px;width:1px;background:var(--rule-soft)}
   .idx .n{color:var(--oxide);display:block;margin-bottom:6px}
   .idx .lab{color:var(--ink);display:block}
 
   /* text body (cols 10–31) — left flag, ragged right, right void = zero control */
   .body{grid-column:10/32}
-  h2{font-family:var(--disp);font-weight:800;text-transform:uppercase;letter-spacing:-.032em;
-    line-height:.83;margin:0 0 clamp(30px,4vw,48px);font-size:clamp(40px,7vw,96px);text-wrap:balance}
-  p{font-size:clamp(15px,1.15vw,17.5px);line-height:1.6;margin:0 0 20px;max-width:60ch}
-  p.lead{font-family:var(--disp);font-weight:300;font-size:clamp(27px,4.6vw,56px);line-height:1.0;
-    letter-spacing:-.015em;text-transform:uppercase;max-width:15ch;margin:0 0 30px}
+  h2{font-family:var(--disp);font-weight:800;text-transform:uppercase;letter-spacing:-.03em;
+    line-height:.85;margin:0 0 clamp(30px,4vw,48px);font-size:var(--fs-3);text-wrap:balance}
+  p{font-size:var(--fs-5);line-height:1.5;margin:0 0 20px;max-width:60ch}
+  p.lead{font-family:var(--disp);font-weight:300;font-size:var(--fs-4);line-height:1;
+    letter-spacing:-.03em;text-transform:uppercase;max-width:15ch;margin:0 0 30px}
   .em{color:var(--oxide)}
   strong{font-weight:700}
 
   /* asymmetry — the concept as composition */
   /* full-bleed dark beat — light/dark rhythm from the identity */
-  .asym-band{background:var(--ink);color:#ECE4D6;padding:clamp(78px,12vw,158px) var(--pad);position:relative;z-index:1;overflow:hidden}
+  .asym-band{background:var(--ink);color:var(--bone);padding:clamp(78px,12vw,158px) var(--pad);position:relative;z-index:1;overflow:hidden}
   .asym-inner{max-width:1320px;margin:0 auto}
   .asym-band .top{font-family:var(--disp);font-weight:800;text-transform:uppercase;letter-spacing:-.03em;
-    line-height:.83;font-size:clamp(46px,12vw,186px);color:#ECE4D6;max-width:12ch}
+    line-height:.85;font-size:var(--fs-2);color:var(--bone);max-width:12ch}
   .asym-band .bot{font-family:var(--disp);font-weight:800;text-transform:uppercase;letter-spacing:-.03em;
-    line-height:.83;font-size:clamp(46px,12vw,186px);text-align:right;margin-top:.06em;
+    line-height:.85;font-size:var(--fs-2);text-align:right;margin-top:.06em;
     color:transparent;-webkit-text-stroke:1.5px var(--bone);text-stroke:1.5px var(--bone)}
-  .asym-band .cap{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(236,228,214,.55);margin-top:40px;max-width:52ch;line-height:1.85}
+  .asym-band .cap{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.2em;text-transform:uppercase;color:var(--bone-50);margin-top:40px;max-width:52ch;line-height:1.85}
 
   /* protocol — a real time axis 00:00 → 03:00 */
   .time{grid-column:10/34;margin:0;padding:0;list-style:none;position:relative}
@@ -153,66 +174,66 @@
   .time li{position:relative;padding:0 0 30px 88px;min-height:26px}
   .time li:last-child{padding-bottom:0}
   .time li::before{content:"";position:absolute;left:56px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--white);border:1.5px solid var(--oxide)}
-  .time .tk{position:absolute;left:0;top:2px;width:48px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--oxide);letter-spacing:.03em}
-  .time .st{font-size:clamp(15px,1.3vw,17.5px);line-height:1.5;margin:0}
+  .time .tk{position:absolute;left:0;top:2px;width:48px;text-align:right;font-family:var(--mono);font-size:var(--fs-7);color:var(--oxide);letter-spacing:.05em}
+  .time .st{font-size:var(--fs-5);line-height:1.5;margin:0}
 
   /* roles */
   .roles{grid-column:10/34;margin:0;padding:0}
   .roles div{display:grid;grid-template-columns:210px 1fr;gap:24px;padding:22px 0;border-top:1px solid var(--rule);align-items:baseline}
   .roles div:first-child{border-top:none}
-  .roles dt{font-family:var(--mono);font-size:12px;letter-spacing:.04em;text-transform:uppercase;margin:0}
-  .roles dd{margin:0;font-size:clamp(15px,1.3vw,17px);line-height:1.55}
+  .roles dt{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.05em;text-transform:uppercase;margin:0}
+  .roles dd{margin:0;font-size:var(--fs-5);line-height:1.5}
 
   /* apply */
   .fields{margin:22px 0 30px;padding:0;list-style:none}
   .fields li{display:grid;grid-template-columns:40px 1fr;gap:16px;padding:18px 0;border-top:1px solid var(--rule)}
   .fields li:first-child{border-top:none}
-  .fields .fn{font-family:var(--mono);font-size:12px;color:var(--oxide);padding-top:3px}
-  .fields .q{font-size:clamp(15px,1.3vw,17.5px);line-height:1.5;margin:0}
-  .note{font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--ink-soft);max-width:52ch}
+  .fields .fn{font-family:var(--mono);font-size:var(--fs-7);color:var(--oxide);padding-top:3px}
+  .fields .q{font-size:var(--fs-5);line-height:1.5;margin:0}
+  .note{font-family:var(--mono);font-size:var(--fs-7);line-height:1.7;color:var(--ink-soft);max-width:52ch}
   .cta{display:inline-flex;align-items:center;gap:12px;margin-top:32px;padding:15px 28px;
-    border:1px solid var(--ink);background:var(--ink);color:#fff;text-decoration:none;
-    font-family:var(--mono);font-size:13px;letter-spacing:.18em;text-transform:uppercase;transition:all .2s ease}
+    border:1px solid var(--ink);background:var(--ink);color:var(--white);text-decoration:none;
+    font-family:var(--mono);font-size:var(--fs-6);letter-spacing:.2em;text-transform:uppercase;transition:all .2s ease}
   .cta:hover{background:transparent;color:var(--ink)}
 
   /* dark beat #2 — the call to apply */
   /* frames scatter OVER the take-part zone too; only the Apply/submit buttons stay on top */
   .apply-band{background:var(--ink);color:var(--bone);padding:clamp(58px,8vw,120px) var(--pad);position:relative}
   .apply-inner{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:repeat(36,1fr);column-gap:clamp(6px,1vw,14px);align-items:start}
-  .apply-band .idx{grid-column:1/9;color:rgba(236,228,214,.5)}
-  .apply-band .idx::after{background:rgba(236,228,214,.14)}
+  .apply-band .idx{grid-column:1/9;color:var(--bone-50)}
+  .apply-band .idx::after{background:var(--bone-16)}
   .apply-band .idx .n,.apply-band .idx .lab{color:var(--bone)}
   .apply-band .body{grid-column:10/32}
   .apply-band h2,.apply-band p,.apply-band .q{color:var(--bone)}
-  .apply-band .fields li{border-top-color:rgba(236,228,214,.18)}
+  .apply-band .fields li{border-top-color:var(--bone-16)}
   .apply-band .fields .fn{color:var(--bone)}
-  .apply-band .note{color:rgba(236,228,214,.55)}
-  .apply-band .cta{border-color:#FFFFFF;background:#FFFFFF;color:var(--ink);position:relative;z-index:6}
-  .apply-band .cta:hover{background:transparent;color:#FFFFFF}
+  .apply-band .note{color:var(--bone-50)}
+  .apply-band .cta{border-color:var(--white);background:var(--white);color:var(--ink);position:relative;z-index:6}
+  .apply-band .cta:hover{background:transparent;color:var(--white)}
 
   /* embedded application form (on the dark band) */
   .applyform{margin:36px 0 4px;max-width:560px;display:flex;flex-direction:column;gap:26px}
   .applyform .hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
   .fld{display:flex;flex-direction:column;gap:10px}
-  .fl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(236,228,214,.62);line-height:1.4}
+  .fl{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.14em;text-transform:uppercase;color:var(--bone-62);line-height:1.5}
   .applyform input,.applyform textarea{
-    font-family:var(--serif);font-size:17px;line-height:1.5;color:var(--bone);background:transparent;
-    border:0;border-bottom:1px solid rgba(236,228,214,.32);padding:9px 0;outline:none;resize:vertical;width:100%;border-radius:0}
+    font-family:var(--serif);font-size:var(--fs-5);line-height:1.5;color:var(--bone);background:transparent;
+    border:0;border-bottom:1px solid var(--bone-30);padding:9px 0;outline:none;resize:vertical;width:100%;border-radius:0}
   .applyform input:focus,.applyform textarea:focus{border-bottom-color:var(--bone)}
-  .applyform input::placeholder{color:rgba(236,228,214,.28)}
-  .fh{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:rgba(236,228,214,.42)}
+  .applyform input::placeholder{color:var(--bone-30)}
+  .fh{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.05em;color:var(--bone-50)}
   .fh.over{color:var(--bone)}
   .applyform .cta{align-self:flex-start;margin-top:6px;cursor:pointer}
-  .formmsg{font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:rgba(236,228,214,.8);min-height:1em;margin:0}
-  .apply-band .thanks{font-family:var(--serif);font-size:clamp(18px,2vw,23px);line-height:1.45;color:var(--bone);max-width:34ch;margin:8px 0 0}
+  .formmsg{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.05em;color:var(--bone-80);min-height:1em;margin:0}
+  .apply-band .thanks{font-family:var(--serif);font-size:var(--fs-5);line-height:1.5;color:var(--bone);max-width:34ch;margin:8px 0 0}
 
   /* footer */
   footer{position:relative;background:var(--ink);color:var(--bone);padding:54px var(--pad) 66px}
   .foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;
-    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(236,228,214,.5);line-height:2}
+    font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.14em;text-transform:uppercase;color:var(--bone-50);line-height:1.85}
   .foot .top{color:var(--bone);letter-spacing:.2em}
   .foot .langs{display:flex;gap:18px}
-  .foot .langs span{color:rgba(236,228,214,.42)}
+  .foot .langs span{color:var(--bone-50)}
   .foot .langs span.on{color:var(--bone)}
 
   @media (max-width:760px){
@@ -233,22 +254,22 @@
     .frame{width:116px;height:155px}
     .brand{top:22px;width:auto;max-width:calc(100vw - var(--pad)*2 - 84px)}
     .brand h1{font-size:clamp(34px,12vw,82px)}
-    .brand .bmeta{white-space:normal;line-height:1.45;margin-top:10px}
+    .brand .bmeta{white-space:normal;line-height:1.5;margin-top:10px}
     .topright{top:20px;gap:12px}
     .langsw{display:none}   /* language switch lives in the footer on mobile */
     #framesToggle{width:48px;height:48px}
     #framesToggle svg{width:22px;height:22px}
-    .apply-top{padding:12px 15px;font-size:10px;letter-spacing:.1em}
-    .masthead{font-size:9.5px;letter-spacing:.11em;gap:8px 14px}
+    .apply-top{padding:12px 15px;font-size:var(--fs-7);letter-spacing:.14em}
+    .masthead{font-size:9.5px;letter-spacing:.14em;gap:8px 14px}
     .foot{flex-direction:column;gap:20px}
     .thesis{bottom:70px;max-width:none;right:var(--pad)}
     .reg{display:none}
-    .cue{letter-spacing:.18em}
+    .cue{letter-spacing:.2em}
     .langs span{padding:4px 0;display:inline-block}
   }
   @media (max-width:400px){
     .brand h1{font-size:clamp(30px,11.5vw,58px)}
-    .apply-top{padding:12px 13px;font-size:10px;letter-spacing:.1em}
+    .apply-top{padding:12px 13px;font-size:var(--fs-7);letter-spacing:.14em}
   }
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto}
