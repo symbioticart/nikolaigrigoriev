@@ -77,14 +77,14 @@
   .topright .apply-top{margin-top:0}   /* beat base .cta{margin-top} so Apply top aligns with OPEN CALL top */
   /* "images off" round button — hides photos, leaves bare frames + numbers */
   #framesToggle{position:fixed;right:clamp(16px,2vw,30px);bottom:clamp(16px,2vw,30px);z-index:2147483000;
-    width:54px;height:54px;border-radius:50%;border:1px solid rgba(12,11,9,.16);background:#0C0B09;color:#ECE4D6;
+    width:54px;height:54px;border-radius:50%;border:1px solid rgba(12,11,9,.16);background:#0C0B09;color:#FFFFFF;
     cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(12,11,9,.22);
     transition:background .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease}
   #framesToggle:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(12,11,9,.28)}
   #framesToggle:focus-visible{outline:2px solid currentColor;outline-offset:3px}
   #framesToggle svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
   #framesToggle .slash{opacity:0;transition:opacity .18s ease}
-  #framesToggle[aria-pressed="true"]{background:#ECE4D6;color:#0C0B09;border-color:rgba(12,11,9,.32)}
+  #framesToggle[aria-pressed="true"]{background:#FFFFFF;color:#0C0B09;border-color:rgba(12,11,9,.32)}
   #framesToggle[aria-pressed="true"] .slash{opacity:1}
   body.frames-only .frame{box-shadow:none}   /* bare frames cast no photo-shadow */
   .hint{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);pointer-events:none;
@@ -187,8 +187,8 @@
   .apply-band .fields li{border-top-color:rgba(236,228,214,.18)}
   .apply-band .fields .fn{color:var(--bone)}
   .apply-band .note{color:rgba(236,228,214,.55)}
-  .apply-band .cta{border-color:var(--bone);background:var(--bone);color:var(--ink);position:relative;z-index:6}
-  .apply-band .cta:hover{background:transparent;color:var(--bone)}
+  .apply-band .cta{border-color:#FFFFFF;background:#FFFFFF;color:var(--ink);position:relative;z-index:6}
+  .apply-band .cta:hover{background:transparent;color:#FFFFFF}
 
   /* embedded application form (on the dark band) */
   .applyform{margin:36px 0 4px;max-width:560px;display:flex;flex-direction:column;gap:26px}
