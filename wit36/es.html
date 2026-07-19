@@ -724,7 +724,7 @@ const PrintTexture=(function(){
       const r=await fetch('/wit36/apply',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({name,email,link,statement:st,consent:true,lang:'es',website:f.elements.website.value})});
       const d=await r.json().catch(()=>({}));
-      if(r.ok&&d.ok){ f.innerHTML='<p class="thanks">Recibido. El estudio decide quién participa, en privado — te escribiremos solo si resultas seleccionad@.</p>'; }
+      if(r.ok&&d.ok){ f.innerHTML='<p class="thanks">Gracias. Hemos recibido tu solicitud. Te escribiremos.</p>'; }
       else { msg.textContent=(d&&d.error)||'Algo ha fallado. Inténtalo de nuevo.'; }
     }catch(err){ msg.textContent='Error de red. Inténtalo de nuevo.'; }
   });

@@ -724,7 +724,7 @@ const PrintTexture=(function(){
       const r=await fetch('/wit36/apply',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({name,email,link,statement:st,consent:true,lang:'en',website:f.elements.website.value})});
       const d=await r.json().catch(()=>({}));
-      if(r.ok&&d.ok){ f.innerHTML='<p class="thanks">Received. The studio decides who takes part, privately — you will hear from us only if selected.</p>'; }
+      if(r.ok&&d.ok){ f.innerHTML='<p class="thanks">Thank you. We&rsquo;ve received your application. We&rsquo;ll be in touch.</p>'; }
       else { msg.textContent=(d&&d.error)||'Something went wrong. Please try again.'; }
     }catch(err){ msg.textContent='Network error. Please try again.'; }
   });
