@@ -70,7 +70,7 @@ function notifyApplication(rec) {
   if (!tok || !chat) return;
   try {
     const body = JSON.stringify({ chat_id: chat,
-      text: `WITHOUT WITNESS — application\n${rec.name}\n${rec.link}\n\n${rec.statement}\n\n${rec.ts}` });
+      text: `WITHOUT WITNESS — application\n${rec.name}\n${rec.email || ''}\n${rec.link}\n\n${rec.statement}\n\n${rec.ts}` });
     const req = https.request(`https://api.telegram.org/bot${tok}/sendMessage`,
       { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } });
     req.on('error', () => {});
@@ -358,10 +358,11 @@ http.createServer((req, res) => {
     req.on('end', () => {
       let d = {}; try { d = JSON.parse(body || '{}'); } catch (e) {}
       if (d.website) { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{"ok":true}'); return; } // honeypot filled → drop
-      const name = (d.name || '').toString().trim(), link = (d.link || '').toString().trim(), st = (d.statement || '').toString().trim();
-      if (!name || !link || !st) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: 'Please fill all three fields.' })); return; }
+      const name = (d.name || '').toString().trim(), email = (d.email || '').toString().trim(), link = (d.link || '').toString().trim(), st = (d.statement || '').toString().trim();
+      if (!name || !email || !link || !st) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: 'Please fill all four fields.' })); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: "That email doesn't look right." })); return; }
       if (st.split(/\s+/).length > 150) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: 'Your statement is over 150 words.' })); return; }
-      const rec = { ts: new Date().toISOString(), name: name.slice(0, 200), link: link.slice(0, 400), statement: st.slice(0, 2000) };
+      const rec = { ts: new Date().toISOString(), name: name.slice(0, 200), email: email.slice(0, 200), link: link.slice(0, 400), statement: st.slice(0, 2000) };
       try { fs.appendFileSync(path.join(dir, 'data', 'wit36-applications.jsonl'), JSON.stringify(rec) + '\n'); } catch (e) { console.error('[wit36] store:', e.message); }
       console.log('[wit36] APPLICATION', rec.ts, rec.name);
       notifyApplication(rec);

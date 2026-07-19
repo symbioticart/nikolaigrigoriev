@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>WITHOUT WITNESS — open call · MONOMO</title>
 <meta name="description" content="WITHOUT WITNESS — an open call from MONOMO, Gràcia, Barcelona. A room, three hours, alone; a machine takes exactly 36 frames you cannot choose. The finished work is yours.">
+<meta property="og:title" content="WITHOUT WITNESS — open call · MONOMO">
+<meta property="og:description" content="A room. Three hours. You, alone. A machine takes 36 frames you cannot choose. Total control of the action — zero control of the output.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nikolaigrigoriev.com/wit36">
 <meta property="og:title" content="WITHOUT WITNESS — open call">
 <meta property="og:description" content="A room. Three hours. You, alone. The machine takes 36 frames — you cannot choose. Cycle I, MONOMO, Barcelona.">
 <meta property="og:type" content="website">
@@ -90,6 +94,8 @@
     font-size:var(--fs-4);letter-spacing:0;line-height:1;white-space:nowrap;width:100%;display:block}
   .brand .bmeta{margin-top:clamp(7px,1vw,14px);font-family:var(--mono);font-size:var(--fs-7);
     letter-spacing:0;opacity:.6;text-transform:uppercase;line-height:1;white-space:nowrap;width:100%;display:block}
+  .brand .bsub{margin-top:9px;font-family:var(--mono);font-size:var(--fs-7);
+    letter-spacing:.05em;opacity:.38;text-transform:uppercase;line-height:1;white-space:nowrap;display:block}
   .topright{position:absolute;top:calc(clamp(48px,9vh,96px) + 0.45vw);right:var(--pad);z-index:6;display:flex;align-items:flex-start;gap:clamp(14px,1.6vw,24px)}   /* +offset aligns Apply top with the visual top of the OPEN CALL letters */
   .langsw{display:flex;gap:12px;font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.14em;padding-top:15px}
   .langsw button{background:none;border:0;padding:2px;font:inherit;letter-spacing:inherit;color:var(--ink-soft);cursor:pointer;text-transform:uppercase}
@@ -112,9 +118,10 @@
     font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.3em;text-transform:uppercase;opacity:0;transition:opacity .9s ease;pointer-events:none}
   .hint.show{opacity:.5;animation:breathe 2.8s ease-in-out infinite}
   @keyframes breathe{0%,100%{opacity:.24}50%{opacity:.56}}
-  .thesis{position:absolute;bottom:clamp(56px,10vh,104px);left:var(--pad);max-width:44ch}
-  .thesis .l1{font-family:var(--mono);font-size:var(--fs-6);line-height:1.7}
-  .thesis .l2{font-family:var(--mono);font-size:var(--fs-6);line-height:1.7;opacity:.58;margin-top:5px;letter-spacing:.05em}
+  /* session strip — 3-hour countdown + frame count; difference-blend stays legible on light and dark */
+  #session{position:fixed;left:50%;transform:translateX(-50%);bottom:clamp(18px,2.4vh,28px);z-index:2147483000;
+    font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.14em;display:flex;gap:12px;align-items:baseline;
+    color:#fff;mix-blend-mode:difference;pointer-events:none;font-variant-numeric:tabular-nums}
   .cue{position:absolute;left:var(--pad);bottom:22px;z-index:6;pointer-events:auto;font-family:var(--mono);font-size:var(--fs-7);
     letter-spacing:.2em;text-transform:uppercase;color:var(--ink);text-decoration:none;opacity:.6;display:flex;gap:9px;align-items:center}
   .cue:hover{opacity:1;color:var(--oxide)}
@@ -178,10 +185,11 @@
   .time .st{font-size:var(--fs-5);line-height:1.5;margin:0}
 
   /* roles */
-  .roles{grid-column:10/34;margin:0;padding:0}
-  .roles div{display:grid;grid-template-columns:210px 1fr;gap:24px;padding:22px 0;border-top:1px solid var(--rule);align-items:baseline}
-  .roles div:first-child{border-top:none}
-  .roles dt{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.05em;text-transform:uppercase;margin:0}
+  /* roles as a 2×2 plate — visually distinct from the §02 timeline rows */
+  .roles{grid-column:10/34;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;
+    gap:clamp(34px,4.5vw,60px) clamp(26px,3.5vw,52px)}
+  .roles div{display:block;border-top:1px solid var(--ink);padding-top:16px}
+  .roles dt{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.05em;text-transform:uppercase;margin:0 0 10px}
   .roles dd{margin:0;font-size:var(--fs-5);line-height:1.5}
 
   /* apply */
@@ -247,10 +255,10 @@
     .apply-band .idx{grid-column:1/2;margin-bottom:18px}
     .apply-band .idx::after{display:none}
     .apply-band .body{grid-column:1/2}
-    .roles div{grid-template-columns:1fr;gap:6px}
+    .roles{grid-template-columns:1fr;gap:26px}
     .roles dd{color:var(--ink-soft)}
+    /* asym-band keeps the desktop composition: filled left line, outlined right-aligned line */
     .asym-band .top,.asym-band .bot{max-width:none}
-    .asym-band .bot{text-align:left}
     .frame{width:116px;height:155px}
     .brand{top:22px;width:auto;max-width:calc(100vw - var(--pad)*2 - 84px)}
     .brand h1{font-size:clamp(34px,12vw,82px)}
@@ -262,7 +270,7 @@
     .apply-top{padding:12px 15px;font-size:var(--fs-7);letter-spacing:.14em}
     .masthead{font-size:9.5px;letter-spacing:.14em;gap:8px 14px}
     .foot{flex-direction:column;gap:20px}
-    .thesis{bottom:70px;max-width:none;right:var(--pad)}
+    #session{font-size:10px;letter-spacing:.1em}
     .reg{display:none}
     .cue{letter-spacing:.2em}
     .langs span{padding:4px 0;display:inline-block}
@@ -281,7 +289,8 @@
 <body>
 <canvas id="grain"></canvas>
 <i class="reg tl"></i><i class="reg tr"></i><i class="reg bl"></i><i class="reg br"></i>
-<div id="scatter"></div>
+<div id="scatter" aria-hidden="true"></div>
+<div id="session" aria-hidden="true"><span id="tleft">3:00:00</span><span>&middot;</span><span id="fcount">0 / 36</span></div>
 <button id="framesToggle" type="button" aria-pressed="false" title="Hide photographs" aria-label="Hide photographs — show only the frames">
   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1.5"/><circle cx="8.5" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5"/><path d="M13 15l2.5-2.5L20 17"/><path class="slash" d="M4.5 19.5L19.5 4.5"/></svg>
 </button>
@@ -290,17 +299,14 @@
   <div class="brand">
     <h1>Open Call</h1>
     <div class="wname">Without Witness</div>
-    <div class="bmeta">Sense testimoni &middot; Cycle I &middot; MONOMO, Gr&agrave;cia, Barcelona</div>
+    <div class="bmeta">You move. The machine chooses &mdash; which frame, and when.</div>
+    <div class="bsub">36 frames. Not one discarded.</div>
   </div>
   <div class="topright">
     <nav class="langsw" aria-label="Language"><button type="button" class="on">EN</button><button type="button">ES</button><button type="button">CA</button></nav>
     <a class="cta apply-top" href="#apply">Apply <span>&rarr;</span></a>
   </div>
-  <div class="hint" id="hint">Move to draw &middot; you don&rsquo;t pick which</div>
-  <div class="thesis">
-    <div class="l1">You move. The machine chooses &mdash; which frame, and when.</div>
-    <div class="l2">36 frames. Not one discarded.</div>
-  </div>
+  <div class="hint" id="hint">Move to draw</div>
   <a class="cue" href="#call">Read the call <span class="ch">&darr;</span></a>
 </section>
 
@@ -320,8 +326,8 @@
       <div class="body">
         <p class="lead">A room. Three hours. You, alone.</p>
         <p>No photographer, no witness. You bring what you want and do what you want. Whatever happens in that room is your doing, and it is the work.</p>
-        <p>A machine takes 36 frames at moments none of us can predict, yours included. You can&rsquo;t choose them, reshoot them, or edit them.</p>
-        <p>The finished piece, all 36 frames, is your work, under your name. You&rsquo;ll see it for the first time at the opening, at the same moment as everyone else, and you take it home. You answer for the whole three hours, not the best of them.</p>
+        <p>A machine takes 36 frames at moments none of us &mdash; you included &mdash; can predict. You can&rsquo;t choose them, reshoot them, or edit them.</p>
+        <p>The finished piece, all 36 frames, is your work, under your name. You&rsquo;ll see it for the first time at the opening, at the same moment as everyone else. You answer for the whole three hours, not the best of them.</p>
         <p>Our part is only the frame: the room, the time, the ban on choosing, the number 36.</p>
       </div>
     </section>
@@ -340,21 +346,21 @@
       <div class="idx"><span class="n">&sect; 02</span><span class="lab">The protocol</span><span>00:00 &rarr; 03:00</span></div>
       <ol class="time">
         <li><span class="tk">00:00</span><p class="st">You enter alone for 180 minutes. Watches and phones stay at the door; bring anything else you like. The door closes.</p></li>
-        <li><p class="st">36 exposures across the three hours. The count is announced; the moments aren&rsquo;t. The schedule is sealed in an envelope you sign, and never opened.</p></li>
+        <li><p class="st">36 exposures across the three hours. The count is announced; the moments aren&rsquo;t. A true random number generator decides each one in the moment it fires &mdash; there is no schedule, for anyone.</p></li>
         <li><p class="st">No choosing. No reshooting. No editing, by you or the studio. All 36 are printed and shown in full, in the order taken, at one size.</p></li>
-        <li><p class="st">Cover the light and the frames come out black, and print black. A black frame is an act, not a fault.</p></li>
-        <li><p class="st">The camera works alone. No one sees a frame before it is printed: the files run a sealed pipeline straight to the press.</p></li>
-        <li><span class="tk">03:00</span><p class="st">The door opens; you step out. You&rsquo;ll see your 36 frames for the first time at the opening, alongside everyone else.</p></li>
+        <li><p class="st">You may leave at any moment. Walking out is a gesture like any other &mdash; the machine keeps firing, and an empty room is a frame too.</p></li>
+        <li><p class="st">The camera works alone. No one selects or edits a frame: the files run sealed, straight to the press, and nothing is shown before the opening at MONOMO.</p></li>
+        <li><span class="tk">03:00</span><p class="st">The door opens; you step out. The frames stay behind. Once every artist&rsquo;s session is done, the works are shown at the opening &mdash; and you meet yours there, with the public, for the first time.</p></li>
       </ol>
     </section>
 
     <section class="row">
       <div class="idx"><span class="n">&sect; 03</span><span class="lab">Who</span><span>Roles</span></div>
       <dl class="roles">
-        <div><dt>The artist</dt><dd>Authors and directs the work: three hours of action, and takes the finished 36 home under their name.</dd></div>
+        <div><dt>The artist</dt><dd>Authors and directs the work: three hours of action. The finished 36 are theirs alone, under their name &mdash; the studio claims no part of the work.</dd></div>
         <div><dt>MONOMO</dt><dd>The autonomous self-portrait studio in Gr&agrave;cia. Organiser, production, place.</dd></div>
-        <div><dt>Nikolai Grigoriev</dt><dd>He sets the frame: the room, the time, the ban on choosing, the number 36. What you do inside it, and the work that comes out, are yours. He goes through the protocol on the same terms as everyone else.</dd></div>
-        <div><dt>The machine &middot; chance</dt><dd>An indifferent eye. It fires 36 times, at random. When the shutter falls is no one&rsquo;s to decide, the artist&rsquo;s included. You can&rsquo;t predict it, and there&rsquo;s nothing to influence.</dd></div>
+        <div><dt>Nikolai Grigoriev</dt><dd>He sets the frame &mdash; the room, the hours, the ban, the number. He goes through the protocol on the same terms as everyone else.</dd></div>
+        <div><dt>The machine &middot; chance</dt><dd>An indifferent eye. A true random generator fires it 36 times. No one &mdash; the artist included &mdash; knows when. You can&rsquo;t predict it, and you can&rsquo;t sway it.</dd></div>
       </dl>
     </section>
 
@@ -362,7 +368,7 @@
 
   <section class="apply-band" id="apply">
     <div class="apply-inner">
-      <div class="idx"><span class="n">&sect; 04</span><span class="lab">Apply</span><span>Three fields</span></div>
+      <div class="idx"><span class="n">&sect; 04</span><span class="lab">Apply</span><span>Four fields</span></div>
       <div class="body">
         <h2>Take part</h2>
         <p>We invite artists. The studio decides who takes part, privately. Reasons are not given.</p>
@@ -370,15 +376,17 @@
           <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
           <label class="fld"><span class="fl">01 &middot; Your name</span>
             <input type="text" name="name" required maxlength="120" autocomplete="name"></label>
-          <label class="fld"><span class="fl">02 &middot; A link to your practice</span>
+          <label class="fld"><span class="fl">02 &middot; An email we can reach you at</span>
+            <input type="email" name="email" required maxlength="200" autocomplete="email"></label>
+          <label class="fld"><span class="fl">03 &middot; A link to your practice</span>
             <input type="url" name="link" required maxlength="300" placeholder="https://" autocomplete="url"></label>
-          <label class="fld"><span class="fl">03 &middot; What will you do for three hours, alone with yourself?</span>
+          <label class="fld"><span class="fl">04 &middot; What will you do for three hours, alone with yourself?</span>
             <textarea name="statement" required rows="6" maxlength="1400"></textarea>
             <span class="fh"><span id="wc">0</span> / 150 words &middot; your answer is not published</span></label>
           <button class="cta" type="submit" id="applyBtn">Send application <span>&rarr;</span></button>
           <p class="formmsg" id="formmsg" aria-live="polite"></p>
         </form>
-        <p class="note">Applying does not guarantee a place.</p>
+        <p class="note">There is no fee to apply, and none to take part. Travel and materials are yours; the room, the machine and the print are ours.</p>
       </div>
     </div>
   </section>
@@ -471,6 +479,7 @@ const PrintTexture=(function(){
   const scatter=document.getElementById('scatter'), hintEl=document.getElementById('hint');
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
   const isTouch=matchMedia('(pointer:coarse)').matches;
+  if(isTouch && hintEl) hintEl.textContent='Drag to draw';
   const P=window.PHOTOS||[];
   const N=Math.min(36, P.length||36);
   const BASE=isTouch?48:64, DELAY_MIN=55, DELAY_MAX=420;
@@ -519,6 +528,7 @@ const PrintTexture=(function(){
     if(framesOnly){ t.img.style.transition='none'; t.img.style.opacity='0'; }  // hidden mode: stay a bare frame; develop on reveal
     else develop(t);
     placed++;
+    const fc=document.getElementById('fcount'); if(fc) fc.textContent=placed+' / '+N;
     if(placed>=N){ done=true; hintEl.classList.remove('show'); }   // 36 reached → freeze (original)
   }
   /* develop (essential mechanic): latent blurry NEGATIVE → sharp positive B/W over 10s */
@@ -565,9 +575,12 @@ const PrintTexture=(function(){
 
   /* Poisson-like, heavy-tailed intervals: mostly frequent, but every so often a long gap —
      frames arrive at unpredictable moments, never on a regular beat (concept: random shutter). */
-  const STEP_M = isTouch?95:120;
+  const STEP_M = isTouch?190:240;   // ~2x the movement between frames
   function rndStep(){ return 20 + (-Math.log(1-Math.random())) * STEP_M; }   // distance to next frame
-  function rndDelay(){ return 40 + (-Math.log(1-Math.random())) * 380; }     // extra wait before it appears
+  /* two-mode wait: quick bursts or long silences — the unpredictability should be felt */
+  function rndDelay(){ return Math.random()<0.35
+    ? 40  + (-Math.log(1-Math.random())) * 200
+    : 300 + (-Math.log(1-Math.random())) * 1200; }
   let nextStep=rndStep();
   function feed(x,y){
     if(lastX===null){ lastX=x; lastY=y; return; }
@@ -632,7 +645,7 @@ const PrintTexture=(function(){
     const target=inkW(h1);                                    // OPEN CALL text width = rectangle width
     lines.forEach(el=>{
       const len=el.textContent.replace(/\s+$/,'').length; if(len<2) return;
-      const nat=inkW(el); if(nat>=target) return;
+      const nat=inkW(el);   // fit both ways: stretch short lines, gently squeeze long ones
       let ls=(target-nat)/(len-1);
       el.style.letterSpacing=ls+'px'; el.style.marginRight=(-ls)+'px';
       const over=inkW(el)-target;                 // correct the trailing-letter-spacing overshoot
@@ -657,6 +670,19 @@ const PrintTexture=(function(){
   els.forEach(e=>io.observe(e));
 })();
 
+/* session countdown — 3 hours from the moment the page opens; mirrors the studio protocol */
+(() => {
+  const t=document.getElementById('tleft'); if(!t) return;
+  const end=Date.now()+3*3600*1000;
+  function tick(){
+    const s=Math.max(0,Math.round((end-Date.now())/1000));
+    const h=Math.floor(s/3600), m=Math.floor(s%3600/60), sec=s%60;
+    t.textContent=h+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+    if(s>0) setTimeout(tick, 1000-(Date.now()%1000));
+  }
+  tick();
+})();
+
 /* application form — live word count, validation, submit to /apply */
 (() => {
   const f=document.getElementById('applyForm'); if(!f) return;
@@ -666,13 +692,14 @@ const PrintTexture=(function(){
   ta.addEventListener('input',()=>{ const n=count(ta.value); wc.textContent=n; fh.classList.toggle('over',n>150); });
   f.addEventListener('submit',async e=>{
     e.preventDefault();
-    const name=f.elements.name.value.trim(), link=f.elements.link.value.trim(), st=ta.value.trim();
-    if(!name||!link||!st){ msg.textContent='Please fill all three fields.'; return; }
+    const name=f.elements.name.value.trim(), email=f.elements.email.value.trim(), link=f.elements.link.value.trim(), st=ta.value.trim();
+    if(!name||!email||!link||!st){ msg.textContent='Please fill all four fields.'; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='That email doesn&#39;t look right.'; return; }
     if(count(st)>150){ msg.textContent='Your statement is over 150 words.'; return; }
     msg.textContent='Sending…';
     try{
       const r=await fetch('/wit36/apply',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name,link,statement:st,website:f.elements.website.value})});
+        body:JSON.stringify({name,email,link,statement:st,website:f.elements.website.value})});
       const d=await r.json().catch(()=>({}));
       if(r.ok&&d.ok){ f.innerHTML='<p class="thanks">Received. The studio decides who takes part, privately — you will hear from us only if selected.</p>'; }
       else { msg.textContent=(d&&d.error)||'Something went wrong. Please try again.'; }
