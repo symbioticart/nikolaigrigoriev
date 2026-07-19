@@ -362,7 +362,9 @@ http.createServer((req, res) => {
       if (!name || !email || !link || !st) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: 'Please fill all four fields.' })); return; }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: "That email doesn't look right." })); return; }
       if (st.split(/\s+/).length > 150) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: 'Your statement is over 150 words.' })); return; }
-      const rec = { ts: new Date().toISOString(), name: name.slice(0, 200), email: email.slice(0, 200), link: link.slice(0, 400), statement: st.slice(0, 2000) };
+      if (d.consent !== true) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: 'Please accept the Terms & Privacy.' })); return; }
+      // consent + ts stored as proof of consent (art. 7.1 GDPR)
+      const rec = { ts: new Date().toISOString(), name: name.slice(0, 200), email: email.slice(0, 200), link: link.slice(0, 400), statement: st.slice(0, 2000), consent: true };
       try { fs.appendFileSync(path.join(dir, 'data', 'wit36-applications.jsonl'), JSON.stringify(rec) + '\n'); } catch (e) { console.error('[wit36] store:', e.message); }
       console.log('[wit36] APPLICATION', rec.ts, rec.name);
       notifyApplication(rec);
@@ -417,6 +419,7 @@ http.createServer((req, res) => {
   if (url === '/lab' || url === '/lab/') url = '/lab/index.html';
   // /wit36 — WITHOUT WITNESS open-call (MONOMO). Same origin.
   if (url === '/wit36' || url === '/wit36/') url = '/wit36/index.html';
+  if (url === '/wit36/terms' || url === '/wit36/terms/') url = '/wit36/terms.html';
 
   // Resolve and keep strictly within the served directory (no path traversal),
   // serve only whitelisted file types, and never expose runtime files.

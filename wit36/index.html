@@ -96,6 +96,7 @@
     letter-spacing:0;opacity:.6;text-transform:uppercase;line-height:1;white-space:nowrap;width:100%;display:block}
   .brand .bsub{margin-top:9px;font-family:var(--mono);font-size:var(--fs-7);
     letter-spacing:.05em;opacity:.38;text-transform:uppercase;line-height:1;white-space:nowrap;display:block}
+  .brand .bdates{opacity:.6}   /* the dates are operative information — one step louder */
   .topright{position:absolute;top:calc(clamp(48px,9vh,96px) + 0.45vw);right:var(--pad);z-index:6;display:flex;align-items:flex-start;gap:clamp(14px,1.6vw,24px)}   /* +offset aligns Apply top with the visual top of the OPEN CALL letters */
   .langsw{display:flex;gap:12px;font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.14em;padding-top:15px}
   .langsw button{background:none;border:0;padding:2px;font:inherit;letter-spacing:inherit;color:var(--ink-soft);cursor:pointer;text-transform:uppercase}
@@ -231,6 +232,11 @@
   .applyform input::placeholder{color:var(--bone-30)}
   .fh{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.05em;color:var(--bone-50)}
   .fh.over{color:var(--bone)}
+  /* consent checkbox — RGPD art. 6.1(a): unticked by default, blocks submit */
+  .fld.consent{flex-direction:row;gap:12px;align-items:flex-start}
+  .fld.consent input{width:15px;height:15px;margin:2px 0 0;accent-color:var(--bone);flex:none;cursor:pointer}
+  .fld.consent .cl{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.05em;line-height:1.6;color:var(--bone-62)}
+  .fld.consent a{color:var(--bone);text-underline-offset:3px}
   .applyform .cta{align-self:flex-start;margin-top:6px;cursor:pointer}
   .formmsg{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.05em;color:var(--bone-80);min-height:1em;margin:0}
   .apply-band .thanks{font-family:var(--serif);font-size:var(--fs-5);line-height:1.5;color:var(--bone);max-width:34ch;margin:8px 0 0}
@@ -301,6 +307,7 @@
     <div class="wname">Without Witness</div>
     <div class="bmeta">You move. The machine chooses &mdash; which frame, and when.</div>
     <div class="bsub">36 frames. Not one discarded.</div>
+    <div class="bsub bdates">Applications open 20 July &ndash; 10 August 2026</div>
   </div>
   <div class="topright">
     <nav class="langsw" aria-label="Language"><button type="button" class="on">EN</button><button type="button">ES</button><button type="button">CA</button></nav>
@@ -383,6 +390,8 @@
           <label class="fld"><span class="fl">04 &middot; What will you do for three hours, alone with yourself?</span>
             <textarea name="statement" required rows="6" maxlength="1400"></textarea>
             <span class="fh"><span id="wc">0</span> / 150 words &middot; your answer is not published</span></label>
+          <label class="fld consent"><input type="checkbox" name="consent">
+            <span class="cl">I have read and accept the <a href="/wit36/terms" target="_blank" rel="noopener">Terms &amp; Privacy</a>. Monomo Estudio SL processes these details only to run this call.</span></label>
           <button class="cta" type="submit" id="applyBtn">Send application <span>&rarr;</span></button>
           <p class="formmsg" id="formmsg" aria-live="polite"></p>
         </form>
@@ -395,7 +404,7 @@
 <footer>
   <div class="foot">
     <div><span class="top">WITHOUT WITNESS &middot; Sense testimoni</span><br>MONOMO &mdash; self-portrait studio &middot; Gr&agrave;cia, Barcelona</div>
-    <div>Cycle I &middot; Applications open soon<div class="langs"><span class="on">EN</span><span>ES</span><span>CA</span></div></div>
+    <div>Cycle I &middot; Applications open 20 July &ndash; 10 August 2026<div class="langs"><span class="on">EN</span><span>ES</span><span>CA</span></div></div>
   </div>
 </footer>
 
@@ -696,10 +705,11 @@ const PrintTexture=(function(){
     if(!name||!email||!link||!st){ msg.textContent='Please fill all four fields.'; return; }
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='That email doesn&#39;t look right.'; return; }
     if(count(st)>150){ msg.textContent='Your statement is over 150 words.'; return; }
+    if(!f.elements.consent.checked){ msg.textContent='Please accept the Terms & Privacy.'; return; }
     msg.textContent='Sending…';
     try{
       const r=await fetch('/wit36/apply',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name,email,link,statement:st,website:f.elements.website.value})});
+        body:JSON.stringify({name,email,link,statement:st,consent:true,website:f.elements.website.value})});
       const d=await r.json().catch(()=>({}));
       if(r.ok&&d.ok){ f.innerHTML='<p class="thanks">Received. The studio decides who takes part, privately — you will hear from us only if selected.</p>'; }
       else { msg.textContent=(d&&d.error)||'Something went wrong. Please try again.'; }
