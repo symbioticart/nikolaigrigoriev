@@ -162,7 +162,8 @@
   .body{grid-column:10/32}
   h2{font-family:var(--disp);font-weight:800;text-transform:uppercase;letter-spacing:-.03em;
     line-height:.85;margin:0 0 clamp(30px,4vw,48px);font-size:var(--fs-3);text-wrap:balance}
-  p{font-size:var(--fs-5);line-height:1.5;margin:0 0 20px;max-width:60ch}
+  p{font-size:var(--fs-5);line-height:1.5;margin:0 0 20px;max-width:60ch;text-wrap:pretty}
+  .st,.fields .q,.roles dd,.cap,.note,.apply-band .thanks{text-wrap:pretty}
   p.lead{font-family:var(--disp);font-weight:300;font-size:var(--fs-4);line-height:1;
     letter-spacing:-.03em;text-transform:uppercase;max-width:15ch;margin:0 0 30px}
   .em{color:var(--oxide)}
@@ -259,6 +260,8 @@
     .idx::after{display:none}
     .idx .n,.idx .lab{display:inline}
     .idx .lab{margin-left:12px}
+    /* meta (timecode / "Roles" / "Four fields") drops to its own line so it never fuses with the title */
+    .idx>span:last-child{display:block;margin-top:7px;letter-spacing:.14em}
     .body,.time,.roles{grid-column:1/2}
     .apply-inner{grid-template-columns:1fr;gap:14px}
     .apply-band .idx{grid-column:1/2;margin-bottom:18px}
@@ -333,11 +336,11 @@
     <section class="row">
       <div class="idx"><span class="n">&sect; 01</span><span class="lab">The invitation</span><span>00:00:00</span></div>
       <div class="body">
-        <p class="lead">A room. Three hours. You, alone.</p>
-        <p>No photographer, no witness. You bring what you want and do what you want. Whatever happens in that room is your doing, and it is the work.</p>
-        <p>A machine takes 36 frames at moments none of us &mdash; you included &mdash; can predict. You can&rsquo;t choose them, reshoot them, or edit them.</p>
-        <p>The finished piece, all 36 frames, is your work, under your name. You&rsquo;ll see it for the first time at the opening, at the same moment as everyone else. You answer for the whole three hours, not the best of them.</p>
-        <p>Our part is only the frame: the room, the time, the ban on choosing, the number 36.</p>
+        <p class="lead">A&nbsp;room. Three hours. You, alone.</p>
+        <p>No&nbsp;photographer, no&nbsp;witness. You&nbsp;bring what you&nbsp;want and&nbsp;do what you&nbsp;want. Whatever happens in&nbsp;that&nbsp;room is&nbsp;your&nbsp;doing, and&nbsp;it&nbsp;is&nbsp;the&nbsp;work.</p>
+        <p>A&nbsp;machine takes 36&nbsp;frames at&nbsp;moments none of&nbsp;us&nbsp;&mdash; you&nbsp;included&nbsp;&mdash; can predict. You&nbsp;can&rsquo;t choose them, reshoot them, or&nbsp;edit them.</p>
+        <p>The&nbsp;finished piece, all 36&nbsp;frames, is&nbsp;your&nbsp;work, under your&nbsp;name. You&rsquo;ll see it&nbsp;for&nbsp;the&nbsp;first time at&nbsp;the&nbsp;opening, at&nbsp;the&nbsp;same moment as&nbsp;everyone else. You&nbsp;answer for&nbsp;the&nbsp;whole three hours, not&nbsp;the&nbsp;best of&nbsp;them.</p>
+        <p>Our&nbsp;part is&nbsp;only the&nbsp;frame: the&nbsp;room, the&nbsp;time, the&nbsp;ban on&nbsp;choosing, the&nbsp;number 36.</p>
       </div>
     </section>
   </div>
@@ -346,7 +349,7 @@
     <div class="asym-inner">
       <div class="top">Total control of the action.</div>
       <div class="bot">Zero control of the output.</div>
-      <p class="cap">For three hours you direct everything and edit nothing. The work sits in that gap: your grip on the room against the machine&rsquo;s indifference to what it catches.</p>
+      <p class="cap">For&nbsp;three hours you&nbsp;direct everything and&nbsp;edit nothing. The&nbsp;work sits in&nbsp;that&nbsp;gap: your&nbsp;grip on&nbsp;the&nbsp;room against the&nbsp;machine&rsquo;s indifference to&nbsp;what it&nbsp;catches.</p>
     </div>
   </section>
 
@@ -354,22 +357,22 @@
     <section class="row">
       <div class="idx"><span class="n">&sect; 02</span><span class="lab">The protocol</span><span>00:00 &rarr; 03:00</span></div>
       <ol class="time">
-        <li><span class="tk">00:00</span><p class="st">You enter alone for 180 minutes. Watches and phones stay at the door; bring anything else you like. The door closes.</p></li>
-        <li><p class="st">36 exposures across the three hours. The count is announced; the moments aren&rsquo;t. A true random number generator decides each one in the moment it fires &mdash; there is no schedule, for anyone.</p></li>
-        <li><p class="st">No choosing. No reshooting. No editing, by you or the studio. All 36 are printed and shown in full, in the order taken, at one size.</p></li>
-        <li><p class="st">You may leave at any moment. Walking out is a gesture like any other &mdash; the machine keeps firing, and an empty room is a frame too.</p></li>
-        <li><p class="st">The camera works alone. No one selects or edits a frame: the files run sealed, straight to the press, and nothing is shown before the opening at MONOMO.</p></li>
-        <li><span class="tk">03:00</span><p class="st">The door opens; you step out. The frames stay behind. Once every artist&rsquo;s session is done, the works are shown at the opening &mdash; and you meet yours there, with the public, for the first time.</p></li>
+        <li><span class="tk">00:00</span><p class="st">You&nbsp;enter alone for&nbsp;180&nbsp;minutes. Watches and&nbsp;phones stay at&nbsp;the&nbsp;door; bring anything else you&nbsp;like. The&nbsp;door closes.</p></li>
+        <li><p class="st">36&nbsp;exposures across the&nbsp;three hours. The&nbsp;count is&nbsp;announced; the&nbsp;moments aren&rsquo;t. A&nbsp;true random number generator decides each one in&nbsp;the&nbsp;moment it&nbsp;fires&nbsp;&mdash; there is&nbsp;no&nbsp;schedule, for&nbsp;anyone.</p></li>
+        <li><p class="st">No&nbsp;choosing. No&nbsp;reshooting. No&nbsp;editing, by&nbsp;you&nbsp;or&nbsp;the&nbsp;studio. All 36&nbsp;are printed and&nbsp;shown in&nbsp;full, in&nbsp;the&nbsp;order taken, at&nbsp;one size.</p></li>
+        <li><p class="st">You&nbsp;may leave at&nbsp;any moment. Walking out is&nbsp;a&nbsp;gesture like any other&nbsp;&mdash; the&nbsp;machine keeps firing, and&nbsp;an&nbsp;empty room is&nbsp;a&nbsp;frame too.</p></li>
+        <li><p class="st">The&nbsp;camera works alone. No&nbsp;one selects or&nbsp;edits a&nbsp;frame: the&nbsp;files run sealed, straight to&nbsp;the&nbsp;press, and&nbsp;nothing is&nbsp;shown before the&nbsp;opening at&nbsp;MONOMO.</p></li>
+        <li><span class="tk">03:00</span><p class="st">The&nbsp;door opens; you&nbsp;step out. The&nbsp;frames stay behind. Once every artist&rsquo;s session is&nbsp;done, the&nbsp;works are shown at&nbsp;the&nbsp;opening&nbsp;&mdash; and&nbsp;you&nbsp;meet yours there, with&nbsp;the&nbsp;public, for&nbsp;the&nbsp;first time.</p></li>
       </ol>
     </section>
 
     <section class="row">
       <div class="idx"><span class="n">&sect; 03</span><span class="lab">Who</span><span>Roles</span></div>
       <dl class="roles">
-        <div><dt>The artist</dt><dd>Authors and directs the work: three hours of action. The finished 36 are theirs alone, under their name &mdash; the studio claims no part of the work.</dd></div>
-        <div><dt>MONOMO</dt><dd>The autonomous self-portrait studio in Gr&agrave;cia. Organiser, production, place.</dd></div>
-        <div><dt>Nikolai Grigoriev</dt><dd>He sets the frame &mdash; the room, the hours, the ban, the number. He goes through the protocol on the same terms as everyone else.</dd></div>
-        <div><dt>The machine &middot; chance</dt><dd>An indifferent eye. It fires 36 times; chance alone decides when. No one &mdash; the artist included &mdash; knows the moments. You can&rsquo;t predict it, and you can&rsquo;t sway it.</dd></div>
+        <div><dt>The artist</dt><dd>Authors and&nbsp;directs the&nbsp;work: three hours of&nbsp;action. The&nbsp;finished 36&nbsp;are theirs alone, under their&nbsp;name&nbsp;&mdash; the&nbsp;studio claims no&nbsp;part of&nbsp;the&nbsp;work.</dd></div>
+        <div><dt>MONOMO</dt><dd>The&nbsp;autonomous self-portrait studio in&nbsp;Gr&agrave;cia. Organiser, production, place.</dd></div>
+        <div><dt>Nikolai Grigoriev</dt><dd>He sets the&nbsp;frame&nbsp;&mdash; the&nbsp;room, the&nbsp;hours, the&nbsp;ban, the&nbsp;number. He goes through the&nbsp;protocol on&nbsp;the&nbsp;same terms as&nbsp;everyone else.</dd></div>
+        <div><dt>The machine &middot; chance</dt><dd>An&nbsp;indifferent eye. It&nbsp;fires 36&nbsp;times; chance alone decides when. No&nbsp;one&nbsp;&mdash; the&nbsp;artist included&nbsp;&mdash; knows the&nbsp;moments. You&nbsp;can&rsquo;t predict it, and&nbsp;you&nbsp;can&rsquo;t sway it.</dd></div>
       </dl>
     </section>
 
@@ -380,7 +383,7 @@
       <div class="idx"><span class="n">&sect; 04</span><span class="lab">Apply</span><span>Four fields</span></div>
       <div class="body">
         <h2>Take part</h2>
-        <p>We invite artists. The studio decides who takes part, privately. Reasons are not given.</p>
+        <p>We&nbsp;invite artists. The&nbsp;studio decides who&nbsp;takes part, privately. Reasons are not&nbsp;given.</p>
         <form class="applyform" id="applyForm" method="post" action="/wit36/apply" novalidate>
           <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
           <label class="fld"><span class="fl">01 &middot; Your name</span>
@@ -397,7 +400,7 @@
           <button class="cta" type="submit" id="applyBtn">Send application <span>&rarr;</span></button>
           <p class="formmsg" id="formmsg" aria-live="polite"></p>
         </form>
-        <p class="note">There is no fee to apply, and none to take part. Travel and materials are yours; the room, the machine and the printing are ours.</p>
+        <p class="note">There is&nbsp;no&nbsp;fee to&nbsp;apply, and&nbsp;none to&nbsp;take part. Travel and&nbsp;materials are yours; the&nbsp;room, the&nbsp;machine and&nbsp;the&nbsp;printing are ours.</p>
       </div>
     </div>
   </section>
