@@ -420,6 +420,8 @@ http.createServer((req, res) => {
   // /wit36 — WITHOUT WITNESS open-call (MONOMO). Same origin.
   if (url === '/wit36' || url === '/wit36/') url = '/wit36/index.html';
   if (url === '/wit36/terms' || url === '/wit36/terms/') url = '/wit36/terms.html';
+  if (url === '/wit36/es' || url === '/wit36/es/') url = '/wit36/es.html';
+  if (url === '/wit36/es/terms' || url === '/wit36/es/terms/') url = '/wit36/es/terms.html';
 
   // Resolve and keep strictly within the served directory (no path traversal),
   // serve only whitelisted file types, and never expose runtime files.
