@@ -97,9 +97,8 @@
   /* application window — bottom-left of the hero, poster voice (not technical chrome) */
   .opendates{position:absolute;left:var(--pad);bottom:clamp(66px,11vh,120px);z-index:6;display:flex;flex-direction:column;gap:10px}
   .opendates .odl{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.2em;text-transform:uppercase;opacity:.6}
-  /* one family for the whole block — mono like the label, scaled up; digits stay consistent */
-  .opendates .odv{font-family:var(--mono);font-weight:700;font-size:clamp(16px,1.9vw,24px);
-    letter-spacing:.06em;text-transform:uppercase;line-height:1.15;font-variant-numeric:tabular-nums}
+  .opendates .odv{font-family:var(--disp);font-weight:800;font-size:clamp(19px,2.3vw,30px);
+    letter-spacing:-.01em;text-transform:uppercase;line-height:1}
   .topright{position:absolute;top:calc(clamp(48px,9vh,96px) + 0.45vw);right:var(--pad);z-index:6;display:flex;align-items:flex-start;gap:clamp(14px,1.6vw,24px)}   /* +offset aligns Apply top with the visual top of the OPEN CALL letters */
   .langsw{display:flex;gap:12px;font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.14em;padding-top:15px}
   .langsw button{background:none;border:0;padding:2px;font:inherit;letter-spacing:inherit;color:var(--ink-soft);cursor:pointer;text-transform:uppercase}
