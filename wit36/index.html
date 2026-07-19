@@ -97,8 +97,9 @@
   /* application window — bottom-left of the hero, poster voice (not technical chrome) */
   .opendates{position:absolute;left:var(--pad);bottom:clamp(66px,11vh,120px);z-index:6;display:flex;flex-direction:column;gap:10px}
   .opendates .odl{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.2em;text-transform:uppercase;opacity:.6}
-  .opendates .odv{font-family:var(--disp);font-weight:800;font-size:clamp(19px,2.3vw,30px);
-    letter-spacing:-.01em;text-transform:uppercase;line-height:1}
+  /* one family for the whole block — mono like the label, scaled up; digits stay consistent */
+  .opendates .odv{font-family:var(--mono);font-weight:700;font-size:clamp(16px,1.9vw,24px);
+    letter-spacing:.06em;text-transform:uppercase;line-height:1.15;font-variant-numeric:tabular-nums}
   .topright{position:absolute;top:calc(clamp(48px,9vh,96px) + 0.45vw);right:var(--pad);z-index:6;display:flex;align-items:flex-start;gap:clamp(14px,1.6vw,24px)}   /* +offset aligns Apply top with the visual top of the OPEN CALL letters */
   .langsw{display:flex;gap:12px;font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.14em;padding-top:15px}
   .langsw button{background:none;border:0;padding:2px;font:inherit;letter-spacing:inherit;color:var(--ink-soft);cursor:pointer;text-transform:uppercase}
@@ -121,14 +122,11 @@
     font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.3em;text-transform:uppercase;opacity:0;transition:opacity .9s ease;pointer-events:none}
   .hint.show{opacity:.5;animation:breathe 2.8s ease-in-out infinite}
   @keyframes breathe{0%,100%{opacity:.24}50%{opacity:.56}}
-  /* session strip — 3-hour countdown + frame count. Lives on the registration-cross axis:
-     same 16px print margin, same hairline weight, flanked by two small crosses of the .reg family. */
-  #session{position:fixed;left:50%;transform:translateX(-50%);bottom:17px;z-index:2147483000;
-    font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.14em;display:flex;gap:14px;align-items:center;
+  /* session strip — 3-hour countdown + frame count. Sits on the axis of the corner
+     registration crosses (their centre line, 24px up): part of the same print chrome. */
+  #session{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:2147483000;
+    font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.14em;display:flex;gap:12px;align-items:center;
     color:#fff;mix-blend-mode:difference;pointer-events:none;font-variant-numeric:tabular-nums}
-  #session::before,#session::after{content:"";width:9px;height:9px;flex:none;opacity:.5;
-    background:linear-gradient(#fff,#fff) center/1px 100% no-repeat,
-               linear-gradient(#fff,#fff) center/100% 1px no-repeat}
   .cue{position:absolute;left:var(--pad);bottom:22px;z-index:6;pointer-events:auto;font-family:var(--mono);font-size:var(--fs-7);
     letter-spacing:.2em;text-transform:uppercase;color:var(--ink);text-decoration:none;opacity:.6;display:flex;gap:9px;align-items:center}
   .cue:hover{opacity:1;color:var(--oxide)}
