@@ -46,8 +46,8 @@ const R = [
    '<p>Nuestra parte es solo el marco: la sala, el tiempo, el veto a elegir, el número 36.</p>'],
 
   // ---- dark band ----
-  ['<div class="top">Total control of the action.</div>', '<div class="top">Control total de la acción.</div>'],
-  ['<div class="bot">Zero control of the output.</div>', '<div class="bot">Control cero del resultado.</div>'],
+  ['<div class="top">Total control of the action.</div>', '<div class="top">Control total de&nbsp;la&nbsp;acción.</div>'],
+  ['<div class="bot">Zero control of the output.</div>', '<div class="bot">Control cero del&nbsp;resultado.</div>'],
   ['<p class="cap">For three hours you direct everything and edit nothing. The work sits in that gap: your grip on the room against the machine&rsquo;s indifference to what it catches.</p>',
    '<p class="cap">Durante tres horas lo diriges todo y no editas nada. La obra vive en ese hueco: tu dominio de la sala frente a la indiferencia de la máquina ante lo que capta.</p>'],
 
