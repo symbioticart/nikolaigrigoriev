@@ -78,6 +78,36 @@ function notifyApplication(rec) {
     req.write(body); req.end();
   } catch (e) { /* never let notify break the server */ }
 }
+// Also file each application as a row in a Notion database (browse + shortlist).
+// No-op until NOTION_TOKEN + NOTION_DB_ID are set. Property names must match the DB schema.
+function notifyNotion(rec) {
+  const tok = process.env.NOTION_TOKEN, db = process.env.NOTION_DB_ID;
+  if (!tok || !db) return;
+  try {
+    const body = JSON.stringify({
+      parent: { database_id: db },
+      properties: {
+        Name:      { title: [{ text: { content: (rec.name || '').slice(0, 200) } }] },
+        Email:     { email: rec.email || null },
+        Link:      { url: rec.link || null },
+        Statement: { rich_text: [{ text: { content: (rec.statement || '').slice(0, 1900) } }] },
+        Submitted: { date: { start: rec.ts } },
+        Consent:   { checkbox: rec.consent === true },
+        Status:    { select: { name: 'New' } }
+      }
+    });
+    const req = https.request('https://api.notion.com/v1/pages',
+      { method: 'POST', headers: {
+        'Authorization': 'Bearer ' + tok,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body) } },
+      res => { if (res.statusCode >= 300) { let e = ''; res.on('data', c => e += c); res.on('end', () => console.error('[wit36] notion', res.statusCode, e.slice(0, 300))); } });
+    req.on('error', err => console.error('[wit36] notion:', err.message));
+    req.setTimeout(8000, () => req.destroy());
+    req.write(body); req.end();
+  } catch (e) { /* never let notify break the server */ }
+}
 
 // Whitelisted static types. Note: '.map' is intentionally absent — source maps
 // are never served in production.
@@ -368,6 +398,7 @@ http.createServer((req, res) => {
       try { fs.appendFileSync(path.join(dir, 'data', 'wit36-applications.jsonl'), JSON.stringify(rec) + '\n'); } catch (e) { console.error('[wit36] store:', e.message); }
       console.log('[wit36] APPLICATION', rec.ts, rec.name);
       notifyApplication(rec);
+      notifyNotion(rec);
       res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{"ok":true}');
     });
     req.on('error', () => { try { res.writeHead(400); res.end(); } catch (e) {} });
