@@ -13,6 +13,12 @@ const zlib   = require('zlib');
 const dir  = __dirname;
 const port = process.env.PORT || 3457;
 
+// Durable application store: a persistent disk when present (WIT36_DATA_DIR=/var/data),
+// otherwise the repo folder (ephemeral). Every wit36 application is appended here as JSONL.
+const DATA_DIR = process.env.WIT36_DATA_DIR || path.join(dir, 'data');
+try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) {}
+const WIT36_STORE = path.join(DATA_DIR, 'wit36-applications.jsonl');
+
 // === SECRETS (env only — never commit) ===
 let ACCESS_TOKEN  = process.env.OURA_TOKEN   || '';   // PAT or OAuth access token
 let REFRESH_TOKEN = process.env.OURA_REFRESH || '';   // optional, enables auto-refresh
@@ -395,7 +401,7 @@ http.createServer((req, res) => {
       if (d.consent !== true) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ ok: false, error: 'Please accept the Terms & Privacy.' })); return; }
       // consent + ts stored as proof of consent (art. 7.1 GDPR)
       const rec = { ts: new Date().toISOString(), name: name.slice(0, 200), email: email.slice(0, 200), link: link.slice(0, 400), statement: st.slice(0, 2000), consent: true };
-      try { fs.appendFileSync(path.join(dir, 'data', 'wit36-applications.jsonl'), JSON.stringify(rec) + '\n'); } catch (e) { console.error('[wit36] store:', e.message); }
+      try { fs.appendFileSync(WIT36_STORE, JSON.stringify(rec) + '\n'); } catch (e) { console.error('[wit36] store:', e.message); }
       console.log('[wit36] APPLICATION', rec.ts, rec.name);
       notifyApplication(rec);
       notifyNotion(rec);
@@ -408,6 +414,28 @@ http.createServer((req, res) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405); res.end('Method Not Allowed'); return; }
 
   let url = req.url.split('?')[0];
+
+  // WIT36 admin — a browsable table of every application (secret-link protected). ?format=csv|json to export.
+  if (url === '/wit36/admin' || url === '/wit36/admin/') {
+    const key = process.env.WIT36_ADMIN_KEY;
+    const qs = new URLSearchParams(req.url.split('?')[1] || '');
+    if (!key || qs.get('key') !== key) { res.writeHead(401, { 'Content-Type': 'text/plain' }); res.end('Unauthorized'); return; }
+    let rows = [];
+    try { rows = fs.readFileSync(WIT36_STORE, 'utf8').trim().split('\n').filter(Boolean).map(l => { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean); } catch (e) {}
+    const fmt = qs.get('format');
+    if (fmt === 'json') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(rows, null, 2)); return; }
+    if (fmt === 'csv') {
+      const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+      const head = ['ts', 'name', 'email', 'link', 'statement', 'consent', 'lang'];
+      const csv = [head.join(',')].concat(rows.map(r => head.map(h => q(r[h])).join(','))).join('\n');
+      res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': 'attachment; filename="wit36-applications.csv"' }); res.end('﻿' + csv); return;
+    }
+    const e = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const k = encodeURIComponent(key);
+    const body = rows.slice().reverse().map((r, i) => `<tr><td>${rows.length - i}</td><td>${e((r.ts || '').replace('T', ' ').slice(0, 16))}</td><td>${e(r.name)}</td><td><a href="mailto:${e(r.email)}">${e(r.email)}</a></td><td>${r.link ? `<a href="${e(r.link)}" target="_blank" rel="noopener">&#8599;</a>` : ''}</td><td>${e(r.statement)}</td></tr>`).join('');
+    const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>WIT36 &mdash; applications (${rows.length})</title><style>body{font:14px/1.5 ui-monospace,Menlo,monospace;margin:0;background:#fff;color:#0C0B09}header{padding:16px 20px;border-bottom:1px solid #0C0B09;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}h1{font-size:14px;letter-spacing:.14em;text-transform:uppercase;margin:0}.c{opacity:.55}a{color:#0C0B09}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid rgba(12,11,9,.15);padding:10px 12px;text-align:left;vertical-align:top;font-size:13px}th{position:sticky;top:0;background:#fff;text-transform:uppercase;letter-spacing:.1em;font-size:11px;opacity:.6}td:nth-child(6){max-width:560px;white-space:pre-wrap}tr:hover td{background:rgba(12,11,9,.03)}</style><header><h1>Without Witness &mdash; applications</h1><span class="c">${rows.length} total</span><a href="/wit36/admin?key=${k}&amp;format=csv">CSV</a><a href="/wit36/admin?key=${k}&amp;format=json">JSON</a></header><table><thead><tr><th>#</th><th>When&nbsp;UTC</th><th>Name</th><th>Email</th><th>Link</th><th>Statement</th></tr></thead><tbody>${body || '<tr><td colspan="6" class="c" style="padding:40px 12px">No applications yet.</td></tr>'}</tbody></table>`;
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(html); return;
+  }
 
   if (url === '/data/daily-metrics.json') {
     if (!STATE.payload) loadFallback();
