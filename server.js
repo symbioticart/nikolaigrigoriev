@@ -420,6 +420,10 @@ http.createServer((req, res) => {
     const key = process.env.WIT36_ADMIN_KEY;
     const qs = new URLSearchParams(req.url.split('?')[1] || '');
     if (!key || qs.get('key') !== key) { res.writeHead(401, { 'Content-Type': 'text/plain' }); res.end('Unauthorized'); return; }
+    if (qs.get('reset') === 'DELETE-ALL') {   // key-protected wipe (clear test data / reset between cycles)
+      try { fs.writeFileSync(WIT36_STORE, ''); console.log('[wit36] store RESET'); } catch (e) {}
+      res.writeHead(200, { 'Content-Type': 'text/plain' }); res.end('Store cleared.'); return;
+    }
     let rows = [];
     try { rows = fs.readFileSync(WIT36_STORE, 'utf8').trim().split('\n').filter(Boolean).map(l => { try { return JSON.parse(l); } catch (e) { return null; } }).filter(Boolean); } catch (e) {}
     const fmt = qs.get('format');
