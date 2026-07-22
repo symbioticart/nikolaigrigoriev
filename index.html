@@ -7,6 +7,10 @@
   <meta name="description" content="A living work by Nikolai Grigoriev. Each day the quiet traces one body leaves become one painting, written by a single unchanging rule.">
   <meta property="og:title" content="Nikolai Grigoriev — Variations 87">
   <meta property="og:description" content="A living work: each day the quiet traces one body leaves become one painting.">
+  <meta property="og:image" content="https://nikolaigrigoriev.com/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3' fill='%231a1a1a'/%3E%3C/svg%3E">
   <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/jetbrainsmono-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -62,11 +66,11 @@
     .nav-zone.prev { left:0; cursor:w-resize; }
     .nav-zone.next { right:0; cursor:e-resize; }
     .nav-zone.disabled { cursor:default; pointer-events:none; }
-    .nav-glyph { position:absolute; top:50%; transform:translateY(-50%); font-size:22px; font-weight:200; font-family:'Manrope',sans-serif; color:#1a1a1a; opacity:0; transition:opacity .25s ease; }
+    .nav-glyph { position:absolute; top:50%; transform:translateY(-50%); font-size:22px; font-weight:200; font-family:'Manrope',sans-serif; color:#1a1a1a; opacity:.2; transition:opacity .25s ease; }
     .nav-zone.prev .nav-glyph { left:14px; } .nav-zone.next .nav-glyph { right:14px; }
-    .nav-zone:hover .nav-glyph, .nav-zone:focus-visible .nav-glyph { opacity:.35; }
+    .nav-zone:hover .nav-glyph, .nav-zone:focus-visible .nav-glyph { opacity:.5; }
     .nav-zone.disabled .nav-glyph { opacity:0 !important; }
-    @media (hover:none) { .nav-glyph { opacity:.15; } }
+    @media (hover:none) { .nav-glyph { opacity:.25; } }
 
     /* Vertical per-work archive link, centred on the work's right edge */
     .archive-side {
@@ -91,6 +95,8 @@
     .stage-img { position:absolute; inset:0; width:100%; height:100%; display:none; z-index:1; pointer-events:none; }
     .canvas-frame.presented .stage-img { display:block; }
     .canvas-frame.presented canvas { visibility:hidden; }
+    .contact-link { color:#1a1a1a; text-decoration:none; border-bottom:1px solid rgba(26,26,26,.25); }
+    .contact-link:hover { border-bottom-color:rgba(26,26,26,.6); }
     .label-title .lt-name { font-weight:500; opacity:0.9; }
     .label-title .lt-range { font-weight:300; opacity:0.5; }
     .label-title:hover .lt-name { opacity:1; }
@@ -246,6 +252,9 @@
         <p>He has been alive for <span id="bioAlive">—</span> days. <span id="bioWritten">—</span> of them are written into Variations 87.</p>
         <p>Each of his works takes a single life — the quiet record a body leaves without being asked — and turns it, day after day, by one unchanging rule, into an image. The work and the life evolve together for as long as the life lasts: the image changes as the life changes, the archive keeps every day, and the rule is made to outlast the body. He came to art late, out of necessity, and intends to leave not objects but a way of living — and works that keep living it.</p>
       </div>
+      <div class="rule"></div>
+      <div class="kicker">Contact</div>
+      <p><a class="contact-link" href="https://www.instagram.com/niko.grigoriev" target="_blank" rel="noopener">Instagram — @niko.grigoriev</a></p>
       <div class="links">
         <button class="link" data-go="work">About the work →</button>
       </div>
