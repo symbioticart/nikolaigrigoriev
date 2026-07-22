@@ -1,50 +1,121 @@
 name: healthcheck
 
-# The artwork's data is daily, and the site is always-on (paid tier), so we do
-# NOT poll continuously. Process-liveness is handled by Render's native health
-# check; this is the data-quality observer: once in the evening (after Oura has
-# finalized the day), a retry a few hours later, and on every deploy.
+# Data-quality observer. The site is always-on (paid tier) and pure liveness is
+# watched by uptime.yml; this workflow judges the DATA: once in the evening
+# (18:00 UTC = 20:00 Madrid, after Oura finalized the day), a retry at 21:00
+# UTC, and on every deploy.
+#
+# Every Telegram message is plain Russian: what happened + what to do.
+# Dedup: the same set of problems is reported once, then re-reported every 48h;
+# recovery is reported exactly once.
+
 on:
   schedule:
     - cron: '0 18 * * *'   # 20:00 Europe/Madrid (CEST) — Oura day is ready
-    - cron: '0 21 * * *'   # 23:00 — retry, avoids false alarms from a transient blip
+    - cron: '0 21 * * *'   # 23:00 — retry
   push:
     branches: [main]       # the riskiest moment: a fresh deploy
   workflow_dispatch: {}
+
+env:
+  SITE: https://nikolaigrigoriev.onrender.com
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Probe /health and assert
-        id: probe
+      - name: Restore alert-dedup state
+        uses: actions/cache/restore@v4
+        with:
+          path: .hcstate
+          key: hc-state-${{ github.run_id }}
+          restore-keys: hc-state-
+
+      - name: Wait for the new version to reach the site (push only)
+        if: github.event_name == 'push'
         run: |
-          set -e
-          H=$(curl -fsS --max-time 90 https://nikolaigrigoriev.onrender.com/health)
-          echo "$H"
-          echo "health<<EOF" >> "$GITHUB_OUTPUT"; echo "$H" >> "$GITHUB_OUTPUT"; echo "EOF" >> "$GITHUB_OUTPUT"
-          H="$H" node -e '
-            const h = JSON.parse(process.env.H);
-            const fail = [];
-            if (!h.ok)        fail.push("ok=false");
-            if (!h.live)      fail.push("not live (serving fallback)");
-            if (h.tokenError) fail.push("Oura tokenError");
-            if (h.degraded)   fail.push("degraded: " + (h.degradedReasons||[]).join(", "));
-            if ((h.gapDays ?? 99) > 2)        fail.push("date frozen: gapDays=" + h.gapDays + " (last " + h.lastDataDay + ")");
-            if ((h.lastSyncAgeSec ?? 1e9) > 25200) fail.push("stale sync: " + h.lastSyncAgeSec + "s");
-            if ((h.dayCount ?? 0) < (h.lastKnownGoodDayCount ?? 0)) fail.push("dayCount shrank: " + h.dayCount + " < " + h.lastKnownGoodDayCount);
-            for (const [k, v] of Object.entries(h.perCollection || {})) if (!v.ok) fail.push("collection failed: " + k);
-            if (fail.length) { console.error("HEALTH FAIL — " + fail.join(" | ")); process.exit(1); }
-            console.log("HEALTH OK — day " + h.lastDataDay + ", " + h.dayCount + " days, gap " + h.gapDays);
-          '
-      - name: Telegram alert on failure
-        if: failure()
+          want="${GITHUB_SHA:0:7}"
+          for i in $(seq 1 32); do
+            got=$(curl -fsS -m 20 "$SITE/health" | jq -r '.buildSha // empty' 2>/dev/null || true)
+            [ "$got" = "$want" ] && { echo "deployed=$want" >> "$GITHUB_ENV"; exit 0; }
+            sleep 15
+          done
+          echo "deploy_missing=1" >> "$GITHUB_ENV"
+
+      - name: Probe /health and judge
+        run: |
+          mkdir -p .hcstate
+          : > fails.txt
+          if [ "${deploy_missing:-}" = "1" ]; then
+            echo "deploy|🔴 Пуш в main прошёл, но новая версия за 8 минут так и не появилась на сайте. Похоже, деплой на Render сломался. Смотреть: dashboard.render.com/web/srv-d7ektha8qa3s73ddeqd0" >> fails.txt
+          fi
+          if ! H=$(curl -fsS --max-time 90 "$SITE/health"); then
+            echo "down|🔴 Сайт не отвечает (nikolaigrigoriev.com). Проверь: dashboard.render.com/web/srv-d7ektha8qa3s73ddeqd0" >> fails.txt
+          else
+            echo "$H"
+            H="$H" node -e '
+              const h = JSON.parse(process.env.H);
+              const out = [];
+              const ru = (n,w1,w2,w5)=> n%10===1&&n%100!==11?w1 : (n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?w2:w5);
+              if (!h.ok) out.push("ok|🔴 Сайт отвечает, но сообщает о внутренней ошибке (ok=false).");
+              if (!h.live) out.push("notlive|🟡 Сайт показывает сохранённую запись вместо живых данных — живой синк с Oura не поднялся.");
+              if (h.tokenError) out.push("token|🔴 Авторизация Oura слетела — данные не обновляются. Что делать: обновить OURA_TOKEN в Render → Environment.");
+              const gap = h.gapDays ?? 99;
+              if (gap > 2) out.push(`gap|🟡 Кольцо не отдаёт данные уже ${gap} ${ru(gap,"день","дня","дней")} (последний записанный — ${h.lastDataDay}). Сайт работает нормально. Что делать: открой приложение Oura на телефоне и дай кольцу синхронизироваться.`);
+              const age = h.lastSyncAgeSec ?? 1e9;
+              if (age > 25200) out.push(`stalesync|🟡 Сервер не синхронизировался с Oura больше 7 часов (${Math.round(age/3600)} ч). Возможно, синк завис — помогает рестарт сервиса на Render.`);
+              if ((h.dayCount ?? 0) < (h.lastKnownGoodDayCount ?? 0)) out.push(`shrink|🔴 Запись уменьшилась: ${h.dayCount} дней вместо ${h.lastKnownGoodDayCount}. Это ненормально — смотри логи сервера.`);
+              const bad = Object.entries(h.perCollection||{}).filter(([,v])=>!v.ok).map(([k])=>k);
+              if (bad.length) out.push(`collections|🟡 Oura отдал не все данные (${bad.join(", ")}). Обычно чинится само к следующему синку.`);
+              if (h.degraded && !out.length) out.push(`degraded|🟡 Сервер сообщает о деградации: ${(h.degradedReasons||[]).join("; ")}`);
+              require("fs").appendFileSync("fails.txt", out.map(l=>l+"\n").join(""));
+              if (out.length) console.error("HEALTH FAIL:\n" + out.join("\n"));
+              else console.log(`HEALTH OK — день ${h.lastDataDay}, ${h.dayCount} дней, gap ${h.gapDays}, версия ${h.buildSha}`);
+            '
+          fi
+
+      - name: Telegram — report (deduplicated) or recover
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          EVENT: ${{ github.event_name }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          [ -z "$TG_BOT_TOKEN" ] && { echo "no telegram secret; GitHub will email the owner"; exit 0; }
-          curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
-            -d chat_id="${TG_CHAT_ID}" \
-            --data-urlencode "text=[Variations 87] healthcheck FAILED — open the Actions log: https://github.com/symbioticart/nikolaigrigoriev/actions" \
-            || true
+          [ -z "$TG_BOT_TOKEN" ] && { echo "no telegram secret — GitHub will email the owner instead"; exit 0; }
+          send() { # $1 = text, $2 = silent(true/false)
+            curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+              -d chat_id="${TG_CHAT_ID}" -d disable_web_page_preview=true \
+              -d disable_notification="${2:-false}" --data-urlencode "text=$1" > /dev/null || true
+          }
+          now=$(date +%s)
+          prev_fp=$(jq -r '.fp // ""'     .hcstate/state.json 2>/dev/null || echo "")
+          prev_at=$(jq -r '.sentAt // 0'  .hcstate/state.json 2>/dev/null || echo 0)
+          if [ -s fails.txt ]; then
+            fp=$(cut -d'|' -f1 fails.txt | sort | tr '\n' ',')
+            msgs=$(cut -d'|' -f2- fails.txt)
+            if [ "$fp" != "$prev_fp" ] || [ $((now - prev_at)) -gt 172800 ]; then
+              send "$msgs"
+              printf '{"fp":"%s","sentAt":%s}' "$fp" "$now" > .hcstate/state.json
+            else
+              echo "same problems already reported $(( (now - prev_at) / 3600 ))h ago — staying quiet"
+            fi
+          else
+            if [ -n "$prev_fp" ]; then
+              send "🟢 Все проверки сайта снова зелёные — проблемы ушли."
+              printf '{"fp":"","sentAt":%s}' "$now" > .hcstate/state.json
+            fi
+            if [ "$EVENT" = "push" ] && [ -n "${deployed:-}" ]; then
+              first_line=$(printf '%s' "$COMMIT_MSG" | head -1)
+              send "🚀 Новая версия на сайте (${deployed}): ${first_line}. Все проверки прошли." true
+            fi
+          fi
+
+      - name: Save alert-dedup state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .hcstate
+          key: hc-state-${{ github.run_id }}
+
+      - name: Mark the run red if problems were found
+        run: '[ -s fails.txt ] && exit 1 || exit 0'

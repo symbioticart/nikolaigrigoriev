@@ -28,6 +28,10 @@ const CLIENT_SECRET = process.env.OURA_CLIENT_SECRET || '';
 const SYNC_INTERVAL = 6 * 60 * 60 * 1000;   // re-sync every 6h
 const FETCH_CHUNK_DAYS = 90;                // API pull window per request
 
+const BUILD_SHA = (process.env.RENDER_GIT_COMMIT || 'dev').slice(0, 7);
+const BOOT_TIME = Date.now();
+const SITE     = 'https://nikolaigrigoriev.com';
+
 // === IN-MEMORY STATE ===
 const STATE = {
   days: null,        // clean transported days [{d,s,c,i}]
@@ -35,6 +39,12 @@ const STATE = {
   live: false,       // true only after a successful living synchronisation
   lastSync: null,
   syncing: false,
+  // observability (read by /health and the external healthcheck action)
+  tokenError: false,
+  degraded: false,
+  degradedReasons: [],
+  perCollection: {},        // { name: { ok, count } }
+  lastKnownGoodCount: 0,
 };
 
 const mimeTypes = {
@@ -56,18 +66,147 @@ const BASE_HEADERS = {
 };
 function head(extra) { return Object.assign({}, BASE_HEADERS, extra); }
 
-// === ALERTING (Telegram, optional — no-op until configured) ===
-function alert(text) {
-  const tok = process.env.TG_BOT_TOKEN, chat = process.env.TG_CHAT_ID;
-  if (!tok || !chat) return;
+// === OPS — Telegram monitoring + two-way bot ===
+// Every outgoing message is plain Russian: what happened, is the site OK,
+// what to do. Problems alert once + a reminder every 48h; recovery once.
+const TG_API = process.env.TG_API_BASE || 'https://api.telegram.org';
+const OPS = {
+  alerts: {},            // key -> { since, lastSent }
+  muteUntil: 0,          // /mute
+  lastDigestDate: null,  // Madrid date of the last evening digest
+  lastNotifiedDay: null, // last data day announced to the channel
+  apps: [],              // wit36 applications since boot: { ts, name, lang }
+};
+const RU_MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+function ruDate(iso) {
+  if (!iso) return '—';
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+  return `${d} ${RU_MONTHS[m - 1]}` + (y !== new Date().getUTCFullYear() ? ` ${y}` : '');
+}
+function ruDur(ms) {
+  const m = Math.round(ms / 60000);
+  if (m < 1) return 'меньше минуты';
+  if (m < 60) return `${m} мин`;
+  const h = Math.floor(m / 60);
+  if (h < 48) return `${h} ч ${m % 60} мин`;
+  return `${Math.floor(h / 24)} дн`;
+}
+function ruAgo(ms) { return ms < 30000 ? 'только что' : `${ruDur(ms)} назад`; }
+
+function tgApi(method, payload) {
+  const tok = process.env.TG_BOT_TOKEN;
+  if (!tok) return;
   try {
-    const body = JSON.stringify({ chat_id: chat, text: `[Variations 87] ${text}`, disable_notification: false });
-    const req = https.request(`https://api.telegram.org/bot${tok}/sendMessage`,
+    const body = JSON.stringify(payload);
+    const mod = TG_API.startsWith('http://') ? http : https;   // http only for the local test mock
+    const req = mod.request(`${TG_API}/bot${tok}/${method}`,
       { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } });
     req.on('error', () => {});
     req.setTimeout(8000, () => req.destroy());
     req.write(body); req.end();
-  } catch (e) { /* never let alerting break the server */ }
+  } catch (e) { /* never let telegram break the server */ }
+}
+function tgSend(text, opts = {}) {
+  const chat = opts.chatId || process.env.TG_CHAT_ID;
+  if (!chat) return;
+  if (!opts.isReply && Date.now() < OPS.muteUntil) return;   // /mute silences broadcasts, not replies
+  tgApi('sendMessage', { chat_id: chat, text, disable_notification: !!opts.silent, disable_web_page_preview: true });
+}
+function opsProblem(key, text) {
+  const now = Date.now(), a = OPS.alerts[key];
+  if (!a) { OPS.alerts[key] = { since: now, lastSent: now }; tgSend(text); return; }
+  if (now - a.lastSent > 48 * 3600e3) { a.lastSent = now; tgSend(`${text}\n\n(проблема держится уже ${ruDur(now - a.since)})`); }
+}
+function opsRecovered(key, text) {
+  const a = OPS.alerts[key];
+  if (!a) return;
+  delete OPS.alerts[key];
+  tgSend(`${text} (длилось ${ruDur(Date.now() - a.since)})`);
+}
+
+// One honest paragraph about the whole system — reused by /status and the digest.
+function statusText() {
+  const m = currentMeta();
+  const dayCount = (STATE.raw || []).length;
+  const gapLine = m.gapDays <= 1
+    ? 'данные свежие'
+    : `⚠️ ${m.gapDays} дн. без данных — открой приложение Oura на телефоне, дай кольцу синхронизироваться`;
+  const syncLine = STATE.tokenError ? '🔴 авторизация слетела, нужен новый токен'
+    : STATE.lastSync ? `ок, ${ruAgo(Date.now() - Date.parse(STATE.lastSync))}`
+    : 'живой синк ещё не проходил' + (STATE.live ? '' : ' — показываю сохранённую запись');
+  const probs = Object.keys(OPS.alerts).length;
+  return [
+    `${probs ? '🟡' : '🟢'} Сайт работает — nikolaigrigoriev.com`,
+    `• Запись: ${dayCount} дней, последний — ${ruDate(m.lastDataDay)} (${gapLine})`,
+    `• Синк Oura: ${syncLine}`,
+    `• Версия: ${BUILD_SHA}, аптайм ${ruDur(Date.now() - BOOT_TIME)}`,
+    `• Статус работы: ${m.status}` + (m.status === 'dormant' ? ` — до terminal ещё ${TERMINAL_DAYS - m.gapDays} дн. тишины` : ''),
+  ].join('\n');
+}
+
+// Evening digest: one quiet message at 21:00 Europe/Madrid instead of noise.
+const DIGEST_HOUR = parseInt(process.env.OPS_DIGEST_HOUR || '21', 10);
+function madridParts() {
+  const s = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid', hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date());
+  return { date: s.slice(0, 10), hour: +s.slice(11, 13) };
+}
+function digestTick() {
+  try {
+    const { date, hour } = madridParts();
+    if (hour < DIGEST_HOUR || OPS.lastDigestDate === date) return;
+    OPS.lastDigestDate = date;
+    const today = new Date().toISOString().slice(0, 10);
+    let text = `Вечерняя сводка\n${statusText()}\n• Заявок WIT36 сегодня: ${OPS.apps.filter(a => a.ts.slice(0, 10) === today).length}`;
+    if (date.slice(8) === '01') {
+      const alive = daysBetween(WORK_BIRTH_DATE, isoDate(new Date()));
+      text += `\n\n🕰 Работа жива ${alive} дней (с ${ruDate(WORK_BIRTH_DATE)}). Terminal наступает после ${TERMINAL_DAYS} дней тишины подряд; сейчас тишина — ${currentMeta().gapDays} дн.`;
+    }
+    tgSend(text, { silent: true });
+  } catch (e) { /* the digest must never crash the server */ }
+}
+
+// Incoming bot commands (webhook). Only the channel itself or the owner's
+// private chat are answered; everyone else is silently ignored.
+function handleTgUpdate(u) {
+  const msg = u.message || u.channel_post;
+  if (!msg || !msg.chat) return;
+  const chatId = String(msg.chat.id);
+  const fromChannel = process.env.TG_CHAT_ID && chatId === String(process.env.TG_CHAT_ID);
+  const fromOwner = msg.chat.type === 'private' && process.env.TG_ADMIN_ID
+    && String((msg.from || {}).id) === String(process.env.TG_ADMIN_ID);
+  if (!fromChannel && !fromOwner) return;
+  const text = (msg.text || '').trim();
+  if (!text.startsWith('/')) return;
+  const parts = text.split(/\s+/);
+  const cmd = parts[0].split('@')[0].toLowerCase();
+  const reply = t => tgSend(t, { chatId: msg.chat.id, isReply: true, silent: true });
+
+  if (cmd === '/status') { reply(statusText()); return; }
+  if (cmd === '/89') {
+    const m = currentMeta();
+    reply(`🎨 Проект 89 — вертикальная дневная история.\nПоследний записанный день: ${ruDate(m.lastDataDay)} (№${(STATE.raw || []).length}).\nСмотреть: ${SITE}/89`);
+    return;
+  }
+  if (cmd === '/deploy') {
+    reply(`🚀 На проде версия ${BUILD_SHA}, запущена ${ruAgo(Date.now() - BOOT_TIME)}.\nДеплои: dashboard.render.com/web/srv-d7ektha8qa3s73ddeqd0\nКод: github.com/symbioticart/nikolaigrigoriev`);
+    return;
+  }
+  if (cmd === '/apps') {
+    const week = OPS.apps.filter(a => Date.now() - Date.parse(a.ts) < 7 * 864e5);
+    const lines = week.slice(-20).map(a => `• ${a.ts.slice(0, 16).replace('T', ' ')} — ${a.name} (${a.lang.toUpperCase()})`);
+    reply(`📨 Заявки WIT36 за 7 дней: ${week.length}\n${lines.join('\n') || '— пока нет'}\n\nПолные тексты приходят в канал отдельными сообщениями. Считаю с запуска сервера (${ruAgo(Date.now() - BOOT_TIME)}).`);
+    return;
+  }
+  if (cmd === '/mute') {
+    const h = Math.min(Math.max(parseInt(parts[1], 10) || 12, 1), 168);
+    OPS.muteUntil = Date.now() + h * 3600e3;
+    reply(`🔇 Молчу ${h} ч. Отвечать на команды продолжу. Вернуть голос: /unmute`);
+    return;
+  }
+  if (cmd === '/unmute') { OPS.muteUntil = 0; reply('🔊 Снова на связи — уведомления включены.'); return; }
+  if (cmd === '/health') { reply(JSON.stringify(healthObj(), null, 1).slice(0, 3800)); return; }
+  reply('Команды:\n/status — как дела у сайта\n/89 — проект 89\n/deploy — что на проде\n/apps — заявки WIT36\n/health — сырой JSON\n/mute [часов] — тишина\n/unmute — включить уведомления');
 }
 
 // === WIT36 — WITHOUT WITNESS intake (served at /wit36) ===
@@ -275,6 +414,8 @@ function setDays(rawDays, live) {
   STATE.raw = rawDays;
   STATE.lastDataDay = rawDays.length ? rawDays[rawDays.length - 1].day : null;
   STATE.live = live;
+  // first load sets the baseline silently; only later advances are announced
+  if (OPS.lastNotifiedDay === null) OPS.lastNotifiedDay = STATE.lastDataDay;
 }
 
 // The clock of silence is true at the moment of the request, not at the
@@ -311,19 +452,28 @@ async function sync() {
       cursor = new Date(end.getTime() + 864e5);
     }
 
-    const sleepRaw = [], dailySleep = [], dailyReady = [], workoutRaw = [];
+    // allSettled per collection: one failing collection (e.g. workout) must
+    // not lose the rest of the living record.
+    const COLS = ['sleep', 'daily_sleep', 'daily_readiness', 'workout'];
+    const acc = { sleep: [], daily_sleep: [], daily_readiness: [], workout: [] };
+    const failedCols = new Set();
+    let authFailure = null;
     for (const [a, b] of chunks) {
       const qs = `start_date=${a}&end_date=${b}`;
-      const [s1, s2, s3, s4] = await Promise.all([
-        fetchCollection('sleep', qs),
-        fetchCollection('daily_sleep', qs),
-        fetchCollection('daily_readiness', qs),
-        fetchCollection('workout', qs),
-      ]);
-      sleepRaw.push(...s1); dailySleep.push(...s2); dailyReady.push(...s3); workoutRaw.push(...s4);
+      const settled = await Promise.allSettled(COLS.map(n => fetchCollection(n, qs)));
+      settled.forEach((s, i) => {
+        if (s.status === 'fulfilled') acc[COLS[i]].push(...s.value);
+        else {
+          failedCols.add(COLS[i]);
+          if (/401|refresh|token/i.test(s.reason && s.reason.message || '')) authFailure = s.reason;
+        }
+      });
     }
+    STATE.perCollection = {};
+    COLS.forEach(n => { STATE.perCollection[n] = { ok: !failedCols.has(n), count: acc[n].length }; });
+    if (authFailure && failedCols.size === COLS.length) throw authFailure;
 
-    const fetched = buildDays(sleepRaw, dailySleep, dailyReady, workoutRaw);
+    const fetched = buildDays(acc.sleep, acc.daily_sleep, acc.daily_readiness, acc.workout);
     if (!fetched.length) throw new Error('no days built');
 
     // Priority: the live-written archive is immutable and wins; the live
@@ -339,16 +489,72 @@ async function sync() {
 
     setDays(rawDays, true);
     STATE.lastSync = new Date().toISOString();
-    if (STATE.alerted) { alert('sync recovered'); STATE.alerted = false; }
+    STATE.tokenError = false;
+
+    // self-check: silent degradation is a data malfunction, not slow Oura.
+    const reasons = [];
+    if (failedCols.size) reasons.push('collections failed: ' + [...failedCols].join(','));
+    if (rawDays.length < STATE.lastKnownGoodCount) reasons.push(`dayCount ${rawDays.length} < known-good ${STATE.lastKnownGoodCount}`);
+    else STATE.lastKnownGoodCount = rawDays.length;
+    STATE.degraded = reasons.length > 0;
+    STATE.degradedReasons = reasons;
+
+    if (failedCols.size) {
+      opsProblem('collections', `🟡 Oura отдал не все данные (${[...failedCols].join(', ')}). Сайт работает, но часть метрик могла не записаться. Обычно чинится само к следующему синку — через 6 часов.`);
+    } else {
+      opsRecovered('collections', '🟢 Все данные Oura снова приходят полностью.');
+    }
+    opsRecovered('sync', '🟢 Синхронизация с Oura восстановилась — данные снова идут.');
+    opsRecovered('token', '🟢 Авторизация Oura снова работает.');
+
+    // Announce a new recorded day (quiet message — news, not an alarm).
+    if (STATE.lastDataDay && OPS.lastNotifiedDay && STATE.lastDataDay > OPS.lastNotifiedDay) {
+      OPS.lastNotifiedDay = STATE.lastDataDay;
+      tgSend(`🎨 Новый день в записи — ${ruDate(STATE.lastDataDay)} (день №${rawDays.length}).\nКартины обновились: ${SITE} и ${SITE}/89`, { silent: true });
+    }
+
     const m = currentMeta();
-    console.log(`[sync] ${rawDays.length} days, last=${m.lastDataDay}, gap=${m.gapDays}d, status=${m.status}`);
+    console.log(`[sync] ${rawDays.length} days, last=${m.lastDataDay}, gap=${m.gapDays}d, status=${m.status}${reasons.length ? ' DEGRADED: ' + reasons.join('; ') : ''}`);
   } catch (e) {
     console.error('[sync] failed:', e.message);
-    if (!STATE.alerted) { alert('sync failed: ' + e.message); STATE.alerted = true; }
+    STATE.degraded = true;
+    STATE.degradedReasons = ['sync failed: ' + e.message];
+    if (/401|refresh|token/i.test(e.message)) {
+      STATE.tokenError = true;
+      opsProblem('token', '🔴 Слетела авторизация Oura — новые данные не приходят, сайт показывает сохранённую запись.\nЧто делать: обновить OURA_TOKEN — dashboard.render.com/web/srv-d7ektha8qa3s73ddeqd0 → Environment.');
+    } else {
+      opsProblem('sync', `🟡 Не получилось забрать данные из Oura: ${e.message}\nСайт работает и показывает запись. Следующая попытка — через 6 часов.`);
+    }
     if (!STATE.days) loadRecord();
   } finally {
     STATE.syncing = false;
   }
+}
+
+// Everything the outside observer (healthcheck action, /health command) is
+// allowed to know: dates, counters, flags. Never the signal itself.
+function healthObj() {
+  const m = currentMeta();
+  const dayCount = (STATE.raw || []).length;
+  return {
+    ok: true,
+    live: m.live,
+    status: m.status,
+    tokenError: !!STATE.tokenError,
+    degraded: !!STATE.degraded,
+    degradedReasons: STATE.degradedReasons || [],
+    lastDataDay: m.lastDataDay,
+    serverDate: m.serverDate,
+    gapDays: m.gapDays,
+    dayCount,
+    lastKnownGoodDayCount: STATE.lastKnownGoodCount || 0,
+    dataAdvancing: dayCount > 0 && dayCount >= (STATE.lastKnownGoodCount || 0),
+    lastSyncAgeSec: STATE.lastSync ? Math.round((Date.now() - Date.parse(STATE.lastSync)) / 1000) : null,
+    syncedAt: STATE.lastSync,
+    perCollection: STATE.perCollection || {},
+    buildSha: BUILD_SHA,
+    uptimeSec: Math.round((Date.now() - BOOT_TIME) / 1000),
+  };
 }
 
 // Cold-start: serve the immutable record, flagged not-live. A silent state is
@@ -364,6 +570,23 @@ function loadRecord() {
 
 // ---------- HTTP ----------
 http.createServer((req, res) => {
+  // Telegram webhook — the two-way bot. Guarded by the secret header Telegram
+  // echoes back on every delivery; without the env secret the route is dead.
+  if (req.method === 'POST' && req.url.split('?')[0] === '/tg/hook') {
+    const secret = process.env.TG_WEBHOOK_SECRET;
+    if (!secret || req.headers['x-telegram-bot-api-secret-token'] !== secret) {
+      res.writeHead(403, head({})); res.end(); return;
+    }
+    let body = '';
+    req.on('data', c => { body += c; if (body.length > 1e6) req.destroy(); });
+    req.on('end', () => {
+      res.writeHead(200, head({ 'Content-Type': 'application/json' })); res.end('{"ok":true}');
+      try { handleTgUpdate(JSON.parse(body || '{}')); } catch (e) { /* malformed update ignored */ }
+    });
+    req.on('error', () => {});
+    return;
+  }
+
   // WIT36 application intake — POST /wit36/apply (must precede the GET-only guard).
   if (req.method === 'POST' && req.url.split('?')[0] === '/wit36/apply') {
     const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '?').toString().split(',')[0].trim();
@@ -383,6 +606,8 @@ http.createServer((req, res) => {
       const rec = { ts: new Date().toISOString(), name: name.slice(0, 200), email: email.slice(0, 200), link: link.slice(0, 400), statement: st.slice(0, 2000), consent: true, lang };
       console.log('[wit36] APPLICATION', rec.ts, rec.name, lang);
       notifyApplication(rec);   // Telegram is the sole store — nothing written to disk
+      OPS.apps.push({ ts: rec.ts, name: rec.name, lang: rec.lang });   // /apps counter (in-memory)
+      if (OPS.apps.length > 200) OPS.apps.shift();
       res.writeHead(200, head({ 'Content-Type': 'application/json' })); res.end('{"ok":true}');
     });
     req.on('error', () => { try { res.writeHead(400); res.end(); } catch (e) {} });
@@ -393,11 +618,11 @@ http.createServer((req, res) => {
 
   let url = req.url.split('?')[0];
 
-  // Ops heartbeat (GitHub Action). Dates only — no signal ever leaves.
+  // Ops heartbeat (GitHub Action + /health bot command). Dates and counters
+  // only — no biometric signal ever leaves.
   if (url === '/health') {
-    const m = currentMeta();
     res.writeHead(200, head({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }));
-    res.end(JSON.stringify({ ok: true, live: m.live, status: m.status, lastDataDay: m.lastDataDay, serverDate: m.serverDate, gapDays: m.gapDays }));
+    res.end(JSON.stringify(healthObj()));
     return;
   }
 
@@ -485,4 +710,5 @@ http.createServer((req, res) => {
   loadRecord();          // serve the record immediately
   sync();                // then pull the living history
   setInterval(sync, SYNC_INTERVAL);
+  setInterval(digestTick, 60e3);   // evening digest, 21:00 Europe/Madrid
 });
