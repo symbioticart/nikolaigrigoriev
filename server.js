@@ -468,9 +468,15 @@ http.createServer((req, res) => {
   const cache = (url.startsWith('/fonts/') || url.startsWith('/vendor/'))
     ? 'public, max-age=31536000, immutable'
     : 'no-cache';
+  // The previous build served painter.js with a 24h TTL: every returning
+  // browser holds a poisoned copy (new page + old engine = black canvas).
+  // Clear-Site-Data on the page response wipes the origin's cache the moment
+  // the page revalidates; assets are also version-stamped (?v87r2).
+  const extra = (url === '/index.html' || url === '/archive.html' || url === '/conditions.html')
+    ? { 'Clear-Site-Data': '"cache"' } : {};
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }
-    res.writeHead(200, head({ 'Content-Type': mimeTypes[ext] || 'text/plain', 'Cache-Control': cache }));
+    res.writeHead(200, head(Object.assign({ 'Content-Type': mimeTypes[ext] || 'text/plain', 'Cache-Control': cache }, extra)));
     res.end(data);
   });
 }).listen(port, () => {
