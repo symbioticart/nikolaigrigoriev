@@ -195,7 +195,7 @@
     <div class="no-perform visible">
       The work exists only in performance. This screen cannot perform it.<br><br>
       Nikolai Grigoriev — Variations 87, 2022–<br>
-      Software, lived time written daily by an unchanging rule, screen.
+      Lived time, written daily by an unchanging rule.
     </div>
   </noscript>
 
@@ -219,7 +219,7 @@
   <div class="no-perform" id="noPerform">
     The work exists only in performance. This screen cannot perform it.<br><br>
     Nikolai Grigoriev — Variations 87, 2022–<br>
-    Software, lived time written daily by an unchanging rule, screen.
+    Lived time, written daily by an unchanging rule.
   </div>
 
   <!-- ── Statement overlay (the artist) ────────────────────────── -->
@@ -300,7 +300,7 @@
     'use strict';
 
     // === Identity (single source of truth) ===
-    const WORK = { TITLE:'Variations 87', OWNER:'Nikolai Grigoriev', MEDIUM:'Software, lived time written daily by an unchanging rule, screen' };
+    const WORK = { TITLE:'Variations 87', OWNER:'Nikolai Grigoriev', MEDIUM:'Lived time, written daily by an unchanging rule' };
     const CANVAS_W = 980, CANVAS_H = 700;
 
     // === State ===
@@ -482,7 +482,7 @@
       const birth = META.birth || DATA.days[0].d;
       const last = (META.live && META.serverDate && META.serverDate > (META.lastDataDay || ''))
         ? META.serverDate : (META.lastDataDay || DATA.days[DATA.days.length-1].d);
-      $('arcWork').textContent = `Variations 87 · ${birth.slice(0,4)}–${(META.live && META.status==='terminal') ? last.slice(0,4) : 'Today'}`;
+      $('arcWork').textContent = `Variations 87 · ${birth.slice(0,4)}–${(META.live && META.status==='terminal') ? last.slice(0,4) : ''}`;
       const byDate = new Map(DATA.days.map((x,i) => [x.d, i]));
       const list = $('arcList'); list.innerHTML = '';
       const frag = document.createDocumentFragment();
