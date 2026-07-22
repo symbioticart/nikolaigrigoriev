@@ -86,7 +86,7 @@
       font-size:15px; font-weight:400; letter-spacing:0.005em; line-height:1.2;
       color:#1a1a1a; background:none; border:none; padding:0; font-family:'Manrope',sans-serif; cursor:pointer; touch-action:manipulation;
     }
-    .label-title .lt-name { font-weight:500; font-style:italic; opacity:0.9; }
+    .label-title .lt-name { font-weight:500; opacity:0.9; }
     .label-title .lt-range { font-weight:300; opacity:0.5; }
     .label-title:hover .lt-name { opacity:1; }
     .label-medium { font-size:10.5px; font-weight:400; letter-spacing:0.004em; color:#1a1a1a; opacity:0.5; }
@@ -237,7 +237,9 @@
         <p>Underneath all of it is a refusal to end. I do not want to die. Where medicine works to lengthen the body, I work to lengthen a life in the register art can reach, and I mean it literally: the work stretches perceived time by slowing it; it keeps every day it has lived, so a life is made imperishable as a record; and it is built to outlast the body, continuing after me from the life of a stranger I will never meet. Three durations against the one that runs out. I came to art late and built its language myself. I do not want to leave objects. I want to leave a way of living, and a work that keeps living it.</p>
         <div class="rule"></div>
         <div class="kicker">Biography</div>
-        <p>Nikolai Grigoriev (b. 1987) is a conceptual artist; he lives and works in Barcelona. He turns a single life — its unbidden daily traces — slowly into an image, so that living can be seen, and lived, as a work of art. Time, freedom, and the wish to prolong a life worth composing are his enduring concerns. He came to art late, out of necessity, and works from his own body.</p>
+        <p>Nikolai Grigoriev (b. 1987, Moscow) is a conceptual artist. He lives and works in Barcelona.</p>
+        <p>He has been alive for <span id="bioAlive">—</span> days. <span id="bioWritten">—</span> of them are written into Variations 87.</p>
+        <p>Each of his works takes a single life — the quiet record a body leaves without being asked — and turns it, day after day, by one unchanging rule, into an image. The work and the life evolve together for as long as the life lasts: the image changes as the life changes, the archive keeps every day, and the rule is made to outlast the body. He came to art late, out of necessity, and intends to leave not objects but a way of living — and works that keep living it.</p>
       </div>
       <div class="links">
         <button class="link" data-go="work">About the work →</button>
@@ -360,6 +362,14 @@
     // date-range, the medium, and a single state word whose ink is the pulse.
     // No day-tally, no denominator, no glyph, no repeated date — the label
     // carries exactly one number (the day count, on the caption), one date, one state.
+    // Biography counts: both numbers live — the same clock as the wall label.
+    function renderBioCounts() {
+      const alive = Math.floor((Date.now() - Date.parse('1987-01-07')) / 864e5);
+      const a = document.getElementById('bioAlive'), w = document.getElementById('bioWritten');
+      if (a) a.textContent = alive.toLocaleString('en-US').replace(/,/g, '\u2009');
+      if (w) w.textContent = String(DATA && DATA.days ? DATA.days.length : '—');
+    }
+
     function renderLabel() {
       const birth = META.birth || (DATA.days[0] && DATA.days[0].d) || '';
       const epochYear = birth.slice(0,4);
@@ -740,7 +750,7 @@
       try { await loadData(); }
       catch (e) { cannotPerform(); setTimeout(() => location.reload(), 60000); return; }
       if (!DATA || !DATA.days || !DATA.days.length) { cannotPerform(); return; }
-      renderLabel();
+      renderLabel(); renderBioCounts();
 
       const probe = document.createElement('canvas');
       if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) { cannotPerform(); return; }
@@ -750,9 +760,16 @@
           p.setup = function () {
             p.pixelDensity(2);   // one canonical buffer 1960×1400 on every screen
             const canvas = p.createCanvas(CANVAS_W, CANVAS_H, p.WEBGL2 || p.WEBGL);
+            // Some Chromium forks (Dia) composite a cleared buffer when the work
+            // paints on demand: keep the drawn frame in the buffer permanently.
+            try { if (p.setAttributes) p.setAttributes('preserveDrawingBuffer', true); } catch (e) {}
             canvas.parent('canvasFrame');
             canvas.elt.addEventListener('webglcontextlost', ev => { ev.preventDefault(); setTimeout(() => location.reload(), 800); });
             canvas.elt.addEventListener('webglcontextrestored', () => { pendingRepaint = true; repaint(); });
+            // If the browser drops the composited frame (tab switch, GPU wake),
+            // paint it again the moment the page is visible.
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) { pendingRepaint = true; repaint(); } });
+            window.addEventListener('pageshow', () => { pendingRepaint = true; repaint(); });
             fitStage(); p.noLoop(); pendingRepaint = true;
           };
           p.draw = function () {
