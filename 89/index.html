@@ -29,7 +29,7 @@
   <script src="/89/painter.js"></script>
   <script>
     // ===== Variation 89 — vertical daily story, served at /89 on the main site =====
-    // It reads the SAME live /data/daily-metrics.json the landscape work uses, so the
+    // It reads the same live daily record (served at /89/data.json), so the
     // ring data and the silence=death state are always identical to nikolaigrigoriev.com.
     const W = 1080, H = 1920;
     const WALL = '#fafafa';               // page wall (NOT ivory) — same as the site
@@ -48,7 +48,7 @@
     async function run() {
       try {
         // ABSOLUTE path — /89 is a subdir, the live data lives at the site root.
-        const DATA = await fetch('/data/daily-metrics.json', { cache: 'no-store' }).then(r => r.json());
+        const DATA = await fetch('/89/data.json', { cache: 'no-store' }).then(r => r.json());
         if (!DATA || !Array.isArray(DATA.days) || !DATA.days.length) { showErr(new Error('no data days')); return; }
         let idx = Math.max(0, DATA.days.length - 1);     // open on the present body
         if (params.has('day')) {

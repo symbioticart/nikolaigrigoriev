@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Variations 87 — Conditions of the Work</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3' fill='%231a1a1a'/%3E%3C/svg%3E">
+  <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/jetbrainsmono-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face {
+      font-family: 'Manrope';
+      font-style: normal;
+      font-weight: 200 800;
+      src: url('fonts/manrope-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'JetBrains Mono';
+      font-style: normal;
+      font-weight: 100 800;
+      src: url('fonts/jetbrainsmono-latin.woff2') format('woff2');
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { background: #fafafa; color: #1a1a1a; font-family: 'Manrope', sans-serif; }
+    .artist {
+      position: fixed;
+      top: 20px;
+      left: 24px;
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #000;
+      z-index: 100;
+      text-decoration: none;
+    }
+    .back-top {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #1a1a1a;
+      opacity: 0.6;
+      text-decoration: none;
+      z-index: 100;
+    }
+    .back-top:hover { opacity: 0.9; }
+    .sheet {
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 110px 32px 96px;
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.7;
+    }
+    .kicker {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0.4;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.55;
+      margin-bottom: 48px;
+    }
+    h2 {
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin: 34px 0 10px;
+    }
+    h2 .n { opacity: 0.35; display: inline-block; min-width: 2ch; margin-right: 0.8em; font-family: 'JetBrains Mono', monospace; font-weight: 300; }
+    p { margin-bottom: 10px; opacity: 0.78; }
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.02em; }
+    .hash { word-break: break-all; opacity: 0.55; }
+    .sig {
+      margin-top: 64px;
+      padding-top: 28px;
+      border-top: 1px solid rgba(0,0,0,0.15);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px 32px;
+    }
+    .sig .field { border: 0; padding: 0; opacity: 1; }
+    .sig .rule { display: block; height: 44px; border-bottom: 1px solid rgba(0,0,0,.45); }
+    .sig .cap { display: block; margin-top: 6px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; opacity: .45; }
+    .doc-hash { margin-top: 40px; }
+    .back {
+      display: inline-block;
+      margin-top: 56px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #1a1a1a;
+      opacity: 0.4;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(0,0,0,0.2);
+      padding-bottom: 1px;
+    }
+    @page { margin: 25mm 22mm; }
+    @media print {
+      html, body { background: #fff; color: #000; }
+      .sheet { padding: 0; max-width: 100%; font-size: 10.5pt; line-height: 1.6; }
+      p { opacity: 1; orphans: 3; widows: 3; }
+      .kicker, .sub, h2 .n { opacity: .6; }
+      .hash { opacity: 1; }
+      h2 { break-after: avoid; }
+      .sig { break-inside: avoid; border-top: 1px solid #000; }
+      .sig .rule { border-bottom: 1px solid #000; }
+      .doc-hash { break-inside: avoid; }
+      .back, .artist, .back-top { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="artist" href="./" aria-label="Nikolai Grigoriev — home">Nikolai Grigoriev</a>
+  <a class="back-top" href="./">← Variations 87</a>
+  <div class="sheet">
+    <div class="kicker">Nikolai Grigoriev</div>
+    <h1>Conditions of the Work</h1>
+    <div class="sub">Variations 87 · 2022– · this document constitutes the work</div>
+
+    <h2><span class="n">1</span>The Work</h2>
+    <p>“Variations 87” is a living work by Nikolai Grigoriev. It turns a single life — the quiet traces one body leaves without being asked — slowly into an image, so that living can be seen and lived as a work of art. Its subject is not death but what death sharpens: the attention a life is worth once you know it ends. The work also belongs to a larger one: the lives it and its kind record gather into a collective form made to stand in a museum, a monument to attentive living — a shared dimension this work is made to join. A dated state is written “Variations 87, state of [date].” The work is one; its daily states are states of one work. Medium: software, lived time written daily by an unchanging rule, screen.</p>
+
+    <h2><span class="n">2</span>Definition</h2>
+    <p>The rule and this certificate constitute the work. Any image, screen, or print is an execution of the rule — evidence of the work, not the work itself. Whoever holds this certificate holds the work; without this certificate there is no work.</p>
+
+    <h2><span class="n">3</span>The Rule</h2>
+    <p>Each day, the daily signal of one living body is turned into one painting. The seed of a day is drawn from the name of the artist, the date, and the day’s record together, by a fixed formula. Every day is weighed only against the days of this body’s own history that precede it — a hard day is hard by its own measure. The signals are entangled before they reach the canvas: every visible feature is driven by several at once, and no measurement can be read back out of the image. The same day always produces the same sequence of marks. Once a day has ended, its inputs never change — its painting never changes. The past stays frozen as it was written. The work never shows the present: a day is met only once it has closed and can no longer be performed for. This delay is not a limitation but the discipline of the work — it removes the audience, and what remains is presence.</p>
+
+    <h2><span class="n">4</span>The Signal</h2>
+    <p>The work accepts the daily signal of a living body from any instrument able to provide the schema of Appendix A. It is bound to no maker and no device. The artist is the sole subject of the signal in this work, by his own consent. Keeping the signal flowing is the duty of its subject; an interruption is not a breach — it is silence, and silence is part of the work. Appendix A — the exact schema of the daily signal — is printed only with the signed certificate and does not appear on any public surface of the work.</p>
+
+    <h2><span class="n">5</span>Silence</h2>
+    <p>Mortality is not the work’s subject but its edge — the pressure that gives a life its attention. When no new day arrives, the work does not pretend. The last painting petrifies: its colour drains over the first fourteen silent days and then holds — the work never disappears. The unwritten ground grows around what remains, in proportion to the silence. After ninety consecutive silent days confirmed live by the performing programme, the work is complete: the final state is permanent, and the work is finished — not broken. Upon the certified death of the signal’s subject, the last day petrifies and the work is complete; the artist’s obligations do not survive the artist. Silence is never declared from a stored record alone — only by the living programme itself — so a sleeping machine can never show a false death.</p>
+
+    <h2><span class="n">6</span>Withdrawal</h2>
+    <p>The subject of the signal may end his participation at any time. A declared withdrawal — a signed, dated statement, recorded in the provenance log — is written as silence from its date. The work registers absence, not its cause, and never names an undeclared silence a death. Withdrawal acts forward only: the days already written remain part of the work.</p>
+
+    <h2><span class="n">7</span>The Archive</h2>
+    <p>The work keeps every day it has lived. Each state is frozen as it was written on its own day; the future never repaints the past. Recorded gaps remain visible as gaps. The archive is the work’s memory and its full body — a life made imperishable as record, and one way the work lengthens a life in the only register art can reach.</p>
+
+    <h2><span class="n">8</span>Transfer</h2>
+    <p>This certificate transfers the work; re-registration of this document is the transfer. The bond to the artist’s body survives any sale: this work is not re-bound to another body. If the certificate is lost, one reissue may be made by the artist in person, recorded in the provenance log; after the artist, no reissue exists.</p>
+
+    <h2><span class="n">9</span>Care</h2>
+    <p>The artist maintains the performing programme and one working signal adapter for five years from the date of transfer. Thereafter the owner holds the complete rule, the code, the seed formula, and the schema of Appendix A — sufficient for any competent technician to perform any state of the work again.</p>
+
+    <h2><span class="n">10</span>The Machine</h2>
+    <p class="mono">rule v1.0</p>
+    <p class="mono hash">rule.js · SHA-256 · 7dae032232d0487a00a4271852e4e28ad895199b6ee78914c78c33094f425507</p>
+    <p class="mono hash">painter.js · SHA-256 · cac9b24497679ce503b680ca1c7ae75e955d9b1965cd157e703d0556538f97cf</p>
+    <p class="mono hash">p5.oil.js · SHA-256 · a8cdfb490bd1a1eefa538f7cde186e0a16f8dc03460671380319f31b1e80c50a</p>
+    <p class="mono hash">p5 · 2.2.0 · vendor/p5.min.js · SHA-256 · 994ad50423ab4190681ba0f7539fe3f65d22011d065fdba50a5150654747522c</p>
+    <p>Any change to the code is either a conservation treatment — authorised by the artist and recorded in the treatment log under a new mark — or a new state of the work. No third possibility exists.</p>
+
+    <h2><span class="n">11</span>Edition</h2>
+    <p>Unique, 1/1. Daily states are states of this one work; they are not numbered and are not sold separately.</p>
+
+    <h2><span class="n">12</span>Provenance</h2>
+    <p>First recorded day 24 May 2022. The full provenance log, including earlier working titles, accompanies the signed certificate.</p>
+
+    <h2><span class="n">13</span>Signature</h2>
+    <div class="sig">
+      <div class="field"><span class="rule"></span><span class="cap">Place</span></div>
+      <div class="field"><span class="rule"></span><span class="cap">Date</span></div>
+      <div class="field"><span class="rule"></span><span class="cap">Artist — Nikolai Grigoriev</span></div>
+      <div class="field"><span class="rule"></span><span class="cap">Owner</span></div>
+    </div>
+    <p class="mono hash doc-hash">SHA-256 of this document · printed at signing · —</p>
+
+    <div style="margin-top:56px; display:flex; gap:26px; flex-wrap:wrap;">
+      <a class="back" href="./#statement" style="margin-top:0;">About the artist →</a>
+      <a class="back" href="./#work" style="margin-top:0;">About the work →</a>
+      <a class="back" href="./" style="margin-top:0;">← Variations 87</a>
+    </div>
+  </div>
+</body>
+</html>

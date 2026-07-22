@@ -3,506 +3,799 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nikolai Grigoriev — Variations 87 (2022– )</title>
-  <meta name="description" content="Variations 87, a symbiotic painting by Nikolai Grigoriev: generative oil driven live by the artist's own Oura Ring biometrics. One body, one day, one canvas — the work opens on the present self and dies when the signal stops.">
-
-  <!-- Open Graph / Twitter -->
-  <meta property="og:type" content="website">
+  <title>Nikolai Grigoriev — Variations 87</title>
+  <meta name="description" content="A living work by Nikolai Grigoriev. Each day the quiet traces one body leaves become one painting, written by a single unchanging rule.">
   <meta property="og:title" content="Nikolai Grigoriev — Variations 87">
-  <meta property="og:description" content="A symbiotic painting: generative oil driven live by the artist's own biometrics. One body, one day, one canvas — until the signal stops and the work dies.">
-  <meta property="og:image" content="https://nikolaigrigoriev.onrender.com/og.jpg">
-  <meta property="og:url" content="https://nikolaigrigoriev.onrender.com/">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Nikolai Grigoriev — Variations 87">
-  <meta name="twitter:description" content="A symbiotic painting driven live by the artist's own biometrics.">
-  <meta name="twitter:image" content="https://nikolaigrigoriev.onrender.com/og.jpg">
-
-  <!-- Favicon: a single wine dab on ivory -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23efe7d4'/%3E%3Cellipse cx='16' cy='16' rx='4.5' ry='9' transform='rotate(28 16 16)' fill='%236b2737'/%3E%3C/svg%3E">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <meta property="og:description" content="A living work: each day the quiet traces one body leaves become one painting.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3' fill='%231a1a1a'/%3E%3C/svg%3E">
+  <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/jetbrainsmono-latin.woff2" as="font" type="font/woff2" crossorigin>
   <style>
-    :root {
-      --wall: #fafafa;          /* page background, as before */
-      --ink: #1a1a1a;           /* dark text */
-      --ink-dim: rgba(26,26,26,0.45);
-      --ink-faint: rgba(26,26,26,0.26);
-      --line: rgba(26,26,26,0.08);
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* The work renders with no request to anyone else's server. */
+    @font-face { font-family:'Manrope'; font-style:normal; font-weight:200 800; font-display:block; src:url('fonts/manrope-latin.woff2') format('woff2'); }
+    @font-face { font-family:'JetBrains Mono'; font-style:normal; font-weight:100 800; font-display:block; src:url('fonts/jetbrainsmono-latin.woff2') format('woff2'); }
+    * { box-sizing:border-box; margin:0; padding:0; }
     html, body {
-      height: 100%;
-      background: var(--wall);
-      font-family: 'Manrope', sans-serif;
-      color: var(--ink);
-      overflow: hidden;
-      -webkit-text-size-adjust: 100%;
+      height:100%; height:100dvh;
+      background:#fafafa; font-family:'Manrope', sans-serif; color:#1a1a1a;
+      overflow:hidden; -webkit-text-size-adjust:100%;
     }
-    body {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 24px 24px 30px;
-    }
+    body { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px 20px 28px; }
 
+    /* ── Fixed global chrome ─────────────────────────────────────── */
+    /* Logo is ABOVE every overlay: home is reachable from any layer. */
     .artist {
-      position: fixed; top: 20px; left: 24px;
-      font-size: 12px; font-weight: 300;
-      letter-spacing: 0.15em; text-transform: uppercase;
-      color: #000; z-index: 100;
+      position:fixed; top:20px; left:24px; z-index:400;
+      font-size:12px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase;
+      color:#000; text-decoration:none; background:none; border:none;
+      font-family:'Manrope',sans-serif; cursor:pointer; touch-action:manipulation;
     }
-    /* Instagram link inside the About text */
-    .overlay-content a {
-      color: var(--ink); text-decoration: none;
-      border-bottom: 1px solid rgba(26,26,26,0.35);
-      transition: border-color .25s ease;
+    .top-links { position:fixed; top:20px; right:24px; z-index:300; display:flex; gap:28px; align-items:baseline; }
+    .top-link {
+      font-size:12px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase;
+      color:#1a1a1a; opacity:0.6; cursor:pointer; border:none; background:none;
+      font-family:'Manrope',sans-serif; text-decoration:none; touch-action:manipulation;
     }
-    .overlay-content a:hover, .overlay-content a:focus-visible { border-color: rgba(26,26,26,0.8); }
-    .about-link {
-      position: fixed; top: 20px; right: 24px;
-      font-size: 12px; font-weight: 300;
-      letter-spacing: 0.15em; text-transform: uppercase;
-      color: var(--ink); opacity: 0.35; cursor: pointer; z-index: 100;
-      border: none; background: none; font-family: 'Manrope', sans-serif;
-      transition: opacity .25s ease;
-    }
-    .about-link:hover, .about-link:focus-visible { opacity: 0.7; }
-
-    .stage {
-      position: relative; display: flex; flex-direction: column;
-      align-items: center; gap: 12px; max-width: 100%;
+    .top-link:hover { opacity:0.9; }
+    .artist:focus-visible, .top-link:focus-visible, .overlay-close:focus-visible,
+    .archive-side:focus-visible, .nav-zone:focus-visible, .modal-arrow:focus-visible,
+    .work-link:focus-visible, .day:focus-visible, .reveal:focus-visible {
+      outline:1px solid rgba(0,0,0,.4); outline-offset:3px;
     }
 
-    .canvas-wrap { position: relative; cursor: default; }
+    /* ── The stage (the living work) ─────────────────────────────── */
+    .stage { position:relative; display:flex; flex-direction:column; align-items:center; gap:20px; max-width:100%; }
+    .canvas-wrap { position:relative; line-height:0; }
     .canvas-frame {
-      position: relative;
-      background: #000;
-      outline: 1px solid rgba(0,0,0,0.08);
-      transform-origin: 0 0;
-      line-height: 0;
-      box-shadow:
-        0 4px 20px rgba(0,0,0,0.06),
-        0 20px 60px rgba(0,0,0,0.08);
-      opacity: 0;
-      transition: opacity 1.3s ease, filter 1.6s ease;
+      position:relative; background:#000; outline:1px solid rgba(0,0,0,0.08);
+      box-shadow:0 4px 20px rgba(0,0,0,0.06), 0 20px 60px rgba(0,0,0,0.08);
+      line-height:0; flex:none;   /* never let a flex parent distort the aspect */
+      transition:opacity 1.4s ease, filter 1.4s ease;  /* death = petrification */
     }
-    #p5canvas { display: block; }
+    .canvas-frame canvas, #p5canvas { display:block; width:100% !important; height:100% !important; }
 
-    /* Invisible navigation zones */
-    .nav-zone {
-      position: absolute; top: 0; bottom: 0; width: 33.33%;
-      z-index: 10; cursor: default; transition: opacity .2s ease;
-    }
-    .nav-zone.prev { left: 0; cursor: w-resize; }
-    .nav-zone.next { right: 0; cursor: e-resize; }
-    .nav-zone.disabled { cursor: default; pointer-events: none; }
-    .nav-zone:focus-visible { outline: 1px solid var(--ink-faint); outline-offset: -2px; }
+    .no-perform { display:none; max-width:440px; text-align:center; font-size:12px; font-weight:300; line-height:1.9; opacity:0.6; padding:40px 20px; }
+    .no-perform.visible { display:block; }
 
-    /* === PLATE — the label, neutral and small === */
-    .plate {
-      text-align: center; cursor: pointer; user-select: none;
-      max-width: 92vw; line-height: 1;
-    }
-    .plate .title {
-      font-family: 'Manrope', sans-serif;
-      font-size: 13px; font-weight: 400; letter-spacing: 0.16em;
-      text-transform: uppercase; color: var(--ink); opacity: 0.75;
-    }
-    .plate .title em { font-style: normal; }
-    .plate .year { opacity: 0.5; }
-    .plate .day { opacity: 0.6; }
-    .plate .sub {
-      margin-top: 9px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9.5px; font-weight: 300; letter-spacing: 0.14em;
-      text-transform: uppercase; color: var(--ink); opacity: 0.5;
-    }
-    .plate .sub .dot {
-      display: inline-block; width: 5px; height: 5px; border-radius: 50%;
-      background: #2a9d8f; margin-right: 7px; vertical-align: middle;
-    }
-    .plate .medium {
-      margin-top: 9px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 8.5px; font-weight: 300; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--ink); opacity: 0.38;
-    }
-    /* raw biometric body — hidden until the plate is opened */
-    .plate .metrics {
-      margin-top: 10px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9px; font-weight: 300; letter-spacing: 0.05em;
-      text-transform: uppercase; color: var(--ink); opacity: 0;
-      max-height: 0; overflow: hidden;
-      transition: max-height .4s ease, opacity .4s ease, margin .4s ease;
-    }
-    .plate.open .metrics { max-height: 50px; opacity: 0.45; }
-    .plate .hint {
-      margin-top: 9px; font-family: 'JetBrains Mono', monospace;
-      font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase;
-      color: var(--ink); opacity: 0.32;
-    }
+    /* Invisible day-turning zones on the stage */
+    .nav-zone { position:absolute; top:0; bottom:0; width:33.33%; z-index:10; background:none; border:none; padding:0; cursor:default; touch-action:manipulation; }
+    .nav-zone.prev { left:0; cursor:w-resize; }
+    .nav-zone.next { right:0; cursor:e-resize; }
+    .nav-zone.disabled { cursor:default; pointer-events:none; }
+    .nav-glyph { position:absolute; top:50%; transform:translateY(-50%); font-size:22px; font-weight:200; font-family:'Manrope',sans-serif; color:#1a1a1a; opacity:0; transition:opacity .25s ease; }
+    .nav-zone.prev .nav-glyph { left:14px; } .nav-zone.next .nav-glyph { right:14px; }
+    .nav-zone:hover .nav-glyph, .nav-zone:focus-visible .nav-glyph { opacity:.35; }
+    .nav-zone.disabled .nav-glyph { opacity:0 !important; }
+    @media (hover:none) { .nav-glyph { opacity:.15; } }
 
-    /* === EPITAPH — the silence/death state, neutral === */
-    .epitaph {
-      display: none; text-align: center; max-width: 92vw; line-height: 1;
-      font-family: 'JetBrains Mono', monospace; color: var(--ink);
+    /* Vertical per-work archive link, centred on the work's right edge */
+    .archive-side {
+      position:absolute; top:50%; right:-32px; transform:translateY(-50%);
+      writing-mode:vertical-rl; font-size:11px; font-weight:400; letter-spacing:0.22em;
+      text-transform:uppercase; color:#1a1a1a; opacity:0.45; cursor:pointer;
+      border:none; background:none; font-family:'Manrope',sans-serif; padding:0; z-index:20;
+      text-decoration:none; touch-action:manipulation;
     }
-    .epitaph .big {
-      font-size: 12px; font-weight: 400; letter-spacing: 0.2em;
-      text-transform: uppercase; opacity: 0.65;
-    }
-    .epitaph .small {
-      margin-top: 9px; font-size: 9.5px; letter-spacing: 0.14em;
-      text-transform: uppercase; opacity: 0.5;
-    }
-    body.silent .plate { display: none; }
-    body.silent .epitaph { display: block; }
+    .archive-side:hover { opacity:0.8; }
 
-    /* === LOADER === */
-    .loader {
-      position: fixed; inset: 0; z-index: 300;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--wall);
-      font-family: 'JetBrains Mono', monospace; font-weight: 300;
-      font-size: 9px; color: rgba(26,26,26,0.4);
-      letter-spacing: 0.18em; text-transform: uppercase;
-      transition: opacity .8s ease;
+    /* Museum label below the work */
+    .label { display:flex; flex-direction:column; align-items:center; gap:7px; text-align:center; max-width:100%; }
+    /* Humanist tombstone: sentence case, no telemetry caps. Name + open living
+       range; the bare trailing en-dash is the "still alive" convention. */
+    .label-title {
+      font-size:15px; font-weight:400; letter-spacing:0.005em; line-height:1.2;
+      color:#1a1a1a; background:none; border:none; padding:0; font-family:'Manrope',sans-serif; cursor:pointer; touch-action:manipulation;
     }
-    .loader.gone { opacity: 0; pointer-events: none; }
+    .label-title .lt-name { font-weight:500; font-style:italic; opacity:0.9; }
+    .label-title .lt-range { font-weight:300; opacity:0.5; }
+    .label-title:hover .lt-name { opacity:1; }
+    .label-medium { font-size:10.5px; font-weight:400; letter-spacing:0.004em; color:#1a1a1a; opacity:0.5; }
+    /* State word alone — the living pulse. No dot/LED; ink density is the vital
+       sign: ALIVE full ink, SILENT cooled, COMPLETE settled. */
+    .label-life { font-family:'Manrope',sans-serif; font-size:9.5px; font-weight:500; letter-spacing:0.24em; text-indent:0.24em; text-transform:uppercase; color:#1a1a1a; opacity:0.8; margin-top:1px; }
+    .label-life.silent { opacity:0.4; }
+    .label-life.complete { opacity:0.55; }
+    /* The one deliberate monospace: the coordinate of the frame you walked to. */
+    .info-line { font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:400; color:#1a1a1a; opacity:0.42; letter-spacing:0.05em; text-indent:0.05em; text-transform:uppercase; line-height:1; text-align:center; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 4px; }
+    .work-link { margin-top:2px; font-size:9px; font-weight:400; letter-spacing:0.14em; text-transform:uppercase; color:#1a1a1a; opacity:0.4; background:none; border:none; font-family:'Manrope',sans-serif; cursor:pointer; touch-action:manipulation; }
+    .work-link:hover { opacity:0.75; }
 
-    /* === ABOUT OVERLAY === */
-    .overlay {
-      display: none; position: fixed; inset: 0; z-index: 200;
-      background: rgba(250,250,250,0.94);
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      align-items: flex-start; justify-content: center;
-      overflow-y: auto;
-    }
-    .overlay.open { display: flex; }
-    .overlay-close {
-      position: fixed; top: 20px; right: 24px;
-      font-size: 12px; font-weight: 300; letter-spacing: 0.15em;
-      text-transform: uppercase; color: var(--ink); opacity: 0.35; cursor: pointer;
-      border: none; background: none; font-family: 'Manrope', sans-serif; z-index: 210;
-    }
-    .overlay-close:hover, .overlay-close:focus-visible { opacity: 0.7; }
-    .overlay-content {
-      max-width: 600px; padding: 84px 24px 70px;
-      font-size: 12px; font-weight: 300; line-height: 1.8; color: var(--ink); opacity: 0.85;
-    }
-    .overlay-content .lead {
-      font-size: 13px; line-height: 1.7; font-weight: 400;
-      margin-bottom: 26px; opacity: 0.95;
-    }
-    .overlay-content .lead em { font-style: italic; }
-    .overlay-content .lifespan {
-      margin: -8px 0 28px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
-      opacity: 0.55;
-    }
-    .overlay-content h3 {
-      font-size: 11px; font-weight: 400; letter-spacing: 0.12em;
-      text-transform: uppercase; margin-top: 32px; margin-bottom: 12px; opacity: 0.5;
-    }
-    .overlay-content p { margin-bottom: 14px; opacity: 0.8; }
-    .overlay-content table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 11px; opacity: 0.6; }
-    .overlay-content th, .overlay-content td {
-      text-align: left; padding: 5px 8px 5px 0; font-weight: 300;
-      border-bottom: 1px solid var(--line); vertical-align: top;
-    }
-    .overlay-content th {
-      font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6;
-    }
-    .overlay-content::-webkit-scrollbar { width: 0; }
+    /* ── Overlays (statement / work / archive) ───────────────────── */
+    .overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(250,250,250,0.94); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
+    .overlay.open { display:flex; align-items:center; justify-content:center; }
+    .overlay-close { position:fixed; top:20px; right:24px; z-index:300; font-size:12px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; color:#1a1a1a; opacity:0.6; cursor:pointer; border:none; background:none; font-family:'Manrope',sans-serif; touch-action:manipulation; }
+    .overlay-close:hover { opacity:0.9; }
 
-    @media (max-width: 640px) {
-      body { padding: 12px 8px 18px; }
-      .artist { top: 12px; left: 14px; font-size: 10px; }
-      .about-link, .overlay-close { top: 12px; right: 14px; font-size: 10px; }
-      .stage { gap: 12px; }
-      .plate .title { font-size: 11px; letter-spacing: 0.12em; }
-      .plate .sub { font-size: 8.5px; }
-      .plate .medium { font-size: 7.5px; letter-spacing: 0.06em; }
-      .plate .metrics, .plate .hint { display: none; }   /* no raw data / no click hint on mobile */
-      .plate { cursor: default; }
-      .epitaph .big { font-size: 11px; }
-      .epitaph .small { font-size: 8.5px; }
-      .overlay-content { padding: 72px 20px 56px; font-size: 12.5px; }
+    .prose { max-width:600px; max-height:calc(100dvh - 96px); overflow-y:auto; padding:64px 24px 48px; font-size:13px; font-weight:300; line-height:1.85; color:#1a1a1a; }
+    .prose::-webkit-scrollbar { width:3px; } .prose::-webkit-scrollbar-thumb { background:rgba(0,0,0,.15); }
+    .prose .kicker { font-size:10px; font-weight:400; letter-spacing:0.18em; text-transform:uppercase; opacity:0.45; margin-bottom:14px; }
+    .prose h2 { font-size:15px; font-weight:400; letter-spacing:0.04em; margin-bottom:22px; color:#000; }
+    .prose p { margin-bottom:14px; opacity:0.82; }
+    .prose .rule { height:1px; background:rgba(0,0,0,0.12); margin:34px 0 26px; }
+    .prose .reveal { font-size:10px; font-weight:400; letter-spacing:0.14em; text-transform:uppercase; color:#1a1a1a; opacity:0.5; background:none; border:none; font-family:'Manrope',sans-serif; cursor:pointer; padding:6px 0; }
+    .prose .reveal:hover { opacity:0.85; }
+    .prose .more[hidden] { display:none; }
+    .prose .link { display:inline-block; margin-top:8px; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#1a1a1a; opacity:0.5; text-decoration:none; border-bottom:1px solid rgba(0,0,0,0.2); padding-bottom:1px; background:none; border-left:0; border-right:0; border-top:0; font-family:'Manrope',sans-serif; cursor:pointer; }
+    .prose .link:hover { opacity:0.85; }
+    .prose .links { margin-top:26px; display:flex; flex-direction:column; gap:10px; align-items:flex-start; }
+
+    /* ── Archive overlay (calendar) ──────────────────────────────── */
+    .archive-scroll { width:100%; max-width:760px; max-height:calc(100dvh - 40px); overflow-y:auto; padding:64px 32px 56px; }
+    .archive-scroll::-webkit-scrollbar { width:3px; } .archive-scroll::-webkit-scrollbar-thumb { background:rgba(0,0,0,.15); }
+    .archive-head { font-size:13px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; color:#000; margin-bottom:5px; }
+    .archive-work { font-size:9.5px; font-weight:400; letter-spacing:0.14em; text-transform:uppercase; opacity:0.5; margin-bottom:4px; }
+    .archive-note { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:400; letter-spacing:0.06em; text-transform:uppercase; opacity:0.4; margin-bottom:38px; }
+    .archive-year { font-size:12px; font-weight:400; letter-spacing:0.2em; text-transform:uppercase; opacity:0.7; margin:40px 0 4px; }
+    .archive-month { font-size:9px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; opacity:0.45; margin:22px 0 9px; }
+    .archive-days { display:flex; flex-wrap:wrap; gap:4px 0; }
+    .day { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:400; letter-spacing:0.04em; color:#1a1a1a; opacity:0.65; text-decoration:none; display:inline-block; width:4ch; text-align:left; padding:4px 0; background:none; border:none; cursor:pointer; touch-action:manipulation; }
+    button.day:hover, a.day:hover { opacity:1; }
+    .day.silent { opacity:0.28; cursor:default; }
+    .day.incomplete { opacity:0.42; }
+
+    /* Hover preview of a day's painting */
+    .day-preview {
+      position:fixed; z-index:280; pointer-events:none;
+      width:200px; height:143px; background:#000;
+      outline:1px solid rgba(0,0,0,0.12);
+      box-shadow:0 6px 26px rgba(0,0,0,0.18);
+      opacity:0; transition:opacity .12s ease; transform:translate(-50%,0);
+    }
+    .day-preview.show { opacity:1; }
+    .day-preview img { width:100%; height:100%; display:block; }
+    @media (hover:none) { .day-preview { display:none; } }
+    @media (prefers-reduced-motion: reduce) { .day-preview { transition:none; } }
+
+    /* ── Day modal (the painting popup) ──────────────────────────── */
+    /* Day modal — image-forward: the painting fills the stage, one quiet line
+       (the date) beneath it. No repeated caption paragraph. */
+    .modal { display:none; position:fixed; inset:0; z-index:260; background:rgba(250,250,250,0.985); }
+    .modal.open { display:flex; }
+    .modal-inner { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; width:100%; height:100%; padding:64px 40px 44px; }
+    .modal-canvas-slot { display:flex; align-items:center; justify-content:center; min-width:0; }
+    .modal-cap { text-align:center; max-width:44ch; }
+    .cap-date { font-size:13px; font-weight:300; letter-spacing:0.04em; color:#1a1a1a; opacity:0.5; }
+    .cap-status { display:block; margin-top:8px; font-size:11.5px; font-weight:300; line-height:1.6; color:#1a1a1a; opacity:0.45; }
+    .modal-arrow { position:fixed; top:50%; transform:translateY(-50%); z-index:270; font-size:30px; font-weight:200; font-family:'Manrope',sans-serif; color:#1a1a1a; opacity:0.35; background:none; border:none; cursor:pointer; padding:8px 14px; touch-action:manipulation; }
+    .modal-arrow:hover { opacity:0.75; }
+    .modal-arrow.prev { left:6px; } .modal-arrow.next { right:6px; }
+    .modal-arrow.disabled { opacity:0 !important; pointer-events:none; }
+
+    /* ── Mobile ─────────────────────────────────────────────────── */
+    @media (max-width:640px) {
+      body { padding:12px 8px 16px; }
+      .artist { top:12px; left:14px; font-size:10px; }
+      .top-links { top:12px; right:14px; gap:16px; } .top-link { font-size:10px; }
+      .overlay-close { top:12px; right:14px; font-size:10px; }
+      .archive-side { right:-24px; font-size:9px; }
+      .label-title { font-size:13px; } .label-medium { font-size:9px; }
+      .label-life { font-size:9px; letter-spacing:0.2em; } .info-line { font-size:9px; }
+      .canvas-frame { box-shadow:0 2px 10px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.07); }
+      .stage { gap:12px; }
+      .prose { padding:56px 20px 40px; font-size:12px; } .prose h2 { font-size:13px; }
+      .archive-scroll { padding:52px 18px 36px; }
+      .modal-inner { gap:16px; padding:52px 14px 28px; overflow-y:auto; justify-content:center; }
+      .modal-canvas-slot { width:100%; }
+      .modal-cap { max-width:100%; width:100%; }
+      .modal-arrow { top:auto; bottom:14px; transform:none; font-size:26px; }
+      .modal-arrow.prev { left:18px; } .modal-arrow.next { right:18px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .canvas-frame, .loader, .plate .metrics { transition: none; }
+      .canvas-frame { transition:none; }
+      .nav-glyph, .top-link, .modal-arrow { transition:none; }
     }
   </style>
 </head>
 <body>
-  <div class="artist">Nikolai Grigoriev</div>
-  <button class="about-link" id="aboutOpen" aria-label="About the work">About</button>
+  <a class="artist" href="./" id="homeLink" aria-label="Nikolai Grigoriev — home">Nikolai Grigoriev</a>
+  <div class="top-links"><a class="top-link" href="/wit36" target="_blank" rel="noopener">Without Witness&nbsp;↗</a><a class="top-link" href="#statement" id="navStatement">Info</a></div>
 
-  <div class="loader" id="loader">reading the present body…</div>
-
-  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="About">
-    <button class="overlay-close" id="aboutClose">Close</button>
-    <div class="overlay-content">
-      <p class="lead"><em>Variations 87</em> is a symbiotic artwork — a genre originated by <a href="https://www.instagram.com/nikolaigrigorievofficial?igsh=dHUzaXRhZTRlM2th&amp;utm_source=qr" target="_blank" rel="noopener">Nikolai Grigoriev</a>, in which a painting is not composed by the artist but grown from a single living body. The body is both the subject and the instrument.</p>
-
-      <p class="lifespan" id="lifespan"></p>
-
-      <p>The painting is generated from the artist's own physiological data, recorded continuously by a wearable biometric sensor (Oura Ring). It is not a fixed picture but a living loop: each night the body writes the next day, the work takes it in the following morning, and the canvas opens on the most recent self. The image you see is only the current frame of an ongoing relationship.</p>
-      <p>Fourteen physiological measurements are read from each 24-hour cycle, normalized against the artist's own history, and mapped to independent visual parameters. The same body-state always produces the same painting — the process is deterministic; the seed is the body, not the date.</p>
-
-      <h3>Silence</h3>
-      <p>The loop can break. When the signal stops — the ring removed, the body still — the work does not pretend. The last day freezes, its colour drains, and it dissolves toward nothing in proportion to the silence. A gap is not smoothed over; it is the most honest image the work can hold. The painting is built to register an ending, not to outlive one.</p>
-
-      <h3>Three Registers</h3>
-      <p>The body never speaks in one voice. The <em>foundation</em> — broad colour grounds — carries the recovered, parasympathetic body: deep sleep and heart-rate variability. The <em>modulation</em> — curved middle gestures — is the waking self: readiness and activity. The <em>tremor</em> — a swarm of small, beaded marks — is the agitated surface: restlessness, breath, an elevated pulse. The width of variation across all of them is heart-rate variability itself: the variability of the heart becomes the variability of the hand.</p>
-
-      <h3>Biometric → Visual</h3>
-      <table>
-        <tr><th>Body signal</th><th>Visual parameter</th></tr>
-        <tr><td>Readiness · Sleep · HRV</td><td>Overall key: palette boundary, density, axis tilt</td></tr>
-        <tr><td>Deep sleep · HRV · Sleep</td><td>Foundation register — broad grounds</td></tr>
-        <tr><td>Readiness · Activity</td><td>Modulation register — waking gestures</td></tr>
-        <tr><td>Restlessness · Breath · Elevated pulse</td><td>Tremor register — small beaded marks</td></tr>
-        <tr><td>Heart-rate variability</td><td>Variation of size and touch in every register</td></tr>
-        <tr><td>Resting heart rate</td><td>Gesture length and weight</td></tr>
-        <tr><td>REM sleep</td><td>Curvature of the marks</td></tr>
-        <tr><td>Deep sleep</td><td>Tonal contrast</td></tr>
-        <tr><td>Body temperature</td><td>Hue rotation</td></tr>
-        <tr><td>Activity / workout</td><td>Drip trails and splatters</td></tr>
-      </table>
-
-      <h3>Provenance</h3>
-      <p>The work exists as a single continuous edition — <em>edition of 1, continuous</em>. What is owned is not a file but the loop itself: the right to a lifelong co-evolution with the body, and the work's living connection to it. Every day's state is deterministic and reproducible from the body that made it; that reproducibility is its certificate of authenticity. The image on screen is a frame; the work is the relationship.</p>
+  <noscript>
+    <div class="no-perform visible">
+      The work exists only in performance. This screen cannot perform it.<br><br>
+      Nikolai Grigoriev — Variations 87, 2022–<br>
+      Software, lived time written daily by an unchanging rule, screen.
     </div>
-  </div>
+  </noscript>
 
-  <div class="stage">
-    <div class="canvas-wrap">
+  <!-- ── The stage ─────────────────────────────────────────────── -->
+  <div class="stage" id="stage">
+    <div class="canvas-wrap" id="canvasWrap">
       <div class="canvas-frame" id="canvasFrame"></div>
-      <div class="nav-zone prev" id="zonePrev" tabindex="0" role="button" aria-label="Previous day"></div>
-      <div class="nav-zone next" id="zoneNext" tabindex="0" role="button" aria-label="Next day"></div>
+      <button class="nav-zone prev" id="zonePrev" aria-label="Previous day"><span class="nav-glyph">‹</span></button>
+      <button class="nav-zone next" id="zoneNext" aria-label="Next day"><span class="nav-glyph">›</span></button>
+      <a class="archive-side" href="#archive" id="archiveLink">Archive</a>
     </div>
-
-    <div class="plate" id="plate" role="button" tabindex="0" aria-label="Show this day's biometrics">
-      <div class="title"><em>Variations 87</em><span class="year" id="yearLabel"></span></div>
-      <div class="sub" id="subLine"></div>
-      <span class="day" id="dayLabel" hidden></span>
-      <div class="medium">Symbiotic painting · generative oil · live Oura Ring biometrics · edition of 1, continuous</div>
-      <div class="metrics" id="metrics"></div>
-      <div class="hint" id="plateHint">read the body of this day</div>
-    </div>
-
-    <div class="epitaph" id="epitaph">
-      <div class="big" id="epitaphBig"></div>
-      <div class="small" id="epitaphSmall"></div>
+    <div class="label">
+      <button class="label-title" id="labelTitle"></button>
+      <div class="label-medium" id="labelMedium"></div>
+      <div class="label-life" id="labelLife"></div>
+      <div class="info-line" id="infoLine" aria-live="polite"></div>
+      <button class="work-link" id="workLink">About the work →</button>
     </div>
   </div>
 
-  <script defer src="https://cdn.jsdelivr.net/npm/p5@2.2.0/lib/p5.min.js"></script>
-  <script defer src="p5.oil.js?v=det1"></script>
-  <script defer src="painter.js"></script>
+  <div class="no-perform" id="noPerform">
+    The work exists only in performance. This screen cannot perform it.<br><br>
+    Nikolai Grigoriev — Variations 87, 2022–<br>
+    Software, lived time written daily by an unchanging rule, screen.
+  </div>
 
+  <!-- ── Statement overlay (the artist) ────────────────────────── -->
+  <div class="overlay" id="ov-statement" role="dialog" aria-modal="true" aria-labelledby="stmtHead">
+    <button class="overlay-close" data-home>Close</button>
+    <div class="prose">
+      <div class="kicker">Info</div>
+      <h2 id="stmtHead">Nikolai Grigoriev</h2>
+      <p>I make a life visible so that it can be lived as a work of art. My subject is not death — it is what death sharpens: the attention a life is worth once you know it ends. I take a single life, the quiet traces a body leaves without being asked, and turn it slowly into an image; and each life joins a larger one — many lives gathered into a single form for a museum, a monument to attentive living. The work holds up no live mirror. It takes your life now and never shows it to you now, so there is nothing to perform for and nothing to do with a day but be entirely inside it. Where medicine works to lengthen the body, I work to lengthen a life in the register art can reach — its felt time, and the meaning of having lived it.</p>
+      <button class="reveal" id="stmtReveal" aria-expanded="false" aria-controls="stmtMore">Continue ↓</button>
+      <div class="more" id="stmtMore" hidden>
+        <p>I have been afraid of dying since I was a child, and I refused to make that fear my subject. I made its opposite my subject. If death is what ends a life, it is also what makes a life worth composing — the pressure that turns ordinary days into something you would want to have lived on purpose. I aestheticise living, not dying. Death only stands behind me, sharpening the attention.</p>
+        <p>I take a single life as material — mine first, because I do not ask of a work what I have not lived inside it. A body records itself while you are busy being alive; the work holds up no mirror and asks nothing of you, so what it takes is a life lived, not one staged for it. But no single life is the whole of the work. Each one feeds a larger body: the lives gathered into a piece accrue, together, into a collective form made to stand in a museum — a common portrait of many people living with attention. A private reflection at home; a shared one in public — art at the scale of many lives.</p>
+        <p>The work takes your life now but never shows it to you now. There is no live mirror to perform for — no way to pose a day, to shape it toward how it will look, to live for the image instead of the moment. I once thought that delay was a flaw. It is the whole point. Emptied of an audience, you are left with the only thing that was ever real: this moment, and the choice to be entirely in it. Being present is not watching your life from a distance; it is disappearing into the day as it happens. What forms later is only the honest residue — the living was the art, and the living is now.</p>
+        <p>Underneath all of it is a refusal to end. I do not want to die. Where medicine works to lengthen the body, I work to lengthen a life in the register art can reach, and I mean it literally: the work stretches perceived time by slowing it; it keeps every day it has lived, so a life is made imperishable as a record; and it is built to outlast the body, continuing after me from the life of a stranger I will never meet. Three durations against the one that runs out. I came to art late and built its language myself. I do not want to leave objects. I want to leave a way of living, and a work that keeps living it.</p>
+        <div class="rule"></div>
+        <div class="kicker">Biography</div>
+        <p>Nikolai Grigoriev (b. 1987) is a conceptual artist; he lives and works in Barcelona. He turns a single life — its unbidden daily traces — slowly into an image, so that living can be seen, and lived, as a work of art. Time, freedom, and the wish to prolong a life worth composing are his enduring concerns. He came to art late, out of necessity, and works from his own body.</p>
+      </div>
+      <div class="links">
+        <button class="link" data-go="work">About the work →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Work overlay (the work’s own text) ─────────────────────── -->
+  <div class="overlay" id="ov-work" role="dialog" aria-modal="true" aria-labelledby="workHead">
+    <button class="overlay-close" data-home>Close</button>
+    <div class="prose">
+      <div class="kicker">The work</div>
+      <h2 id="workHead">Variations 87</h2>
+      <p>This is a living work, and its material is lived time itself. Each day of one life is recorded quietly, without performance — its rest and its unrest, the depth of its nights, its warmth, the evenness of its breath — and turned by a single unchanging rule into one painting. The rule never changes; the life does. What hangs here is not the picture of a life but a life made into something that can be held in the eye. Living is the making; nothing is staged.</p>
+      <p>The work never shows the present. A day can be met only once it has closed, when nothing in it can still be arranged. Because there is no one to live toward and no image to compose while the hours are passing, the day is handed back to the one inside it, to be spent fully and unwatched. The delay is a protection, and the painting is only the honest residue of a day actually lived.</p>
+      <p>Nothing on the surface is arbitrary, and nothing can be read back out of it. What one life leaves is entangled before it reaches the canvas, so the image is a trace, not an account. The same day always makes the same painting, and once a day has ended its painting never changes: the past stays exactly as it was written. The work does not flatter — a hard day makes a hard image, and that too is a life made visible.</p>
+      <p>When the life falls silent — by distance, by refusal, by illness, in the end by death — no new day arrives and the last painting sets. Stillness is not the subject of the work but the edge that sharpens it: because the record can stop, each day it keeps is worth this attention. The work carries its own means of survival and may come to rest on its own terms.</p>
+      <p>One life is only one panel of a larger form. These works are made to gather — many lives, each kept day by day under the same rule, assembled into a single body of days: a monument not to any person but to the act of attentive living. So the meaning is lengthened three ways — the eye is slowed, so a day is felt for longer than it lasted; every day lived is kept and none of it decays, the archive its memory; and the rule is handed on, continuing past the body that began it. I do not lengthen the body. I lengthen the meaning of a life. The form has a lineage — On Kawara, Roman Opałka, Sol LeWitt, Felix Gonzalez-Torres — but here the rule runs on a living body, and one day it will stop.</p>
+      <div class="links">
+        <button class="link" data-go="statement">About the artist →</button>
+        <a class="link" href="conditions.html">Conditions of the Work →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Archive overlay (the calendar) ────────────────────────── -->
+  <div class="overlay" id="ov-archive" role="dialog" aria-modal="true" aria-labelledby="arcHead">
+    <button class="overlay-close" data-home>Close</button>
+    <div class="archive-scroll">
+      <div class="archive-head" id="arcHead">Archive</div>
+      <div class="archive-work" id="arcWork">Variations 87 · 2022–</div>
+      <div class="archive-note">Every state is frozen as it was written on its own day. Silence is shown, never compressed.</div>
+      <div id="arcList"></div>
+    </div>
+  </div>
+
+  <!-- Hover preview lives at body level: an overlay's backdrop-filter would
+       otherwise become the containing block for this position:fixed element. -->
+  <div class="day-preview" id="dayPreview" aria-hidden="true"><img id="dayPreviewImg" alt=""></div>
+
+  <!-- ── Day modal (the painting popup, reusing the one canvas) ─── -->
+  <div class="modal" id="dayModal" role="dialog" aria-modal="true" aria-labelledby="capDate">
+    <button class="overlay-close" id="modalClose" data-archive>Close</button>
+    <button class="modal-arrow prev" id="modalPrev" aria-label="Previous day">‹</button>
+    <button class="modal-arrow next" id="modalNext" aria-label="Next day">›</button>
+    <div class="modal-inner">
+      <div class="modal-canvas-slot" id="modalCanvasSlot"></div>
+      <div class="modal-cap">
+        <span class="cap-date" id="capDate"></span>
+        <span class="cap-status" id="capStatus"></span>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/p5.min.js"></script>
+  <script src="p5.oil.js"></script>
+  <script src="painter.js"></script>
   <script>
-    const CANVAS_W = 980;
-    const CANVAS_H = 700;
+  (function () {
+    'use strict';
 
-    let DATA = null;
-    let META = null;
-    let currentIdx = 0;
-    let p5Instance = null;
-    let pendingRepaint = false;
-    let firstPaintDone = false;
+    // === Identity (single source of truth) ===
+    const WORK = { TITLE:'Variations 87', OWNER:'Nikolai Grigoriev', MEDIUM:'Software, lived time written daily by an unchanging rule, screen' };
+    const CANVAS_W = 980, CANVAS_H = 700;
+
+    // === State ===
+    let DATA = null, META = null, p5Instance = null, pendingRepaint = false;
+    let stageIdx = 0;         // day shown on the wall
+    let modalIdx = null;      // day shown in the modal (or null)
+    let renderIdx = 0;        // day the draw loop actually paints
+    let mode = 'stage';       // 'stage' | 'modal' — where the canvas lives
+    let archiveBuilt = false;
+    let lastFocus = null;     // element to restore focus to on overlay close
+
+    const $ = id => document.getElementById(id);
+    const canvasFrame = $('canvasFrame');
+    const canvasWrap = $('canvasWrap');
+    const stageAnchor = canvasFrame.nextSibling;   // exact return slot on the stage
+
+    // === Dates ===
+    const MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const MON_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const WEEK = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const fmt = d => { const [y,m,dd]=d.split('-'); return `${dd} ${MON[+m-1]} ${y}`; };
+    const fmtLong = d => { const [y,m,dd]=d.split('-'); const w=WEEK[new Date(d+'T00:00:00Z').getUTCDay()]; return `${w}, ${dd} ${MON_FULL[+m-1]} ${y}`; };
+    const idxOf = date => DATA ? DATA.days.findIndex(x => x.d === date) : -1;
+
+    function safeHash() { try { return decodeURIComponent(location.hash.slice(1)); } catch (e) { return ''; } }
 
     async function loadData() {
-      const resp = await fetch('data/daily-metrics.json', { cache: 'no-store' });
+      const resp = await fetch('data/days.json', { cache:'no-store' });
+      if (!resp.ok) throw new Error('record unreachable');
       DATA = await resp.json();
-      META = DATA.meta || { status: 'stable', gapDays: 0, live: false };
-      currentIdx = Math.max(0, DATA.days.length - 1);   // open on the present body
+      META = DATA.meta || { status:'record', gapDays:0, live:false };
+      stageIdx = renderIdx = Math.max(0, DATA.days.length - 1);
     }
 
-    function fmtDate(d) {
-      const [y, m, day] = d.split('-');
-      const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-      return `${day} ${months[parseInt(m,10)-1]} ${y}`;
+    // === Silence / petrification (only from live-confirmed data) ===
+    function silenceFrac() {
+      if (!META.live) return 0;
+      const gap = META.gapDays || 0;
+      if (gap <= 1) return 0;
+      return Math.min(1, (gap - 1) / (META.terminalDays || 90));
     }
-
-    function renderPlate() {
-      const day = DATA.days[currentIdx];
-      const meta = META || {};
-      const gap = meta.gapDays || 0;
-      const onLatest = currentIdx >= DATA.days.length - 1;
-      const isSilent = onLatest && meta.live && gap > 1;
-
-      document.body.classList.toggle('silent', isSilent);
-
-      if (isSilent) {
-        document.getElementById('epitaphBig').textContent =
-          gap > 7 ? 'Long Silence' : 'Silence';
-        document.getElementById('epitaphSmall').textContent =
-          `${gap} days without signal · last seen ${fmtDate(meta.lastDataDay || day.day)}`;
-      } else {
-        // museum label: title + creation year (open range), then day · date · status
-        const firstYear = ((DATA.days[0] && DATA.days[0].day) || '').slice(0, 4);
-        document.getElementById('yearLabel').textContent = firstYear ? ` · ${firstYear}–` : '';
-        document.getElementById('dayLabel').textContent = `Day ${currentIdx + 1}`;
-        const statusToken = !meta.live ? 'Last synced' : 'Live';
-        const dot = meta.live ? '<span class="dot"></span>' : '';
-        // On the latest day, name the data's freshness so a normal overnight lag
-        // (Oura finalizes the day later) doesn't read as the work being stuck.
-        const fresh = (onLatest && meta.live && gap === 1) ? ' · latest data: yesterday' : '';
-        document.getElementById('subLine').innerHTML =
-          `${dot}Day ${currentIdx + 1} · ${fmtDate(day.day)} · ${statusToken}${fresh}`;
-
-        // raw biometric body (revealed on click) — full provenance detail
-        const v = (x, s = '') => (x == null || isNaN(x)) ? '—' : x + s;
-        document.getElementById('metrics').textContent = [
-          `${currentIdx + 1}/${DATA.days.length}`,
-          `RDY ${v(day.readinessScore)}`, `SLP ${v(day.sleepScore)}`,
-          `HRV ${v(day.hrv)}`, `RHR ${day.avgHeartRate != null ? day.avgHeartRate.toFixed(0) : '—'}`,
-          `DEEP ${day.deepSleepPct ? (day.deepSleepPct*100).toFixed(0)+'%' : '—'}`,
-          `REM ${day.remSleepPct ? (day.remSleepPct*100).toFixed(0)+'%' : '—'}`,
-          `EFF ${v(day.efficiency, '%')}`,
-          `T ${day.tempDeviation != null ? (day.tempDeviation>=0?'+':'')+day.tempDeviation.toFixed(2) : '—'}`,
-        ].join('  ·  ');
-      }
-      updateLifespan();
-      updateFade();
-    }
-
-    // Death = fading: colour drains, the canvas turns transparent and vanishes.
-    function updateFade() {
-      const meta = META || {};
-      const gap = meta.gapDays || 0;
-      const onLatest = currentIdx >= DATA.days.length - 1;
-      const frame = document.getElementById('canvasFrame');
+    function applyPetrification() {
+      // Only the living latest day on the stage petrifies; a historical day
+      // in the modal is frozen exactly as it was written.
       let gray = 0, alpha = 1;
-      if (onLatest && meta.live && gap > 1) {
-        gray  = Math.min(1, (gap - 1) / 13);
-        alpha = Math.max(0, 1 - (gap - 1) / 29);
+      if (mode === 'stage' && renderIdx === DATA.days.length - 1 && META.live && (META.gapDays||0) > 1) {
+        const gap = META.gapDays;
+        gray = Math.min(1, (gap - 1) / 14);
+        alpha = 1 - 0.15 * Math.min(1, (gap - 1) / 14);
       }
-      frame.style.filter = gray > 0 ? `grayscale(${gray.toFixed(3)})` : 'none';
-      // never fight the first reveal: only show once first paint happened
-      frame.style.opacity = firstPaintDone ? alpha.toFixed(3) : '0';
+      canvasFrame.style.filter = gray > 0 ? `grayscale(${gray.toFixed(3)})` : 'none';
+      canvasFrame.style.opacity = alpha.toFixed(3);
     }
 
-    // The work's age — truthful and self-updating: recomputed from the first
-    // recorded day to the server's current date, so the day count grows daily.
-    function updateLifespan() {
-      const el = document.getElementById('lifespan');
-      if (!el || !DATA || !DATA.days.length) return;
-      const first = DATA.days[0].day;
-      const today = (META && META.serverDate) || new Date().toISOString().slice(0, 10);
-      const days = Math.max(0, Math.round((Date.parse(today) - Date.parse(first)) / 86400000));
-      const years = Math.floor(days / 365.25);
-      const yWord = years === 1 ? 'year' : 'years';
-      el.textContent = `Alive for ${years} ${yWord} · ${days.toLocaleString('en-US')} days · since ${fmtDate(first)}.`;
+    // === Museum label ===
+    // Three tiers + one plate caption (council spec): title with an open living
+    // date-range, the medium, and a single state word whose ink is the pulse.
+    // No day-tally, no denominator, no glyph, no repeated date — the label
+    // carries exactly one number (the day count, on the caption), one date, one state.
+    function renderLabel() {
+      const birth = META.birth || (DATA.days[0] && DATA.days[0].d) || '';
+      const epochYear = birth.slice(0,4);
+      const terminal = META.live && META.status === 'terminal';
+      const silent = META.live && !terminal && (META.gapDays||0) > 1;
+      // Open en-dash while the work lives ("2022–"); it closes only at death.
+      const endYear = terminal && META.lastDataDay ? META.lastDataDay.slice(0,4) : '';
+      $('labelTitle').innerHTML =
+        `<span class="lt-name">${WORK.TITLE}</span><span class="lt-range">, ${epochYear}–${endYear}</span>`;
+      $('labelMedium').textContent = WORK.MEDIUM;
+      const life = $('labelLife');
+      life.className = 'label-life' + (terminal ? ' complete' : silent ? ' silent' : '');
+      life.textContent = terminal ? 'COMPLETE' : silent ? 'SILENT' : 'ALIVE';
     }
 
+    // === Plate caption under the label: the coordinate of the walked frame ===
+    // The one dated painting you have walked to — date + open day count. The count
+    // climbs one per painted day and freezes in silence; no "OF N" denominator.
+    function renderInfoLine() {
+      const day = DATA.days[stageIdx];
+      const parts = [ fmt(day.d), `DAY ${stageIdx + 1}` ];
+      if (day.i) parts.push('PARTLY RECORDED');
+      $('infoLine').textContent = parts.join(' · ');
+      canvasFrame.setAttribute('role','img');
+      canvasFrame.setAttribute('aria-label', `${WORK.TITLE}, state of ${fmt(day.d)}`);
+    }
+
+    // === describeDay — the ONLY place a per-day text exists ==========
+    // Built ONLY from: date, ordinal, age-at-that-day, and record-state
+    // (whether the diary was written). It is structurally forbidden to touch
+    // the day’s signal fields (day.s, day.c). No metric can ever be read out.
+    function describeStatus(idx) {
+      const day = DATA.days[idx];
+      const isLast = idx === DATA.days.length - 1;
+      if (day.i) return 'A day recorded in part. The painting keeps the gap and is not smoothed over.';
+      if (isLast && META.live && META.status === 'terminal') return 'The last day the work was written. Nothing arrives after it.';
+      if (isLast && META.live && (META.gapDays||0) > 1) return `The most recent day the body spoke. It has been silent for ${META.gapDays} days since; the last painting holds and greys.`;
+      if (!isLast) {
+        const gap = Math.round((Date.parse(DATA.days[idx+1].d) - Date.parse(day.d)) / 864e5);
+        if (gap > 1) return `After this day the record falls silent for ${gap-1} ${gap-1===1?'day':'days'}.`;
+      }
+      return 'A day that was recorded, and stays as it was written.';
+    }
+    const STATUS_DEFAULT = 'A day that was recorded, and stays as it was written.';
+
+    // Image-forward caption: the date is the one genuinely per-day, non-invertible
+    // fact and the calendar viewer's anchor. The status line surfaces ONLY on the
+    // exceptional days (partial record, running silence, the work complete) —
+    // where the text does real work and is the whole conceit of the piece.
+    function renderModalCaption() {
+      const idx = modalIdx, day = DATA.days[idx];
+      $('capDate').textContent = fmtLong(day.d);
+      const st = describeStatus(idx);
+      const el = $('capStatus');
+      if (st && st !== STATUS_DEFAULT) { el.textContent = st; el.style.display = ''; }
+      else { el.textContent = ''; el.style.display = 'none'; }
+    }
+
+    // === Fit the one canvas into whatever box it lives in now =======
+    function fitInto(maxW, maxH) {
+      const s = Math.min(1, maxW / CANVAS_W, maxH / CANVAS_H);
+      canvasFrame.style.width = Math.round(CANVAS_W * s) + 'px';
+      canvasFrame.style.height = Math.round(CANVAS_H * s) + 'px';
+    }
+    function fitStage() {
+      const mobile = window.innerWidth <= 640;
+      fitInto(window.innerWidth - (mobile ? 60 : 110), window.innerHeight - (mobile ? 150 : 200));
+    }
+    function fitModal() {
+      // The painting now owns the whole stage (no caption column); leave room
+      // for the top chrome and the one quiet date line below.
+      const mobile = window.innerWidth <= 640;
+      const maxW = window.innerWidth - (mobile ? 28 : 96);
+      const maxH = window.innerHeight - (mobile ? 160 : 150);
+      fitInto(maxW, maxH);
+    }
+    function refit() { mode === 'modal' ? fitModal() : fitStage(); }
+
+    // === Repaint the single canvas ================================
+    function repaint() { pendingRepaint = true; if (p5Instance) p5Instance.redraw(); }
+
+    // === Stage / modal transitions (ONE WebGL context, moved in DOM) ==
+    function toStageDay(idx) {
+      stageIdx = idx; renderIdx = idx;
+      history.replaceState(null, '', '#' + DATA.days[idx].d);
+      updateNavZones(); fitStage(); repaint(); renderInfoLine(); applyPetrification();
+    }
+    function enterModal(idx) {
+      modalIdx = idx; renderIdx = idx; mode = 'modal';
+      $('modalCanvasSlot').appendChild(canvasFrame);   // move canvas; context survives
+      canvasFrame.style.filter = 'none'; canvasFrame.style.opacity = '1';  // historical day is frozen
+      repaint(); renderModalCaption(); updateModalArrows();
+      requestAnimationFrame(fitModal);   // measure the slot after layout settles
+    }
+    function leaveModal() {
+      if (mode !== 'modal') return;
+      modalIdx = null; mode = 'stage'; renderIdx = stageIdx;
+      canvasWrap.insertBefore(canvasFrame, stageAnchor);   // exact return to the stage slot
+      fitStage(); repaint(); applyPetrification();
+    }
+    function stepModal(delta) {
+      const ni = modalIdx + delta;
+      if (ni < 0 || ni >= DATA.days.length) return;
+      modalIdx = renderIdx = ni;
+      history.replaceState(null, '', '#archive/' + DATA.days[ni].d);   // no history spam
+      fitModal(); repaint(); renderModalCaption(); updateModalArrows(); markArchiveCurrent();
+    }
+    function updateModalArrows() {
+      $('modalPrev').classList.toggle('disabled', modalIdx <= 0);
+      $('modalNext').classList.toggle('disabled', modalIdx >= DATA.days.length - 1);
+    }
     function updateNavZones() {
-      document.getElementById('zonePrev').classList.toggle('disabled', currentIdx <= 0);
-      document.getElementById('zoneNext').classList.toggle('disabled', currentIdx >= DATA.days.length - 1);
+      $('zonePrev').classList.toggle('disabled', stageIdx <= 0);
+      $('zoneNext').classList.toggle('disabled', stageIdx >= DATA.days.length - 1);
     }
 
-    function navigate(delta) {
-      const next = currentIdx + delta;
-      if (next < 0 || next >= DATA.days.length) return;
-      currentIdx = next;
-      updateNavZones();
-      pendingRepaint = true;
-      if (p5Instance) p5Instance.redraw();
+    // === Archive calendar (built once) ============================
+    function buildArchive() {
+      if (archiveBuilt || !DATA) return;
+      const birth = META.birth || DATA.days[0].d;
+      const last = (META.live && META.serverDate && META.serverDate > (META.lastDataDay || ''))
+        ? META.serverDate : (META.lastDataDay || DATA.days[DATA.days.length-1].d);
+      $('arcWork').textContent = `Variations 87 · ${birth.slice(0,4)}–${(META.live && META.status==='terminal') ? last.slice(0,4) : 'Today'}`;
+      const byDate = new Map(DATA.days.map((x,i) => [x.d, i]));
+      const list = $('arcList'); list.innerHTML = '';
+      const frag = document.createDocumentFragment();
+      let curY = null, curM = null, wrap = null;
+      let t = Date.parse(last); const t0 = Date.parse(birth);
+      while (t >= t0) {
+        const iso = new Date(t).toISOString().slice(0,10);
+        const y = iso.slice(0,4), m = iso.slice(5,7);
+        if (y !== curY) { curY = y; curM = null; const h=document.createElement('h2'); h.className='archive-year'; h.textContent=y; frag.appendChild(h); }
+        if (m !== curM) { curM = m; const h=document.createElement('h3'); h.className='archive-month'; h.textContent=MON_FULL[+m-1]; frag.appendChild(h); wrap=document.createElement('div'); wrap.className='archive-days'; frag.appendChild(wrap); }
+        const num = iso.slice(8,10);
+        if (byDate.has(iso)) {
+          const idx = byDate.get(iso);
+          const b = document.createElement('button');
+          b.className = 'day' + (DATA.days[idx].i === 1 ? ' incomplete' : '');
+          b.textContent = num; b.dataset.date = iso; b.dataset.idx = idx;
+          b.setAttribute('aria-label', `Open ${fmtLong(iso)}`);
+          b.addEventListener('click', () => go('archive/' + iso));
+          b.addEventListener('mouseenter', () => queuePreview(b, idx));
+          b.addEventListener('mouseleave', hidePreview);
+          wrap.insertBefore(b, wrap.firstChild);   // walk is newest→oldest; front-insert yields 1→31
+        } else {
+          const s = document.createElement('span');
+          s.className = 'day silent'; s.textContent = `${num}—`;
+          s.setAttribute('title', `${fmt(iso)} — no painting was written`);
+          wrap.insertBefore(s, wrap.firstChild);
+        }
+        t -= 864e5;
+      }
+      list.appendChild(frag);
+      archiveBuilt = true;
+    }
+    // --- Hover previews: render a day's painting on the single (hidden-behind-
+    // the-archive) canvas, cache it as a small image, show it near the date.
+    // The click still opens the full modal. renderIdx is restored when the
+    // archive closes (see route()).
+    const thumbCache = new Map();
+    let thumb2d = null, previewTimer = null, previewDirty = false;
+
+    function renderThumb(idx) {
+      const d = DATA.days[idx].d;
+      if (thumbCache.has(d)) return thumbCache.get(d);
+      if (!p5Instance) return null;
+      renderIdx = idx; previewDirty = true;     // borrow the hidden canvas
+      // Paint SYNCHRONOUSLY (p5 2.x redraw() is deferred, which would capture
+      // the previous frame — the cause of preview/painting mismatch). A day in
+      // a preview is frozen, silence = 0, so it matches what the modal shows.
+      const pd = p5Instance.pixelDensity ? p5Instance.pixelDensity() : 1;
+      Painter.paintDay(p5Instance, DATA.days[idx], DATA, p5Instance.width * pd, p5Instance.height * pd, 0);
+      const src = document.querySelector('#canvasFrame canvas');
+      if (!src) return null;
+      if (!thumb2d) { thumb2d = document.createElement('canvas'); thumb2d.width = 400; thumb2d.height = 286; }
+      const ctx = thumb2d.getContext('2d');
+      ctx.clearRect(0, 0, thumb2d.width, thumb2d.height);
+      try { ctx.drawImage(src, 0, 0, thumb2d.width, thumb2d.height); } catch (e) { return null; }
+      const url = thumb2d.toDataURL('image/jpeg', 0.82);
+      if (thumbCache.size >= 120) thumbCache.delete(thumbCache.keys().next().value);  // LRU-ish cap
+      thumbCache.set(d, url);
+      return url;
+    }
+    function placePreview(btn) {
+      const pv = $('dayPreview'), r = btn.getBoundingClientRect();
+      const vw = window.innerWidth || document.documentElement.clientWidth || 1200;
+      const vh = window.innerHeight || document.documentElement.clientHeight || 800;
+      let top = r.top - 143 - 10;                 // above the date by default
+      if (top < 8) top = Math.min(r.bottom + 10, vh - 151);  // flip below near the top edge
+      const left = Math.max(108, Math.min(r.left + r.width / 2, vw - 108));
+      pv.style.left = left + 'px'; pv.style.top = top + 'px';
+    }
+    function queuePreview(btn, idx) {
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(() => {
+        const url = renderThumb(idx);
+        if (!url) return;
+        $('dayPreviewImg').src = url;
+        placePreview(btn);
+        $('dayPreview').classList.add('show');
+      }, 200);   // debounce so a quick sweep doesn't render
+    }
+    function hidePreview() {
+      clearTimeout(previewTimer);
+      $('dayPreview').classList.remove('show');
     }
 
-    document.getElementById('zonePrev').addEventListener('click', () => navigate(-1));
-    document.getElementById('zoneNext').addEventListener('click', () => navigate(1));
-    document.getElementById('zonePrev').addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); navigate(-1);} });
-    document.getElementById('zoneNext').addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); navigate(1);} });
-
-    // Plate toggles the raw biometric body
-    const plate = document.getElementById('plate');
-    function togglePlate() {
-      plate.classList.toggle('open');
-      document.getElementById('plateHint').textContent =
-        plate.classList.contains('open') ? 'hide the body of this day' : 'read the body of this day';
+    function markArchiveCurrent() {
+      const cur = modalIdx != null ? DATA.days[modalIdx].d : (DATA.days[stageIdx] && DATA.days[stageIdx].d);
+      document.querySelectorAll('.day[data-date]').forEach(el => {
+        el.style.borderBottom = el.dataset.date === cur ? '1px solid rgba(0,0,0,.5)' : 'none';
+      });
     }
-    plate.addEventListener('click', togglePlate);
-    plate.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); togglePlate(); } });
 
-    // About overlay
-    const overlay = document.getElementById('overlay');
-    document.getElementById('aboutOpen').addEventListener('click', () => overlay.classList.add('open'));
-    document.getElementById('aboutClose').addEventListener('click', () => overlay.classList.remove('open'));
-    overlay.addEventListener('click', e => { if (e.target === e.currentTarget) overlay.classList.remove('open'); });
-    window.addEventListener('keydown', e => {
-      if (e.key === 'Escape') overlay.classList.remove('open');
-      if (overlay.classList.contains('open')) return;
-      if (e.key === 'ArrowLeft') navigate(-1);
-      if (e.key === 'ArrowRight') navigate(1);
-    });
+    // === Overlay helpers ==========================================
+    function showOverlay(id, on) { $(id).classList.toggle('open', on); }
+    function anyOverlayOpen() { return document.querySelector('.overlay.open, .modal.open'); }
 
-    // Touch swipe
-    let tsx = 0, tsy = 0;
-    const cw = document.querySelector('.canvas-wrap');
-    cw.addEventListener('touchstart', e => { tsx = e.touches[0].clientX; tsy = e.touches[0].clientY; }, { passive: true });
-    cw.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - tsx, dy = e.changedTouches[0].clientY - tsy;
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) navigate(dx < 0 ? 1 : -1);
-    }, { passive: true });
+    // === Router — all view state lives in the hash ================
+    // '' | '#DATE' (wall) | '#statement' | '#work' | '#archive' | '#archive/DATE'
+    function parseRoute() {
+      const h = safeHash();
+      if (h === 'statement') return { v:'statement' };
+      if (h === 'work') return { v:'work' };
+      if (h === 'archive') return { v:'archive' };
+      const m = h.match(/^archive\/(\d{4}-\d{2}-\d{2})$/);
+      if (m) return { v:'archive', day:m[1] };
+      if (/^\d{4}-\d{2}-\d{2}$/.test(h)) return { v:'wall', day:h };
+      return { v:'wall' };
+    }
 
-    async function main() {
-      await loadData();
+    function route() {
+      if (!DATA) return;
+      hidePreview();
+      const r = parseRoute();
 
-      function fitCanvas() {
-        const frame = document.getElementById('canvasFrame');
-        const mobile = window.innerWidth <= 640;
-        const maxH = window.innerHeight - (mobile ? 132 : 168);
-        const maxW = window.innerWidth - (mobile ? 20 : 90);
-        const s = Math.min(1, maxH / CANVAS_H, maxW / CANVAS_W);
-        frame.style.width = CANVAS_W + 'px';
-        frame.style.height = CANVAS_H + 'px';
-        frame.style.transform = `scale(${s})`;
-        const wrap = frame.parentElement;
-        wrap.style.width = (CANVAS_W * s) + 'px';
-        wrap.style.height = (CANVAS_H * s) + 'px';
+      // Statement / Work overlays (canvas stays on the stage, hidden behind).
+      showOverlay('ov-statement', r.v === 'statement');
+      showOverlay('ov-work', r.v === 'work');
+      showOverlay('ov-archive', r.v === 'archive');
+
+      // Exactly one control in the top-right slot: STATEMENT on the wall,
+      // the overlay's own Close inside any overlay.
+      $('navStatement').parentElement.style.display = (r.v === 'wall') ? '' : 'none';
+
+      if (r.v === 'archive') {
+        buildArchive();
+        if (r.day && idxOf(r.day) >= 0) {
+          if (mode !== 'modal') enterModal(idxOf(r.day));
+          else if (modalIdx !== idxOf(r.day)) { modalIdx = renderIdx = idxOf(r.day); fitModal(); repaint(); renderModalCaption(); updateModalArrows(); }
+          $('dayModal').classList.add('open');
+        } else {
+          $('dayModal').classList.remove('open');
+          leaveModal();
+        }
+        markArchiveCurrent();
+      } else {
+        $('dayModal').classList.remove('open');
+        leaveModal();
       }
 
-      p5Instance = new p5((p) => {
-        p.setup = function () {
-          const canvas = p.createCanvas(CANVAS_W, CANVAS_H, p.WEBGL2 || p.WEBGL);
-          canvas.parent('canvasFrame');
-          fitCanvas();
-          window.addEventListener('resize', () => { fitCanvas(); if (DATA) renderPlate(); });
-          p.noLoop();
-          pendingRepaint = true;
-        };
-        p.draw = function () {
-          if (!pendingRepaint || !DATA) return;
-          pendingRepaint = false;
-          const day = DATA.days[currentIdx];
-          const pd = p.pixelDensity ? p.pixelDensity() : 1;
-          OuraPainter.paintDay(p, day, DATA, CANVAS_W * pd, CANVAS_H * pd);
-          if (!firstPaintDone) {
-            firstPaintDone = true;
-            // reveal: fade the painting in, dismiss the loader
-            requestAnimationFrame(() => {
-              renderPlate();
-              setTimeout(() => document.getElementById('loader').classList.add('gone'), 150);
-            });
-          } else {
-            renderPlate();
-          }
-        };
+      if (r.v === 'wall' && r.day) { const i = idxOf(r.day); if (i >= 0 && i !== stageIdx) toStageDay(i); }
+
+      // If thumbnail rendering borrowed the canvas, restore the stage day.
+      if (mode === 'stage' && previewDirty && renderIdx !== stageIdx) {
+        renderIdx = stageIdx; previewDirty = false; pendingRepaint = true; if (p5Instance) p5Instance.redraw();
+      }
+
+      // Focus trap: seal every layer but the active one from tab / AT reach.
+      const active = r.v === 'statement' ? 'ov-statement' : r.v === 'work' ? 'ov-work'
+                   : (r.v === 'archive' && r.day) ? 'dayModal' : r.v === 'archive' ? 'ov-archive' : 'stage';
+      ['stage','ov-statement','ov-work','ov-archive','dayModal'].forEach(id => {
+        const el = $(id); if (!el) return;
+        const off = id !== active;
+        el.inert = off;
+        if (off) el.setAttribute('aria-hidden', 'true'); else el.removeAttribute('aria-hidden');
       });
 
-      updateNavZones();
+      manageFocus(r);
     }
 
-    // Scripts are deferred, so p5/painter are guaranteed ready by DOMContentLoaded.
-    if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', main);
-    else main();
+    function manageFocus(r) {
+      const open = r.v === 'statement' ? 'ov-statement' : r.v === 'work' ? 'ov-work'
+                 : (r.v === 'archive' && r.day) ? 'dayModal' : r.v === 'archive' ? 'ov-archive' : null;
+      if (open) {
+        if (!lastFocus) lastFocus = document.activeElement;
+        const first = $(open).querySelector('.overlay-close, .reveal, .day, .link');
+        if (first && !$(open).contains(document.activeElement)) first.focus();
+      } else if (lastFocus) {
+        try { lastFocus.focus(); } catch (e) {}
+        lastFocus = null;
+      }
+    }
+
+    // === Navigation primitives ====================================
+    function go(hash) {
+      const target = hash ? '#' + hash : location.pathname;
+      if (safeHash() === (hash || '')) { route(); return; }
+      history.pushState(null, '', target);
+      route();
+    }
+    function goHome() { lastFocus = null; if (safeHash()) { history.pushState(null, '', location.pathname); } route(); window.scrollTo(0,0); }
+
+    // === Wiring ===================================================
+    function wire() {
+      $('homeLink').addEventListener('click', e => { e.preventDefault(); goHome(); });
+      $('navStatement').addEventListener('click', e => { e.preventDefault(); go('statement'); });
+      $('archiveLink').addEventListener('click', e => { e.preventDefault(); go('archive'); });
+      $('labelTitle').addEventListener('click', () => go('work'));
+      $('workLink').addEventListener('click', () => go('work'));
+
+      $('zonePrev').addEventListener('click', () => { if (stageIdx>0) toStageDay(stageIdx-1); });
+      $('zoneNext').addEventListener('click', () => { if (stageIdx<DATA.days.length-1) toStageDay(stageIdx+1); });
+
+      document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', goHome));
+      document.querySelectorAll('[data-archive]').forEach(b => b.addEventListener('click', () => go('archive')));
+      document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go)));
+
+      $('modalPrev').addEventListener('click', () => stepModal(-1));
+      $('modalNext').addEventListener('click', () => stepModal(1));
+
+      // Click the empty field around the painting closes back to the archive.
+      $('dayModal').addEventListener('click', e => { if (e.target === e.currentTarget) go('archive'); });
+
+      // Backdrop click closes to the layer above.
+      $('ov-statement').addEventListener('click', e => { if (e.target === e.currentTarget) goHome(); });
+      $('ov-work').addEventListener('click', e => { if (e.target === e.currentTarget) goHome(); });
+      $('ov-archive').addEventListener('click', e => { if (e.target === e.currentTarget) goHome(); });
+
+      const stmtReveal = $('stmtReveal');
+      stmtReveal.addEventListener('click', () => {
+        const more = $('stmtMore'); const open = more.hidden;
+        more.hidden = !open; stmtReveal.setAttribute('aria-expanded', String(open));
+        stmtReveal.textContent = open ? '' : 'Continue ↓';
+        if (open) stmtReveal.style.display = 'none';
+      });
+
+      window.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+          if (mode === 'modal' || $('dayModal').classList.contains('open')) go('archive');
+          else if (anyOverlayOpen()) goHome();
+          return;
+        }
+        if (mode === 'modal') {
+          if (e.key === 'ArrowLeft') stepModal(-1);
+          if (e.key === 'ArrowRight') stepModal(1);
+          return;
+        }
+        if (anyOverlayOpen()) return;   // no day-turning behind an overlay
+        if (e.key === 'ArrowLeft' && stageIdx>0) toStageDay(stageIdx-1);
+        if (e.key === 'ArrowRight' && stageIdx<DATA.days.length-1) toStageDay(stageIdx+1);
+      });
+
+      // Touch swipe: stage turns days; modal steps days.
+      let sx=0, sy=0;
+      const onStart = e => { sx=e.touches[0].clientX; sy=e.touches[0].clientY; };
+      const onEnd = e => {
+        const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+        if (Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)) {
+          if (mode==='modal') stepModal(dx<0?1:-1);
+          else if (!anyOverlayOpen()) { const d=dx<0?1:-1; const ni=stageIdx+d; if(ni>=0&&ni<DATA.days.length) toStageDay(ni); }
+        } else if (dy>60 && mode==='modal') { go('archive'); }   // swipe down closes modal
+      };
+      canvasWrap.addEventListener('touchstart', onStart, {passive:true});
+      canvasWrap.addEventListener('touchend', onEnd, {passive:true});
+      $('modalCanvasSlot').addEventListener('touchstart', onStart, {passive:true});
+      $('modalCanvasSlot').addEventListener('touchend', onEnd, {passive:true});
+
+      window.addEventListener('hashchange', route);
+      window.addEventListener('popstate', route);
+      window.addEventListener('resize', () => { refit(); if (DATA && mode==='stage') renderInfoLine(); });
+    }
+
+    function cannotPerform() { $('stage').style.display='none'; $('noPerform').classList.add('visible'); }
+
+    // === Boot =====================================================
+    async function main() {
+      try { await loadData(); }
+      catch (e) { cannotPerform(); setTimeout(() => location.reload(), 60000); return; }
+      if (!DATA || !DATA.days || !DATA.days.length) { cannotPerform(); return; }
+      renderLabel();
+
+      const probe = document.createElement('canvas');
+      if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) { cannotPerform(); return; }
+
+      try {
+        p5Instance = new p5(p => {
+          p.setup = function () {
+            p.pixelDensity(2);   // one canonical buffer 1960×1400 on every screen
+            const canvas = p.createCanvas(CANVAS_W, CANVAS_H, p.WEBGL2 || p.WEBGL);
+            canvas.parent('canvasFrame');
+            canvas.elt.addEventListener('webglcontextlost', ev => { ev.preventDefault(); setTimeout(() => location.reload(), 800); });
+            canvas.elt.addEventListener('webglcontextrestored', () => { pendingRepaint = true; repaint(); });
+            fitStage(); p.noLoop(); pendingRepaint = true;
+          };
+          p.draw = function () {
+            if (!pendingRepaint || !DATA) return;
+            pendingRepaint = false;
+            const day = DATA.days[renderIdx];
+            const s = (mode === 'stage' && renderIdx === DATA.days.length - 1) ? silenceFrac() : 0;
+            const pd = p.pixelDensity ? p.pixelDensity() : 1;
+            Painter.paintDay(p, day, DATA, p.width * pd, p.height * pd, s);
+            if (mode === 'stage') { renderInfoLine(); applyPetrification(); }
+          };
+        });
+      } catch (e) { cannotPerform(); return; }
+
+      wire();
+      updateNavZones();
+      renderInfoLine();
+      route();   // honour a deep link on load
+
+      // Museum screen: re-read the record hourly. Append-only; the past is
+      // never repainted; only new days arrive and the clocks stay true.
+      setInterval(async () => {
+        try {
+          const resp = await fetch('data/days.json', { cache:'no-store' });
+          if (!resp.ok) return;
+          const fresh = await resp.json();
+          if (!fresh.days || !fresh.days.length) return;
+          const wasLatest = stageIdx >= DATA.days.length - 1;
+          const grew = fresh.days.length > DATA.days.length;
+          DATA = fresh; META = fresh.meta || META;
+          if (wasLatest && grew && mode === 'stage') { stageIdx = renderIdx = DATA.days.length - 1; }
+          if (grew) {   // the calendar was built against a shorter history — rebuild it
+            archiveBuilt = false; $('arcList').innerHTML = '';
+            if (safeHash().startsWith('archive')) buildArchive();
+          }
+          renderLabel(); updateNavZones();
+          if (mode === 'stage') { renderInfoLine(); if (wasLatest) repaint(); }
+        } catch (e) { /* hold the last true state */ }
+      }, 60 * 60 * 1000);
+    }
+
+    main();
+  })();
   </script>
 </body>
 </html>

@@ -6,5 +6,7 @@ node_modules/
 oura_full_export/
 *_token.json
 
+# runtime immutable record (rebuilt by live sync)
+data/archive/
 # WITHOUT WITNESS application intake (runtime, never commit)
 data/wit36-applications.jsonl

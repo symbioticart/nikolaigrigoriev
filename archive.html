@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Variations 87 — Archive</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3' fill='%231a1a1a'/%3E%3C/svg%3E">
+  <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/jetbrainsmono-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face {
+      font-family: 'Manrope';
+      font-style: normal;
+      font-weight: 200 800;
+      font-display: block;
+      src: url('fonts/manrope-latin.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'JetBrains Mono';
+      font-style: normal;
+      font-weight: 100 800;
+      font-display: block;
+      src: url('fonts/jetbrainsmono-latin.woff2') format('woff2');
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: #fafafa;
+      font-family: 'Manrope', sans-serif;
+      color: #1a1a1a;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .artist {
+      position: fixed;
+      top: 20px;
+      left: 24px;
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #000;
+      z-index: 100;
+      text-decoration: none;
+    }
+    .back {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #1a1a1a;
+      opacity: 0.6;
+      text-decoration: none;
+      z-index: 100;
+    }
+    .back:hover { opacity: 0.9; }
+    .back:focus-visible, a.day:focus-visible { outline: 1px solid rgba(0,0,0,.35); outline-offset: 3px; }
+
+    .sheet {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 110px 32px 96px;
+    }
+    h1 {
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .work-line {
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      opacity: 0.5;
+      margin-bottom: 4px;
+    }
+    .semantics {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.45;
+      margin-bottom: 44px;
+    }
+
+    h2.year {
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin: 44px 0 4px;
+    }
+    h3.month {
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      opacity: 0.45;
+      margin: 22px 0 9px;
+    }
+    .days {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 0;
+    }
+    .day {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      color: #1a1a1a;
+      opacity: 0.65;
+      text-decoration: none;
+      display: inline-block;
+      width: 4ch;
+      padding: 4px 0;
+    }
+    a.day:hover { opacity: 1; }
+    .day.silent { opacity: 0.28; }
+    .day.incomplete { opacity: 0.42; }
+
+    @media (max-width: 640px) {
+      .artist { top: 12px; left: 14px; font-size: 10px; }
+      .back { top: 12px; right: 14px; font-size: 10px; }
+      .sheet { padding: 92px 18px 64px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- With JS, the archive is an overlay on the living work (one WebGL context
+       lives there). This static page is the no-JS / crawler fallback. -->
+  <script>location.replace('./#archive');</script>
+  <a class="artist" href="./" aria-label="Nikolai Grigoriev — home">Nikolai Grigoriev</a>
+  <a class="back" href="./">← Variations 87</a>
+
+  <div class="sheet">
+    <h1>Archive</h1>
+    <div class="work-line" id="workLine">Variations 87 · 2022–</div>
+    <div class="semantics">Every state is frozen as it was written on its own day. Silence is shown, never compressed.</div>
+    <div id="list"></div>
+  </div>
+
+  <script>
+    const MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    async function main() {
+      const resp = await fetch('data/days.json', { cache: 'no-store' });
+      const DATA = await resp.json();
+      const meta = DATA.meta || {};
+      const byDate = new Map(DATA.days.map((x, i) => [x.d, x]));
+
+      // The full history: from the work's birth to its most recent day —
+      // and, when a silence is running right now, up to today, so the
+      // ongoing silence is shown, never compressed.
+      const birth = meta.birth || (DATA.days[0] && DATA.days[0].d);
+      const lastData = meta.lastDataDay || (DATA.days.length && DATA.days[DATA.days.length - 1].d);
+      const last = (meta.live && meta.serverDate && meta.serverDate > (lastData || ''))
+        ? meta.serverDate : lastData;
+      if (!birth || !last) return;
+
+      // A complete work closes its date range; a living one stays open.
+      document.getElementById('workLine').textContent =
+        `Variations 87 · ${birth.slice(0, 4)}–${(meta.live && meta.status === 'terminal') ? lastData.slice(0, 4) : ''}`;
+
+      const list = document.getElementById('list');
+      const frag = document.createDocumentFragment();
+
+      let curYear = null, curMonth = null, daysWrap = null;
+      let t = Date.parse(last);
+      const t0 = Date.parse(birth);
+      while (t >= t0) {
+        const iso = new Date(t).toISOString().slice(0, 10);
+        const [y, m] = [iso.slice(0, 4), iso.slice(5, 7)];
+
+        if (y !== curYear) {
+          curYear = y; curMonth = null;
+          const h = document.createElement('h2');
+          h.className = 'year';
+          h.textContent = y;
+          frag.appendChild(h);
+        }
+        if (m !== curMonth) {
+          curMonth = m;
+          const h = document.createElement('h3');
+          h.className = 'month';
+          h.textContent = MONTHS_FULL[parseInt(m, 10) - 1];
+          frag.appendChild(h);
+          daysWrap = document.createElement('div');
+          daysWrap.className = 'days';
+          frag.appendChild(daysWrap);
+        }
+
+        const num = iso.slice(8, 10);
+        const rec = byDate.get(iso);
+        if (rec) {
+          const a = document.createElement('a');
+          a.className = 'day' + (rec.i === 1 ? ' incomplete' : '');
+          a.textContent = num;
+          a.href = './#' + iso;
+          a.setAttribute('aria-label', iso);
+          daysWrap.appendChild(a);
+        } else {
+          const s = document.createElement('span');
+          s.className = 'day silent';
+          s.textContent = `${num}—`;
+          s.setAttribute('aria-label', `${iso}, silent`);
+          daysWrap.appendChild(s);
+        }
+        t -= 864e5;
+      }
+
+      list.appendChild(frag);
+    }
+
+    main().catch(() => {
+      document.querySelector('.semantics').textContent =
+        'The record is unreachable from this screen at this moment.';
+    });
+  </script>
+</body>
+</html>
