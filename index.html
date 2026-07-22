@@ -86,6 +86,11 @@
       font-size:15px; font-weight:400; letter-spacing:0.005em; line-height:1.2;
       color:#1a1a1a; background:none; border:none; padding:0; font-family:'Manrope',sans-serif; cursor:pointer; touch-action:manipulation;
     }
+    /* The performed frame is PRESENTED as a still image: WebGL paints, the
+       viewer sees a plain 2D snapshot. Immune to compositor quirks (Dia). */
+    .stage-img { position:absolute; inset:0; width:100%; height:100%; display:none; z-index:1; pointer-events:none; }
+    .canvas-frame.presented .stage-img { display:block; }
+    .canvas-frame.presented canvas { visibility:hidden; }
     .label-title .lt-name { font-weight:500; opacity:0.9; }
     .label-title .lt-range { font-weight:300; opacity:0.5; }
     .label-title:hover .lt-name { opacity:1; }
@@ -202,7 +207,7 @@
   <!-- ── The stage ─────────────────────────────────────────────── -->
   <div class="stage" id="stage">
     <div class="canvas-wrap" id="canvasWrap">
-      <div class="canvas-frame" id="canvasFrame"></div>
+      <div class="canvas-frame" id="canvasFrame"><img id="stageImg" class="stage-img" alt="" aria-hidden="true"></div>
       <button class="nav-zone prev" id="zonePrev" aria-label="Previous day"><span class="nav-glyph">‹</span></button>
       <button class="nav-zone next" id="zoneNext" aria-label="Next day"><span class="nav-glyph">›</span></button>
       <a class="archive-side" href="#archive" id="archiveLink">Archive</a>
@@ -363,6 +368,44 @@
     // No day-tally, no denominator, no glyph, no repeated date — the label
     // carries exactly one number (the day count, on the caption), one date, one state.
     // Biography counts: both numbers live — the same clock as the wall label.
+    // Present the painted frame as a still image, captured synchronously inside
+    // the same draw call while the WebGL buffer is still valid (no
+    // preserveDrawingBuffer — it recreates the context and washes out colour).
+    // If capture fails the live canvas stays visible — never a black frame.
+    function presentFrame() {
+      try {
+        const cnv = canvasFrame.querySelector('canvas');
+        if (!cnv) return;
+        // Read the framebuffer directly: its RGB is the exact blended image on
+        // screen. Forcing alpha to 255 sidesteps the premultiplied-alpha washout
+        // that any toDataURL/drawImage capture of this heavily translucent
+        // paint produces. Runs inside the same draw call — the buffer is valid.
+        const gl = cnv.getContext('webgl2') || cnv.getContext('webgl');
+        if (!gl) return;
+        const w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
+        const buf = new Uint8Array(w * h * 4);
+        gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+        if (!presentFrame._c2) presentFrame._c2 = document.createElement('canvas');
+        const c2 = presentFrame._c2;
+        if (c2.width !== w || c2.height !== h) { c2.width = w; c2.height = h; }
+        const ctx = c2.getContext('2d');
+        const img = ctx.createImageData(w, h);
+        const row = w * 4;
+        for (let y = 0; y < h; y++) {           // flip Y (GL rows are bottom-up)
+          img.data.set(buf.subarray((h - 1 - y) * row, (h - y) * row), y * row);
+        }
+        for (let i = 3; i < img.data.length; i += 4) img.data[i] = 255;
+        ctx.putImageData(img, 0, 0);
+        const url = c2.toDataURL('image/png');
+        if (url && url.length > 2000) {
+          $('stageImg').src = url;
+          canvasFrame.classList.add('presented');
+        } else {
+          canvasFrame.classList.remove('presented');
+        }
+      } catch (e) { canvasFrame.classList.remove('presented'); }
+    }
+
     function renderBioCounts() {
       const alive = Math.floor((Date.now() - Date.parse('1987-01-07')) / 864e5);
       const a = document.getElementById('bioAlive'), w = document.getElementById('bioWritten');
@@ -760,9 +803,6 @@
           p.setup = function () {
             p.pixelDensity(2);   // one canonical buffer 1960×1400 on every screen
             const canvas = p.createCanvas(CANVAS_W, CANVAS_H, p.WEBGL2 || p.WEBGL);
-            // Some Chromium forks (Dia) composite a cleared buffer when the work
-            // paints on demand: keep the drawn frame in the buffer permanently.
-            try { if (p.setAttributes) p.setAttributes('preserveDrawingBuffer', true); } catch (e) {}
             canvas.parent('canvasFrame');
             canvas.elt.addEventListener('webglcontextlost', ev => { ev.preventDefault(); setTimeout(() => location.reload(), 800); });
             canvas.elt.addEventListener('webglcontextrestored', () => { pendingRepaint = true; repaint(); });
@@ -779,6 +819,7 @@
             const s = (mode === 'stage' && renderIdx === DATA.days.length - 1) ? silenceFrac() : 0;
             const pd = p.pixelDensity ? p.pixelDensity() : 1;
             Painter.paintDay(p, day, DATA, p.width * pd, p.height * pd, s);
+            presentFrame();
             if (mode === 'stage') { renderInfoLine(); applyPetrification(); }
           };
         });
