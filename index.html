@@ -803,8 +803,19 @@
           p.setup = function () {
             p.pixelDensity(2);   // one canonical buffer 1960×1400 on every screen
             const canvas = p.createCanvas(CANVAS_W, CANVAS_H, p.WEBGL2 || p.WEBGL);
+            // If the browser refuses a WebGL context (per-domain GPU blocklist
+            // after past crashes, GPU sandbox failure), say so honestly instead
+            // of leaving a black rectangle.
+            try {
+              const glOk = canvas.elt.getContext('webgl2') || canvas.elt.getContext('webgl');
+              if (!glOk) cannotPerform();
+            } catch (e) {}
             canvas.parent('canvasFrame');
-            canvas.elt.addEventListener('webglcontextlost', ev => { ev.preventDefault(); setTimeout(() => location.reload(), 800); });
+            // A lost context must NOT reload the page: repeated reloads make
+            // Chromium blocklist WebGL for the whole domain (black canvas until
+            // browser restart). The viewer keeps seeing the presented still;
+            // we simply wait for the context to be restored and repaint.
+            canvas.elt.addEventListener('webglcontextlost', ev => { ev.preventDefault(); });
             canvas.elt.addEventListener('webglcontextrestored', () => { pendingRepaint = true; repaint(); });
             // If the browser drops the composited frame (tab switch, GPU wake),
             // paint it again the moment the page is visible.
