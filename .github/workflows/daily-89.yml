@@ -1,0 +1,68 @@
+name: daily-89
+
+# Every evening the channel receives the day's Variation 89 story as a PNG —
+# the painting exactly as the site renders it (the page's own canvas pixels,
+# 1080×1920, via canvas.toDataURL — no lossy re-screenshot). 21:15 Madrid,
+# right after the evening digest.
+
+on:
+  schedule:
+    - cron: '15 19 * * *'   # 21:15 Europe/Madrid (CEST)
+  workflow_dispatch: {}
+
+env:
+  SITE: https://nikolaigrigoriev.com
+
+jobs:
+  shot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Render /89 and capture the canvas
+        run: |
+          npm init -y > /dev/null && npm i --no-save puppeteer-core@23 > /dev/null 2>&1
+          CHROME=$(command -v google-chrome || command -v chromium-browser || command -v chromium)
+          CHROME="$CHROME" node -e '
+            const fs = require("fs");
+            const puppeteer = require("puppeteer-core");
+            (async () => {
+              const browser = await puppeteer.launch({
+                executablePath: process.env.CHROME,
+                args: ["--no-sandbox", "--enable-unsafe-swiftshader", "--hide-scrollbars"],
+              });
+              const page = await browser.newPage();
+              await page.setViewport({ width: 1200, height: 2000 });
+              await page.goto(process.env.SITE + "/89", { waitUntil: "networkidle2", timeout: 60000 });
+              await page.waitForFunction("window.__STORY_READY === true", { timeout: 90000 });
+              await new Promise(r => setTimeout(r, 1500));
+              const dataUrl = await page.evaluate(() =>
+                document.getElementById("story").toDataURL("image/png"));
+              fs.writeFileSync("89.png", Buffer.from(dataUrl.split(",")[1], "base64"));
+              await browser.close();
+              console.log("captured", fs.statSync("89.png").size, "bytes");
+            })().catch(e => { console.error(e); process.exit(1); });
+          '
+
+      - name: Send the PNG to the channel
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          [ -z "$TG_BOT_TOKEN" ] && { echo "no telegram secret"; exit 0; }
+          H=$(curl -fsS -m 30 "$SITE/health" || echo '{}')
+          last=$(echo "$H" | jq -r '.lastDataDay // "?"')
+          n=$(echo "$H" | jq -r '.dayCount // "?"')
+          today=$(TZ=Europe/Madrid date +%d.%m.%Y)
+          curl -fsS --max-time 60 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendPhoto" \
+            -F chat_id="${TG_CHAT_ID}" -F photo=@89.png -F disable_notification=true \
+            -F caption="🎨 Проект 89 — вечерний кадр ${today}. Последний записанный день: ${last} (№${n}). ${SITE}/89" > /dev/null
+
+      - name: Telegram alert if the frame failed
+        if: failure()
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          [ -z "$TG_BOT_TOKEN" ] && exit 0
+          curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TG_CHAT_ID}" \
+            --data-urlencode "text=🟡 Не получилось сделать вечерний кадр проекта 89. Лог: github.com/symbioticart/nikolaigrigoriev/actions" || true
