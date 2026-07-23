@@ -35,7 +35,7 @@ jobs:
         if: github.event_name == 'push'
         run: |
           want="${GITHUB_SHA:0:7}"
-          for i in $(seq 1 32); do
+          for i in $(seq 1 60); do
             got=$(curl -fsS -m 20 "$SITE/health" | jq -r '.buildSha // empty' 2>/dev/null || true)
             [ "$got" = "$want" ] && { echo "deployed=$want" >> "$GITHUB_ENV"; exit 0; }
             sleep 15
@@ -54,16 +54,22 @@ jobs:
           else
             echo "$H"
             H="$H" node -e '
-              const h = JSON.parse(process.env.H);
+              let h;
+              try { h = JSON.parse(process.env.H); }
+              catch (e) {
+                require("fs").appendFileSync("fails.txt", "badjson|🔴 Сайт отвечает мусором на /health — сервер, похоже, нездоров.\n");
+                process.exit(0);
+              }
               const out = [];
+              const booting = (h.uptimeSec ?? 1e9) < 300;   // fresh deploy: sync has not had a chance yet
               const ru = (n,w1,w2,w5)=> n%10===1&&n%100!==11?w1 : (n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?w2:w5);
               if (!h.ok) out.push("ok|🔴 Сайт отвечает, но сообщает о внутренней ошибке (ok=false).");
-              if (!h.live) out.push("notlive|🟡 Сайт показывает сохранённую запись вместо живых данных — живой синк с Oura не поднялся.");
+              if (!h.live && !booting) out.push("notlive|🟡 Сайт показывает сохранённую запись вместо живых данных — живой синк с Oura не поднялся.");
               if (h.tokenError) out.push("token|🔴 Авторизация Oura слетела — данные не обновляются. Что делать: обновить OURA_TOKEN в Render → Environment.");
               const gap = h.gapDays ?? 99;
               if (gap > 2) out.push(`gap|🟡 Кольцо не отдаёт данные уже ${gap} ${ru(gap,"день","дня","дней")} (последний записанный — ${h.lastDataDay}). Сайт работает нормально. Что делать: открой приложение Oura на телефоне и дай кольцу синхронизироваться.`);
               const age = h.lastSyncAgeSec ?? 1e9;
-              if (age > 25200) out.push(`stalesync|🟡 Сервер не синхронизировался с Oura больше 7 часов (${Math.round(age/3600)} ч). Возможно, синк завис — помогает рестарт сервиса на Render.`);
+              if (age > 25200 && !booting) out.push(`stalesync|🟡 Сервер не синхронизировался с Oura больше 7 часов (${Math.round(age/3600)} ч). Возможно, синк завис — помогает рестарт сервиса на Render.`);
               if ((h.dayCount ?? 0) < (h.lastKnownGoodDayCount ?? 0)) out.push(`shrink|🔴 Запись уменьшилась: ${h.dayCount} дней вместо ${h.lastKnownGoodDayCount}. Это ненормально — смотри логи сервера.`);
               const bad = Object.entries(h.perCollection||{}).filter(([,v])=>!v.ok).map(([k])=>k);
               if (bad.length) out.push(`collections|🟡 Oura отдал не все данные (${bad.join(", ")}). Обычно чинится само к следующему синку.`);
@@ -75,6 +81,7 @@ jobs:
           fi
 
       - name: Telegram — report (deduplicated) or recover
+        if: always()
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
@@ -82,10 +89,11 @@ jobs:
           COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           [ -z "$TG_BOT_TOKEN" ] && { echo "no telegram secret — GitHub will email the owner instead"; exit 0; }
-          send() { # $1 = text, $2 = silent(true/false)
+          send() { # $1 = text, $2 = silent(true/false); returns curl status so
+                   # dedup state is only recorded when the message actually left
             curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
               -d chat_id="${TG_CHAT_ID}" -d disable_web_page_preview=true \
-              -d disable_notification="${2:-false}" --data-urlencode "text=$1" > /dev/null || true
+              -d disable_notification="${2:-false}" --data-urlencode "text=$1" > /dev/null
           }
           now=$(date +%s)
           prev_fp=$(jq -r '.fp // ""'     .hcstate/state.json 2>/dev/null || echo "")
@@ -94,19 +102,21 @@ jobs:
             fp=$(cut -d'|' -f1 fails.txt | sort | tr '\n' ',')
             msgs=$(cut -d'|' -f2- fails.txt)
             if [ "$fp" != "$prev_fp" ] || [ $((now - prev_at)) -gt 172800 ]; then
-              send "$msgs"
-              printf '{"fp":"%s","sentAt":%s}' "$fp" "$now" > .hcstate/state.json
+              if send "$msgs"; then
+                printf '{"fp":"%s","sentAt":%s}' "$fp" "$now" > .hcstate/state.json
+              fi
             else
               echo "same problems already reported $(( (now - prev_at) / 3600 ))h ago — staying quiet"
             fi
           else
             if [ -n "$prev_fp" ]; then
-              send "🟢 Все проверки сайта снова зелёные — проблемы ушли."
-              printf '{"fp":"","sentAt":%s}' "$now" > .hcstate/state.json
+              if send "🟢 Все проверки сайта снова зелёные — проблемы ушли."; then
+                printf '{"fp":"","sentAt":%s}' "$now" > .hcstate/state.json
+              fi
             fi
             if [ "$EVENT" = "push" ] && [ -n "${deployed:-}" ]; then
               first_line=$(printf '%s' "$COMMIT_MSG" | head -1)
-              send "🚀 Новая версия на сайте (${deployed}): ${first_line}. Все проверки прошли." true
+              send "🚀 Новая версия на сайте (${deployed}): ${first_line}. Все проверки прошли." true || true
             fi
           fi
 

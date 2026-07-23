@@ -5,11 +5,12 @@
 // a convolution of at least two causally-percentiled signals. The rule itself
 // lives in rule.js (hashed in the certificate §10).
 
-const http  = require('http');
-const https = require('https');
-const fs    = require('fs');
-const path  = require('path');
-const rule  = require('./rule');
+const http   = require('http');
+const https  = require('https');
+const fs     = require('fs');
+const path   = require('path');
+const crypto = require('crypto');
+const rule   = require('./rule');
 
 const dir  = __dirname;
 const port = process.env.PORT || 3457;
@@ -110,10 +111,20 @@ function tgSend(text, opts = {}) {
   const chat = opts.chatId || process.env.TG_CHAT_ID;
   if (!chat) return;
   if (!opts.isReply && Date.now() < OPS.muteUntil) return;   // /mute silences broadcasts, not replies
-  tgApi('sendMessage', { chat_id: chat, text, disable_notification: !!opts.silent, disable_web_page_preview: true });
+  const p = { chat_id: chat, text, disable_notification: !!opts.silent, disable_web_page_preview: true };
+  if (opts.buttons) p.reply_markup = { inline_keyboard: opts.buttons };
+  tgApi('sendMessage', p);
+}
+// The standard button row under /status and the digest — the bot's "menu".
+function menuButtons() {
+  return [
+    [{ text: '🔄 Статус', callback_data: '/status' }, { text: '🎨 Проект 89', callback_data: '/89' }],
+    [{ text: '📨 Заявки', callback_data: '/apps' }, { text: '🚀 Деплой', callback_data: '/deploy' }, { text: '🔇 12ч', callback_data: '/mute' }],
+  ];
 }
 function opsProblem(key, text) {
   const now = Date.now(), a = OPS.alerts[key];
+  if (now < OPS.muteUntil) return;   // muted: don't mark as announced — it will fire after unmute
   if (!a) { OPS.alerts[key] = { since: now, lastSent: now }; tgSend(text); return; }
   if (now - a.lastSent > 48 * 3600e3) { a.lastSent = now; tgSend(`${text}\n\n(проблема держится уже ${ruDur(now - a.since)})`); }
 }
@@ -155,6 +166,7 @@ function digestTick() {
   try {
     const { date, hour } = madridParts();
     if (hour < DIGEST_HOUR || OPS.lastDigestDate === date) return;
+    if (Date.now() < OPS.muteUntil) return;   // deferred: arrives after unmute, not lost
     OPS.lastDigestDate = date;
     const today = new Date().toISOString().slice(0, 10);
     let text = `Вечерняя сводка\n${statusText()}\n• Заявок WIT36 сегодня: ${OPS.apps.filter(a => a.ts.slice(0, 10) === today).length}`;
@@ -162,27 +174,55 @@ function digestTick() {
       const alive = daysBetween(WORK_BIRTH_DATE, isoDate(new Date()));
       text += `\n\n🕰 Работа жива ${alive} дней (с ${ruDate(WORK_BIRTH_DATE)}). Terminal наступает после ${TERMINAL_DAYS} дней тишины подряд; сейчас тишина — ${currentMeta().gapDays} дн.`;
     }
-    tgSend(text, { silent: true });
+    tgSend(text, { silent: true, buttons: menuButtons() });
   } catch (e) { /* the digest must never crash the server */ }
 }
 
-// Incoming bot commands (webhook). Only the channel itself or the owner's
-// private chat are answered; everyone else is silently ignored.
+// Register the "/" command menu with Telegram (idempotent, refreshed on boot).
+function registerBotMenu() {
+  tgApi('setMyCommands', { commands: [
+    { command: 'status', description: 'Как дела у сайта' },
+    { command: '89',     description: 'Проект 89 — последний день' },
+    { command: 'deploy', description: 'Какая версия на проде' },
+    { command: 'apps',   description: 'Заявки WIT36 за неделю' },
+    { command: 'health', description: 'Сырой JSON состояния' },
+    { command: 'mute',   description: 'Тишина на N часов (по умолч. 12)' },
+    { command: 'unmute', description: 'Включить уведомления' },
+  ] });
+}
+
+// Incoming bot commands (webhook): typed commands and menu-button taps.
+// Only the channel itself or the owner's private chat are answered; everyone
+// else is silently ignored.
+function tgAuthorized(chat, from) {
+  if (!chat) return false;
+  const fromChannel = process.env.TG_CHAT_ID && String(chat.id) === String(process.env.TG_CHAT_ID);
+  const fromOwner = chat.type === 'private' && process.env.TG_ADMIN_ID
+    && String((from || {}).id) === String(process.env.TG_ADMIN_ID);
+  return fromChannel || fromOwner;
+}
 function handleTgUpdate(u) {
+  // Menu-button tap (inline keyboard under /status or the digest).
+  if (u.callback_query) {
+    const cq = u.callback_query;
+    const chat = cq.message && cq.message.chat;
+    tgApi('answerCallbackQuery', { callback_query_id: cq.id });
+    if (!tgAuthorized(chat, cq.from) || typeof cq.data !== 'string' || !cq.data.startsWith('/')) return;
+    runCommand(cq.data, chat.id);
+    return;
+  }
   const msg = u.message || u.channel_post;
-  if (!msg || !msg.chat) return;
-  const chatId = String(msg.chat.id);
-  const fromChannel = process.env.TG_CHAT_ID && chatId === String(process.env.TG_CHAT_ID);
-  const fromOwner = msg.chat.type === 'private' && process.env.TG_ADMIN_ID
-    && String((msg.from || {}).id) === String(process.env.TG_ADMIN_ID);
-  if (!fromChannel && !fromOwner) return;
+  if (!msg || !tgAuthorized(msg.chat, msg.from)) return;
   const text = (msg.text || '').trim();
   if (!text.startsWith('/')) return;
-  const parts = text.split(/\s+/);
+  runCommand(text, msg.chat.id);
+}
+function runCommand(text, chatId) {
+  const parts = text.trim().split(/\s+/);
   const cmd = parts[0].split('@')[0].toLowerCase();
-  const reply = t => tgSend(t, { chatId: msg.chat.id, isReply: true, silent: true });
+  const reply = (t, o) => tgSend(t, Object.assign({ chatId, isReply: true, silent: true }, o));
 
-  if (cmd === '/status') { reply(statusText()); return; }
+  if (cmd === '/status') { reply(statusText(), { buttons: menuButtons() }); return; }
   if (cmd === '/89') {
     const m = currentMeta();
     reply(`🎨 Проект 89 — вертикальная дневная история.\nПоследний записанный день: ${ruDate(m.lastDataDay)} (№${(STATE.raw || []).length}).\nСмотреть: ${SITE}/89`);
@@ -219,27 +259,21 @@ function wit36Limited(ip) {
   return false;
 }
 // Deliver each application in full via Telegram — the sole store (reuses the TG_* env).
+// Applications are never muted and never dropped: they go straight to the API.
 function notifyApplication(rec) {
-  const tok = process.env.TG_BOT_TOKEN, chat = process.env.TG_CHAT_ID;
-  if (!tok || !chat) return;
-  try {
-    const lang = rec.lang === 'es' ? 'ES' : (rec.lang === 'ca' ? 'CA' : 'EN');
-    const text =
-      `WITHOUT WITNESS — new application\n` +
-      `Name: ${rec.name || '—'}\n` +
-      `Email: ${rec.email || '—'}\n` +
-      `Link: ${rec.link || '—'}\n` +
-      `Language: ${lang}\n` +
-      `Consent: ${rec.consent === true ? 'yes' : 'no'}\n` +
-      `Submitted: ${rec.ts}\n\n` +
-      `Statement:\n${rec.statement || '—'}`;
-    const body = JSON.stringify({ chat_id: chat, text, disable_web_page_preview: true });
-    const req = https.request(`https://api.telegram.org/bot${tok}/sendMessage`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } });
-    req.on('error', () => {});
-    req.setTimeout(8000, () => req.destroy());
-    req.write(body); req.end();
-  } catch (e) { /* never let notify break the server */ }
+  const chat = process.env.TG_CHAT_ID;
+  if (!chat) return;
+  const lang = rec.lang === 'es' ? 'ES' : (rec.lang === 'ca' ? 'CA' : 'EN');
+  const text =
+    `📨 WITHOUT WITNESS — new application\n` +
+    `Name: ${rec.name || '—'}\n` +
+    `Email: ${rec.email || '—'}\n` +
+    `Link: ${rec.link || '—'}\n` +
+    `Language: ${lang}\n` +
+    `Consent: ${rec.consent === true ? 'yes' : 'no'}\n` +
+    `Submitted: ${rec.ts}\n\n` +
+    `Statement:\n${rec.statement || '—'}`;
+  tgApi('sendMessage', { chat_id: chat, text, disable_web_page_preview: true });
 }
 
 // ---------- upstream HTTP ----------
@@ -394,15 +428,15 @@ function snapshotRead() {
 // that disagrees with the record is logged, never obeyed.
 function mergeDays(...sources) {
   const byDay = new Map();
+  let drift = 0;
   for (const list of sources) {
     for (const d of list) {
       if (!d || !d.day) continue;
       if (!byDay.has(d.day)) byDay.set(d.day, d);
-      else if (JSON.stringify(byDay.get(d.day)) !== JSON.stringify(d)) {
-        console.warn('[record] upstream drift ignored for', d.day);
-      }
+      else if (JSON.stringify(byDay.get(d.day)) !== JSON.stringify(d)) drift++;
     }
   }
+  if (drift) console.warn(`[record] upstream drift ignored for ${drift} day(s)`);
   return [...byDay.values()].sort((a, b) => a.day < b.day ? -1 : 1);
 }
 
@@ -482,8 +516,10 @@ async function sync() {
     // only fills days the living record cannot provide.
     const archived = archiveRead();
     const rawDays = mergeDays(archived, fetched, snapshotRead());
-    // Only live-confirmed days petrify into the immutable archive.
-    const fetchedSet = new Set(fetched.map(d => d.day));
+    // Only live-confirmed days petrify into the immutable archive — and only
+    // from a COMPLETE sync: a day fetched while a collection was failing has
+    // null fields, and the write-once archive would keep it corrupted forever.
+    const fetchedSet = failedCols.size ? new Set() : new Set(fetched.map(d => d.day));
     const alreadySet = new Set(archived.map(d => d.day));
     archiveWrite(rawDays.filter(d => fetchedSet.has(d.day) || alreadySet.has(d.day)));
 
@@ -565,6 +601,9 @@ function loadRecord() {
   const rawDays = mergeDays(archiveRead(), snapshotRead());
   if (!rawDays.length) { console.error('[record] empty'); return; }
   setDays(rawDays, false);
+  // the on-disk record is trustworthy: seed the shrink self-check so it is
+  // not blind right after a restart
+  if (rawDays.length > STATE.lastKnownGoodCount) STATE.lastKnownGoodCount = rawDays.length;
   console.log(`[record] loaded (${rawDays.length} days)`);
 }
 
@@ -574,7 +613,9 @@ http.createServer((req, res) => {
   // echoes back on every delivery; without the env secret the route is dead.
   if (req.method === 'POST' && req.url.split('?')[0] === '/tg/hook') {
     const secret = process.env.TG_WEBHOOK_SECRET;
-    if (!secret || req.headers['x-telegram-bot-api-secret-token'] !== secret) {
+    const got = Buffer.from(String(req.headers['x-telegram-bot-api-secret-token'] || ''));
+    const want = Buffer.from(secret || '');
+    if (!secret || got.length !== want.length || !crypto.timingSafeEqual(got, want)) {
       res.writeHead(403, head({})); res.end(); return;
     }
     let body = '';
@@ -710,5 +751,9 @@ http.createServer((req, res) => {
   loadRecord();          // serve the record immediately
   sync();                // then pull the living history
   setInterval(sync, SYNC_INTERVAL);
+  // A restart after the digest hour must not re-send today's digest.
+  const mp = madridParts();
+  if (mp.hour >= DIGEST_HOUR) OPS.lastDigestDate = mp.date;
   setInterval(digestTick, 60e3);   // evening digest, 21:00 Europe/Madrid
+  registerBotMenu();
 });
