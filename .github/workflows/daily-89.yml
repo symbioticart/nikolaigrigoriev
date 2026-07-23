@@ -1,13 +1,14 @@
 name: daily-89
 
-# Every evening the channel receives the day's Variation 89 story as a PNG —
-# the painting exactly as the site renders it (the page's own canvas pixels,
-# 1080×1920, via canvas.toDataURL — no lossy re-screenshot). 21:15 Madrid,
-# right after the evening digest.
+# Every morning at 9:00 Madrid the channel receives the current Variation 89
+# story as a PNG — the painting exactly as the site renders it (the page's own
+# canvas pixels, 1080×1920, via canvas.toDataURL — no lossy re-screenshot).
+# The frame is sent EVERY day, silent days included: an unchanged painting is
+# part of the work's record.
 
 on:
   schedule:
-    - cron: '15 19 * * *'   # 21:15 Europe/Madrid (CEST)
+    - cron: '0 7 * * *'   # 9:00 Europe/Madrid in summer (CEST); 8:00 in winter
   workflow_dispatch: {}
 
 env:
@@ -51,10 +52,13 @@ jobs:
           H=$(curl -fsS -m 30 "$SITE/health" || echo '{}')
           last=$(echo "$H" | jq -r '.lastDataDay // "?"')
           n=$(echo "$H" | jq -r '.dayCount // "?"')
+          gap=$(echo "$H" | jq -r '.gapDays // 0')
           today=$(TZ=Europe/Madrid date +%d.%m.%Y)
+          note=""
+          [ "$gap" -gt 1 ] 2>/dev/null && note=" Тишина ${gap} дн. — картина держит последний записанный день."
           curl -fsS --max-time 60 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendPhoto" \
             -F chat_id="${TG_CHAT_ID}" -F photo=@89.png -F disable_notification=true \
-            -F caption="🎨 Проект 89 — вечерний кадр ${today}. Последний записанный день: ${last} (№${n}). ${SITE}/89" > /dev/null
+            -F caption="🎨 Проект 89 — утренний кадр ${today}. Последний записанный день: ${last} (№${n}).${note} ${SITE}/89" > /dev/null
 
       - name: Telegram alert if the frame failed
         if: failure()
