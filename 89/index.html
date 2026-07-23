@@ -80,7 +80,7 @@
               var pd = p.pixelDensity ? p.pixelDensity() : 1;
               OuraPainter.paintDay(p, day, DATA, PW * pd, PH * pd);   // fill the painting buffer
               requestAnimationFrame(function () {
-                try { composite(canvasEl, DATA, day); window.__STORY_READY = true; }
+                try { composite(canvasEl, DATA, day, idx); window.__STORY_READY = true; }
                 catch (e) { showErr(e); }
               });
             } catch (e) { showErr(e); }
@@ -146,31 +146,59 @@
     }
     document.getElementById('dl').addEventListener('click', downloadPNG);
 
-    function composite(p5canvas, DATA, day) {
+    function composite(p5canvas, DATA, day, idx) {
       window.__dlDay = day;                 // remember which day, for the PNG filename
       var ctx = document.getElementById('story').getContext('2d');
 
-      // ===== silence = death (parity with the main site) =====
-      // The painting opens on the present day; when the signal stops (gap > 1 day) the
-      // colour drains and the work dissolves in proportion to the silence.
+      // ===== the work does not die — it pauses, desiccates, disappears, and
+      // can be resurrected (canon, ratified 2026-07-23) =====
+      // Two regimes: a short silence PETRIFIES the last day (frozen, held — a
+      // pause, not a death); a long silence DESICCATES, the colour draining and
+      // the work fading toward near-disappearance, stretched so full absence
+      // arrives at TERMINAL (90d), never before. Return of the signal — from
+      // this body, another person, or a descendant — resurrects the work with a
+      // permanent SEAM: every sleep stays visible (rupture is visible).
+      var PAUSE_DAYS = 14, TERMINAL = 90;
       var meta = DATA.meta || {};
       var gap = meta.gapDays || 0;
-      var liveSilent = !!meta.live && gap > 1;
-      var manualDead = params.has('dead');
-      var dead = liveSilent || manualDead;
-      var gray = 0, alpha = 1;
-      if (liveSilent)      { gray = Math.min(1, (gap - 1) / 13); alpha = Math.max(0, 1 - (gap - 1) / 29); }
-      else if (manualDead) { gray = 0.85; alpha = 0.5; }
+      var live = !!meta.live;
+      var manualGap = params.has('gap') ? parseInt(params.get('gap'), 10) : (params.has('dead') ? 40 : null);
+      if (Number.isFinite(manualGap)) { gap = manualGap; live = true; }   // ?gap=N previews any silence depth
+
+      // regime + fade. gray = desaturation [0..1], alpha = presence [0..1].
+      var regime = 'alive', gray = 0, alpha = 1;
+      if (live && gap > 1 && gap <= PAUSE_DAYS) {
+        regime = 'paused';                                   // frozen on the last day — held, unchanged
+      } else if (live && gap > PAUSE_DAYS) {
+        var t = Math.min(1, (gap - PAUSE_DAYS) / (TERMINAL - PAUSE_DAYS));
+        gray  = Math.min(1, t * 2);                          // colour gone by ~mid-window
+        alpha = Math.max(0.04, 1 - Math.pow(t, 1.5));        // presence eased out; a ghost remains until TERMINAL
+        regime = gap >= TERMINAL ? 'disappeared' : 'dormant';
+      }
+      var dead = regime === 'dormant' || regime === 'disappeared';   // "faded" — kept the var name for the plate code below
+
+      // resurrection seam: is the CURRENT (latest) day a return after a real
+      // sleep? measured as the gap between the last two recorded days.
+      var seamDays = 0;
+      if (regime === 'alive' && idx > 0 && DATA.days[idx - 1] && DATA.days[idx - 1].day) {
+        seamDays = Math.round((Date.parse(day.day) - Date.parse(DATA.days[idx - 1].day)) / 864e5) - 1;
+        if (seamDays < PAUSE_DAYS) seamDays = 0;             // a short pause leaves no scar
+      }
+      if (params.has('seam')) { var sp = parseInt(params.get('seam'), 10); if (Number.isFinite(sp)) seamDays = sp; }   // preview
 
       // ===== wall =====
       ctx.fillStyle = WALL; ctx.fillRect(0, 0, W, H);
 
-      // ===== framed painting: soft drop shadow + #000 backing + thin outline (the site frame) =====
-      // shadow kept faint + even (a plate-mounted work, not a poster bevel), per artist
+      // ===== framed painting: soft drop shadow + backing + thin outline (the site frame) =====
+      // shadow kept faint + even (a plate-mounted work, not a poster bevel), per artist.
+      // Backing is #000 while the work lives; as it desiccates the backing turns
+      // toward the WALL, so a fading painting empties into a blank canvas —
+      // disappears, not blackens (canon: transparent, not dead).
+      var backing = dead ? WALL : '#000';
       ctx.save();
       ctx.shadowColor = 'rgba(0,0,0,0.09)';
       ctx.shadowBlur = 55; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 18;
-      ctx.fillStyle = '#000';
+      ctx.fillStyle = backing;
       ctx.fillRect(FX, FY, PW, PH);
       ctx.restore();
 
@@ -181,6 +209,21 @@
         ctx.restore();
       } else {
         ctx.drawImage(p5canvas, FX, FY, PW, PH);
+      }
+
+      // ===== resurrection seam — the work returned after a real sleep, and the
+      // sleep stays visible in its body (rupture is visible, canon). A single
+      // thin dark line crosses the painting at a position fixed by the seam's
+      // length — deterministic, not decorative; one scar per sleep survived. =====
+      if (seamDays > 0) {
+        var sFrac = ((seamDays * 2654435761) % 1000) / 1000;   // deterministic position from the seam length
+        var sy = FY + Math.round((0.18 + 0.64 * sFrac) * PH);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(250,250,250,0.42)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(FX, sy + 0.5); ctx.lineTo(FX + PW, sy + 0.5); ctx.stroke();
+        ctx.strokeStyle = 'rgba(0,0,0,0.30)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(FX, sy - 1.5); ctx.lineTo(FX + PW, sy - 1.5); ctx.stroke();
+        ctx.restore();
       }
 
       // thin outline, like .canvas-frame outline: 1px rgba(0,0,0,.08)
@@ -206,14 +249,20 @@
       ctx.textAlign = 'center';
 
       // SUB — JetBrains Mono 300, 19px, ls 0.14em, uppercase, @.55.
-      // alive → lifespan line + green dot ; silent → SIGNAL LOST (no dot)
+      // alive → lifespan line + green dot (or resurrection seam note) ;
+      // paused/dormant/disappeared → state + day count, no dot. Never "dead".
       var sY = 1656;
       ctx.font = '300 19px "JetBrains Mono"';
       try { ctx.letterSpacing = '2.6px'; } catch (e) {}
       ctx.fillStyle = alphaInk(0.55);
-      if (dead) {
-        var deadText = liveSilent ? ('SIGNAL LOST · ' + gap + ' DAYS WITHOUT SIGNAL') : 'SIGNAL LOST';
-        ctx.fillText(deadText, cx, sY);
+      if (regime === 'paused') {
+        ctx.fillText('PAUSED · ' + gap + ' DAYS WITHOUT SIGNAL', cx, sY);
+      } else if (regime === 'dormant') {
+        ctx.fillText('DORMANT · FADING · ' + gap + ' DAYS WITHOUT SIGNAL', cx, sY);
+      } else if (regime === 'disappeared') {
+        ctx.fillText('DISAPPEARED · ' + gap + ' DAYS · AWAITING A SIGNAL', cx, sY);
+      } else if (seamDays > 0) {
+        ctx.fillText('RESURRECTED · SLEPT ' + seamDays + ' DAYS · ' + lifespanText(DATA).replace(/^ALIVE FOR /, ''), cx, sY);
       } else {
         var subText = lifespanText(DATA);
         // center the WHOLE unit (dot + gap + text), not the text alone

@@ -3,8 +3,9 @@ name: daily-89
 # Every morning at 9:00 Madrid the channel receives the current Variation 89
 # story — as a FILE (sendDocument), full resolution 1080×1920, exactly the
 # page's own canvas pixels via canvas.toDataURL. The frame goes out EVERY day,
-# silent days included: while the signal is lost the painting drains a little
-# more each day, so every frame is different — the record of the dying.
+# silent days included: a short silence holds the last day, a long one desiccates
+# the painting a little more each day toward disappearance, so every frame differs
+# — the record of the sleep. A returning signal resurrects the work with a seam.
 # Each frame is also committed into the repo at 89/record/<date>.png —
 # the write-once archive of what the painting looked like on that day.
 
@@ -63,10 +64,15 @@ jobs:
           last=$(echo "$H" | jq -r '.lastDataDay // "?"')
           n=$(echo "$H" | jq -r '.dayCount // "?"')
           gap=$(echo "$H" | jq -r '.gapDays // 0')
+          status=$(echo "$H" | jq -r '.status // ""')
           today=$(TZ=Europe/Madrid date +%Y-%m-%d)
           pretty=$(TZ=Europe/Madrid date +%d.%m.%Y)
           note=""
-          [ "$gap" -gt 1 ] 2>/dev/null && note=" Тишина ${gap} дн. — картина выцветает."
+          case "$status" in
+            paused)      note=" Пауза ${gap} дн. — картина замерла на последнем дне." ;;
+            dormant)     note=" Тишина ${gap} дн. — картина засыхает и выцветает." ;;
+            disappeared) note=" ${gap} дн. тишины — картина исчезла и ждёт сигнала; любые данные возродят её." ;;
+          esac
           cp "$RUNNER_TEMP/89-frame.png" "$RUNNER_TEMP/variation-89-${today}.png"
           curl -fsS --max-time 120 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendDocument" \
             -F chat_id="${TG_CHAT_ID}" -F document=@"$RUNNER_TEMP/variation-89-${today}.png" -F disable_notification=true \

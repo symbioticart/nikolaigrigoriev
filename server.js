@@ -18,7 +18,11 @@ const port = process.env.PORT || 3457;
 // === THE WORK — fixed constants (mirrored in the certificate) ===
 const WORK_BIRTH_DATE = '2022-05-24';   // first recorded day of the body
 const WORK_OWNER      = 'Nikolai Grigoriev';
-const TERMINAL_DAYS   = 90;             // confirmed silent days => the work is complete
+// The work does not die (canon, ratified 2026-07-23). A short silence PAUSES it
+// (the last day petrifies); a long silence DESICCATES it toward disappearance,
+// full absence reached at DISAPPEAR_DAYS. Any return of a signal resurrects it.
+const PAUSE_DAYS      = 14;             // ≤ this: a pause (frozen), not desiccation
+const DISAPPEAR_DAYS  = 90;             // confirmed-silent days => the work has faded to absence (still resurrectable)
 
 // === SECRETS (env only — never commit) ===
 let ACCESS_TOKEN  = process.env.OURA_TOKEN   || '';
@@ -139,9 +143,13 @@ function opsRecovered(key, text) {
 function statusText() {
   const m = currentMeta();
   const dayCount = (STATE.raw || []).length;
+  const stateWord = m.status === 'paused' ? `картина на паузе, замерла (${m.gapDays} дн. без сигнала)`
+    : m.status === 'dormant' ? `картина засыхает — ${m.gapDays} дн. без сигнала`
+    : m.status === 'disappeared' ? `картина исчезла (${m.gapDays} дн.) — умерла, но не стёрлась: вернётся со швом, как только придут данные`
+    : '';
   const gapLine = m.gapDays <= 1
     ? 'данные свежие'
-    : `⚠️ ${m.gapDays} дн. без данных — открой приложение Oura на телефоне, дай кольцу синхронизироваться`;
+    : `${stateWord}. Открой приложение Oura на телефоне, дай кольцу синхронизироваться — картина возродится`;
   const syncLine = STATE.tokenError ? '🔴 авторизация слетела, нужен новый токен'
     : STATE.lastSync ? `ок, ${ruAgo(Date.now() - Date.parse(STATE.lastSync))}`
     : 'живой синк ещё не проходил' + (STATE.live ? '' : ' — показываю сохранённую запись');
@@ -151,7 +159,7 @@ function statusText() {
     `• Запись: ${dayCount} дней, последний — ${ruDate(m.lastDataDay)} (${gapLine})`,
     `• Синк Oura: ${syncLine}`,
     `• Версия: ${BUILD_SHA}, аптайм ${ruDur(Date.now() - BOOT_TIME)}`,
-    `• Статус работы: ${m.status}` + (m.status === 'dormant' ? ` — до terminal ещё ${TERMINAL_DAYS - m.gapDays} дн. тишины` : ''),
+    `• Состояние работы: ${m.status}` + (m.status === 'dormant' ? ` — до полного исчезновения ещё ${DISAPPEAR_DAYS - m.gapDays} дн. (сигнал вернёт её)` : ''),
   ].join('\n');
 }
 
@@ -172,7 +180,7 @@ function digestTick() {
     let text = `Вечерняя сводка\n${statusText()}\n• Заявок WIT36 сегодня: ${OPS.apps.filter(a => a.ts.slice(0, 10) === today).length}`;
     if (date.slice(8) === '01') {
       const alive = daysBetween(WORK_BIRTH_DATE, isoDate(new Date()));
-      text += `\n\n🕰 Работа жива ${alive} дней (с ${ruDate(WORK_BIRTH_DATE)}). Terminal наступает после ${TERMINAL_DAYS} дней тишины подряд; сейчас тишина — ${currentMeta().gapDays} дн.`;
+      text += `\n\n🕰 Работа живёт ${alive} дней (с ${ruDate(WORK_BIRTH_DATE)}). После ${DISAPPEAR_DAYS} дней тишины подряд картина исчезает — умирает, но не стирается: любой сигнал (твой, потомка, другого человека) возрождает её со швом каждого сна. Сейчас тишина — ${currentMeta().gapDays} дн.`;
     }
     tgSend(text, { silent: true, buttons: menuButtons() });
   } catch (e) { /* the digest must never crash the server */ }
@@ -415,26 +423,45 @@ function archiveRead() {
   } catch (e) { console.warn('[record] read failed:', e.message); return []; }
 }
 
-// Confirmed silence is part of the record: every full calendar day after the
-// last data day is a dead day — the painting drains in proportion — and is
-// written once into the archive as `<day>.dead.json`. The marker never blocks
-// a later biometric backfill (data lives in `<day>.json`, a different file):
-// the death was truly observed, and the body's record stays complete.
-function archiveSilence() {
-  if (!STATE.live || !STATE.lastDataDay) return;   // silence must be live-confirmed
+// Confirmed silence enters the record as DORMANCY, not death (canon, ratified
+// 2026-07-23). Every completed calendar day after the last data day, once it is
+// clearly past Oura's finalization lag, is written as `<day>.dormant.json`. A
+// dormant day is NOT a death: if biometric data later arrives for it, the day
+// RESURRECTS — the marker is removed, because the body was alive, the signal was
+// only late. The archive of the work holds only true, live-confirmed sleep.
+const FINALIZE_LAG_DAYS = 3;   // Oura may take ~2 days to finalize a day; don't call it dormant sooner
+function archiveDormancy() {
+  if (!STATE.live || !STATE.lastDataDay) return;   // dormancy must be live-confirmed
   try {
     fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
-    const lastCompleted = new Date(Date.now() - 864e5);   // today is not over yet
-    for (let t = Date.parse(STATE.lastDataDay) + 864e5; t <= lastCompleted.getTime(); t += 864e5) {
-      const day = isoDate(new Date(t));
-      const f = path.join(ARCHIVE_DIR, `${day}.dead.json`);
-      if (!fs.existsSync(f)) fs.writeFileSync(f, JSON.stringify({ day, dead: true, recordedAt: new Date().toISOString() }));
+    // resurrection sweep: any day that now has real data is alive — drop its dormant marker.
+    const alive = new Set((STATE.raw || []).map(d => d.day));
+    for (const f of dormantFiles()) {
+      const day = f.slice(0, 10);
+      if (alive.has(day)) { try { fs.unlinkSync(path.join(ARCHIVE_DIR, f)); console.log('[record] resurrected', day); } catch (e) {} }
     }
-  } catch (e) { console.warn('[record] silence write skipped:', e.message); }
+    // petrify confirmed dormant days (past the finalization lag, still empty).
+    const cutoff = Date.now() - FINALIZE_LAG_DAYS * 864e5;
+    for (let t = Date.parse(STATE.lastDataDay) + 864e5; t <= cutoff; t += 864e5) {
+      const day = isoDate(new Date(t));
+      if (alive.has(day)) continue;
+      const fp = path.join(ARCHIVE_DIR, `${day}.dormant.json`);
+      if (!fs.existsSync(fp)) fs.writeFileSync(fp, JSON.stringify({ day, dormant: true, recordedAt: new Date().toISOString() }));
+    }
+  } catch (e) { console.warn('[record] dormancy write skipped:', e.message); }
 }
-function deadDayCount() {
-  try { return fs.readdirSync(ARCHIVE_DIR).filter(f => /^\d{4}-\d{2}-\d{2}\.dead\.json$/.test(f)).length; }
-  catch (e) { return 0; }
+function dormantFiles() {
+  try { return fs.readdirSync(ARCHIVE_DIR).filter(f => /^\d{4}-\d{2}-\d{2}\.dormant\.json$/.test(f)); }
+  catch (e) { return []; }
+}
+// One-time migration: the earlier build wrote `<day>.dead.json`. The work does
+// not die — every such marker is a false death; remove them all.
+function purgeLegacyDeathMarkers() {
+  try {
+    for (const f of fs.readdirSync(ARCHIVE_DIR).filter(f => /\.dead\.json$/.test(f))) {
+      fs.unlinkSync(path.join(ARCHIVE_DIR, f)); console.log('[record] purged legacy death marker', f);
+    }
+  } catch (e) { /* nothing to purge */ }
 }
 
 // Bundled snapshot (repo) — the cold-start record.
@@ -481,12 +508,13 @@ function currentMeta() {
   const gapDays = STATE.lastDataDay ? Math.max(0, daysBetween(STATE.lastDataDay, serverDate)) : 0;
   const status = !STATE.live ? 'record'
     : gapDays <= 1 ? 'fresh'
-    : gapDays <= 7 ? 'stable'
-    : gapDays >= TERMINAL_DAYS ? 'terminal'
+    : gapDays <= PAUSE_DAYS ? 'paused'
+    : gapDays >= DISAPPEAR_DAYS ? 'disappeared'
     : 'dormant';
   return {
     birth: WORK_BIRTH_DATE,
-    terminalDays: TERMINAL_DAYS,
+    pauseDays: PAUSE_DAYS,
+    disappearDays: DISAPPEAR_DAYS,
     lastDataDay: STATE.lastDataDay, serverDate, gapDays, status,
     live: STATE.live, syncedAt: STATE.lastSync,
   };
@@ -548,7 +576,7 @@ async function sync() {
     setDays(rawDays, true);
     STATE.lastSync = new Date().toISOString();
     STATE.tokenError = false;
-    archiveSilence();   // dead days petrify into the record (live-confirmed only)
+    archiveDormancy();   // dormant days petrify; days that got data resurrect (live-confirmed only)
 
     // self-check: silent degradation is a data malfunction, not slow Oura.
     const reasons = [];
@@ -611,7 +639,7 @@ function healthObj() {
     lastSyncAgeSec: STATE.lastSync ? Math.round((Date.now() - Date.parse(STATE.lastSync)) / 1000) : null,
     syncedAt: STATE.lastSync,
     perCollection: STATE.perCollection || {},
-    deadDays: deadDayCount(),
+    dormantDays: dormantFiles().length,
     buildSha: BUILD_SHA,
     uptimeSec: Math.round((Date.now() - BOOT_TIME) / 1000),
   };
@@ -772,6 +800,7 @@ http.createServer((req, res) => {
 }).listen(port, () => {
   console.log(`Variations 87 — http://localhost:${port}`);
   restoreRefreshToken();
+  purgeLegacyDeathMarkers();   // the work does not die — remove any `<day>.dead.json`
   loadRecord();          // serve the record immediately
   sync();                // then pull the living history
   setInterval(sync, SYNC_INTERVAL);
