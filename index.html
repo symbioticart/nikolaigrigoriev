@@ -31,7 +31,7 @@
     .artist {
       position:fixed; top:20px; left:24px; z-index:400;
       font-size:12px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase;
-      color:#000; text-decoration:none; background:none; border:none;
+      color:#1a1a1a; text-decoration:none; background:none; border:none;
       font-family:'Manrope',sans-serif; cursor:pointer; touch-action:manipulation;
     }
     .top-links { position:fixed; top:20px; right:24px; z-index:300; display:flex; gap:28px; align-items:baseline; }
@@ -51,7 +51,7 @@
     .stage { position:relative; display:flex; flex-direction:column; align-items:center; gap:20px; max-width:100%; }
     .canvas-wrap { position:relative; line-height:0; }
     .canvas-frame {
-      position:relative; background:#000; outline:1px solid rgba(0,0,0,0.08);
+      position:relative; background:#1a1a1a; outline:1px solid rgba(0,0,0,0.08);
       box-shadow:0 4px 20px rgba(0,0,0,0.06), 0 20px 60px rgba(0,0,0,0.08);
       line-height:0; flex:none;   /* never let a flex parent distort the aspect */
       transition:opacity 1.4s ease, filter 1.4s ease;  /* death = petrification */
@@ -66,28 +66,33 @@
     .nav-zone.prev { left:0; cursor:w-resize; }
     .nav-zone.next { right:0; cursor:e-resize; }
     .nav-zone.disabled { cursor:default; pointer-events:none; }
-    .nav-glyph { position:absolute; top:50%; transform:translateY(-50%); font-size:22px; font-weight:200; font-family:'Manrope',sans-serif; color:#1a1a1a; opacity:.2; transition:opacity .25s ease; }
-    .nav-zone.prev .nav-glyph { left:14px; } .nav-zone.next .nav-glyph { right:14px; }
-    .nav-zone:hover .nav-glyph, .nav-zone:focus-visible .nav-glyph { opacity:.5; }
-    .nav-zone.disabled .nav-glyph { opacity:0 !important; }
-    @media (hover:none) { .nav-glyph { opacity:.25; } }
+    /* The painting is never covered: the day arrows sit inline on the title
+       line, outside the frame. The canvas sides stay silently clickable. */
+    .title-row { display:flex; align-items:baseline; justify-content:center; gap:18px; max-width:100%; }
+    .stage-arrow {
+      font-size:17px; font-weight:300; font-family:'Manrope',sans-serif; color:#1a1a1a;
+      opacity:.3; background:none; border:none; cursor:pointer; padding:0 2px;
+      line-height:1; flex:none; touch-action:manipulation; transition:opacity .2s ease;
+    }
+    .stage-arrow:hover { opacity:.75; }
+    .stage-arrow.disabled { opacity:.1; pointer-events:none; }
 
     /* Vertical per-work archive link, centred on the work's right edge */
     .archive-side {
       position:absolute; top:50%; right:-32px; transform:translateY(-50%);
-      writing-mode:vertical-rl; font-size:11px; font-weight:400; letter-spacing:0.22em;
+      writing-mode:vertical-rl; font-size:11px; font-weight:400; letter-spacing:0.2em;
       text-transform:uppercase; color:#1a1a1a; opacity:0.45; cursor:pointer;
       border:none; background:none; font-family:'Manrope',sans-serif; padding:0; z-index:20;
       text-decoration:none; touch-action:manipulation;
     }
-    .archive-side:hover { opacity:0.8; }
+    .archive-side:hover { opacity:0.85; }
 
     /* Museum label below the work */
     .label { display:flex; flex-direction:column; align-items:center; gap:7px; text-align:center; max-width:100%; }
     /* Humanist tombstone: sentence case, no telemetry caps. Name + open living
        range; the bare trailing en-dash is the "still alive" convention. */
     .label-title {
-      font-size:15px; font-weight:400; letter-spacing:0.005em; line-height:1.2;
+      font-size:15px; font-weight:400; letter-spacing:0; line-height:1.2;
       color:#1a1a1a; background:none; border:none; padding:0; font-family:'Manrope',sans-serif; cursor:pointer; touch-action:manipulation;
     }
     /* The performed frame is PRESENTED as a still image: WebGL paints, the
@@ -100,15 +105,15 @@
     .label-title .lt-name { font-weight:500; opacity:0.9; }
     .label-title .lt-range { font-weight:300; opacity:0.5; }
     .label-title:hover .lt-name { opacity:1; }
-    .label-medium { font-size:10.5px; font-weight:400; letter-spacing:0.004em; color:#1a1a1a; opacity:0.5; }
+    .label-medium { font-size:10px; font-weight:400; letter-spacing:0; color:#1a1a1a; opacity:0.5; }
     /* State word alone — the living pulse. No dot/LED; ink density is the vital
        sign: ALIVE full ink, SILENT cooled, COMPLETE settled. */
-    .label-life { font-family:'Manrope',sans-serif; font-size:9.5px; font-weight:500; letter-spacing:0.24em; text-indent:0.24em; text-transform:uppercase; color:#1a1a1a; opacity:0.8; margin-top:1px; }
+    .label-life { font-family:'Manrope',sans-serif; font-size:9px; font-weight:500; letter-spacing:0.2em; text-indent:0.2em; text-transform:uppercase; color:#1a1a1a; opacity:0.85; margin-top:1px; }
     .label-life.silent { opacity:0.4; }
-    .label-life.complete { opacity:0.55; }
+    .label-life.complete { opacity:0.6; }
     /* The one deliberate monospace: the coordinate of the frame you walked to. */
-    .info-line { font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:400; color:#1a1a1a; opacity:0.42; letter-spacing:0.05em; text-indent:0.05em; text-transform:uppercase; line-height:1; text-align:center; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 4px; }
-    .work-link { margin-top:2px; font-size:9px; font-weight:400; letter-spacing:0.14em; text-transform:uppercase; color:#1a1a1a; opacity:0.4; background:none; border:none; font-family:'Manrope',sans-serif; cursor:pointer; touch-action:manipulation; }
+    .info-line { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:400; color:#1a1a1a; opacity:0.45; letter-spacing:0.05em; text-indent:0.05em; text-transform:uppercase; line-height:1; text-align:center; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 4px; }
+    .work-link { margin-top:2px; font-size:9px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; color:#1a1a1a; opacity:0.4; background:none; border:none; font-family:'Manrope',sans-serif; cursor:pointer; touch-action:manipulation; }
     .work-link:hover { opacity:0.75; }
 
     /* ── Overlays (statement / work / archive) ───────────────────── */
@@ -119,35 +124,35 @@
 
     .prose { max-width:600px; max-height:calc(100dvh - 96px); overflow-y:auto; padding:64px 24px 48px; font-size:13px; font-weight:300; line-height:1.85; color:#1a1a1a; }
     .prose::-webkit-scrollbar { width:3px; } .prose::-webkit-scrollbar-thumb { background:rgba(0,0,0,.15); }
-    .prose .kicker { font-size:10px; font-weight:400; letter-spacing:0.18em; text-transform:uppercase; opacity:0.45; margin-bottom:14px; }
-    .prose h2 { font-size:15px; font-weight:400; letter-spacing:0.04em; margin-bottom:22px; color:#000; }
-    .prose p { margin-bottom:14px; opacity:0.82; }
+    .prose .kicker { font-size:10px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; opacity:0.45; margin-bottom:14px; }
+    .prose h2 { font-size:15px; font-weight:400; letter-spacing:0.05em; margin-bottom:22px; color:#1a1a1a; text-wrap:balance; }
+    .prose p { margin-bottom:14px; opacity:0.85; text-wrap:pretty; hyphens:none; }
     .prose .rule { height:1px; background:rgba(0,0,0,0.12); margin:34px 0 26px; }
-    .prose .reveal { font-size:10px; font-weight:400; letter-spacing:0.14em; text-transform:uppercase; color:#1a1a1a; opacity:0.5; background:none; border:none; font-family:'Manrope',sans-serif; cursor:pointer; padding:6px 0; }
+    .prose .reveal { font-size:10px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; color:#1a1a1a; opacity:0.5; background:none; border:none; font-family:'Manrope',sans-serif; cursor:pointer; padding:6px 0; }
     .prose .reveal:hover { opacity:0.85; }
     .prose .more[hidden] { display:none; }
-    .prose .link { display:inline-block; margin-top:8px; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#1a1a1a; opacity:0.5; text-decoration:none; border-bottom:1px solid rgba(0,0,0,0.2); padding-bottom:1px; background:none; border-left:0; border-right:0; border-top:0; font-family:'Manrope',sans-serif; cursor:pointer; }
+    .prose .link { display:inline-block; margin-top:8px; font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:#1a1a1a; opacity:0.5; text-decoration:none; border-bottom:1px solid rgba(0,0,0,0.2); padding-bottom:1px; background:none; border-left:0; border-right:0; border-top:0; font-family:'Manrope',sans-serif; cursor:pointer; }
     .prose .link:hover { opacity:0.85; }
     .prose .links { margin-top:26px; display:flex; flex-direction:column; gap:10px; align-items:flex-start; }
 
     /* ── Archive overlay (calendar) ──────────────────────────────── */
     .archive-scroll { width:100%; max-width:760px; max-height:calc(100dvh - 40px); overflow-y:auto; padding:64px 32px 56px; }
     .archive-scroll::-webkit-scrollbar { width:3px; } .archive-scroll::-webkit-scrollbar-thumb { background:rgba(0,0,0,.15); }
-    .archive-head { font-size:13px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; color:#000; margin-bottom:5px; }
-    .archive-work { font-size:9.5px; font-weight:400; letter-spacing:0.14em; text-transform:uppercase; opacity:0.5; margin-bottom:4px; }
-    .archive-note { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:400; letter-spacing:0.06em; text-transform:uppercase; opacity:0.4; margin-bottom:38px; }
-    .archive-year { font-size:12px; font-weight:400; letter-spacing:0.2em; text-transform:uppercase; opacity:0.7; margin:40px 0 4px; }
-    .archive-month { font-size:9px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; opacity:0.45; margin:22px 0 9px; }
+    .archive-head { font-size:13px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; color:#1a1a1a; margin-bottom:5px; }
+    .archive-work { font-size:9px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; opacity:0.5; margin-bottom:4px; }
+    .archive-note { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:400; letter-spacing:0.05em; text-transform:uppercase; opacity:0.4; margin-bottom:38px; }
+    .archive-year { font-size:12px; font-weight:400; letter-spacing:0.2em; text-transform:uppercase; opacity:0.75; margin:40px 0 4px; }
+    .archive-month { font-size:9px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; opacity:0.45; margin:22px 0 9px; }
     .archive-days { display:flex; flex-wrap:wrap; gap:4px 0; }
-    .day { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:400; letter-spacing:0.04em; color:#1a1a1a; opacity:0.65; text-decoration:none; display:inline-block; width:4ch; text-align:left; padding:4px 0; background:none; border:none; cursor:pointer; touch-action:manipulation; }
+    .day { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:400; letter-spacing:0.05em; color:#1a1a1a; opacity:0.6; text-decoration:none; display:inline-block; width:4ch; text-align:left; padding:4px 0; background:none; border:none; cursor:pointer; touch-action:manipulation; }
     button.day:hover, a.day:hover { opacity:1; }
-    .day.silent { opacity:0.28; cursor:default; }
-    .day.incomplete { opacity:0.42; }
+    .day.silent { opacity:0.3; cursor:default; }
+    .day.incomplete { opacity:0.45; }
 
     /* Hover preview of a day's painting */
     .day-preview {
       position:fixed; z-index:280; pointer-events:none;
-      width:200px; height:143px; background:#000;
+      width:200px; height:143px; background:#1a1a1a;
       outline:1px solid rgba(0,0,0,0.12);
       box-shadow:0 6px 26px rgba(0,0,0,0.18);
       opacity:0; transition:opacity .12s ease; transform:translate(-50%,0);
@@ -165,9 +170,9 @@
     .modal-inner { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; width:100%; height:100%; padding:64px 40px 44px; }
     .modal-canvas-slot { display:flex; align-items:center; justify-content:center; min-width:0; }
     .modal-cap { text-align:center; max-width:44ch; }
-    .cap-date { font-size:13px; font-weight:300; letter-spacing:0.04em; color:#1a1a1a; opacity:0.5; }
-    .cap-status { display:block; margin-top:8px; font-size:11.5px; font-weight:300; line-height:1.6; color:#1a1a1a; opacity:0.45; }
-    .modal-arrow { position:fixed; top:50%; transform:translateY(-50%); z-index:270; font-size:30px; font-weight:200; font-family:'Manrope',sans-serif; color:#1a1a1a; opacity:0.35; background:none; border:none; cursor:pointer; padding:8px 14px; touch-action:manipulation; }
+    .cap-date { font-size:13px; font-weight:300; letter-spacing:0.05em; color:#1a1a1a; opacity:0.5; }
+    .cap-status { display:block; margin-top:8px; font-size:11px; font-weight:300; line-height:1.6; color:#1a1a1a; opacity:0.45; }
+    .modal-arrow { position:fixed; top:50%; transform:translateY(-50%); z-index:270; font-size:30px; font-weight:200; font-family:'Manrope',sans-serif; color:#1a1a1a; opacity:0.3; background:none; border:none; cursor:pointer; padding:8px 14px; touch-action:manipulation; }
     .modal-arrow:hover { opacity:0.75; }
     .modal-arrow.prev { left:6px; } .modal-arrow.next { right:6px; }
     .modal-arrow.disabled { opacity:0 !important; pointer-events:none; }
@@ -183,6 +188,7 @@
       .label-life { font-size:9px; letter-spacing:0.2em; } .info-line { font-size:9px; }
       .canvas-frame { box-shadow:0 2px 10px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.07); }
       .stage { gap:12px; }
+      .title-row { gap:12px; } .stage-arrow { font-size:15px; }
       .prose { padding:56px 20px 40px; font-size:12px; } .prose h2 { font-size:13px; }
       .archive-scroll { padding:52px 18px 36px; }
       .modal-inner { gap:16px; padding:52px 14px 28px; overflow-y:auto; justify-content:center; }
@@ -205,7 +211,7 @@
   <noscript>
     <div class="no-perform visible">
       The work exists only in performance. This screen cannot perform it.<br><br>
-      Nikolai Grigoriev — Variations 87, 2022–<br>
+      Nikolai Grigoriev — Variations 87, 2022–TODAY<br>
       Lived time, written daily by an unchanging rule.
     </div>
   </noscript>
@@ -214,12 +220,16 @@
   <div class="stage" id="stage">
     <div class="canvas-wrap" id="canvasWrap">
       <div class="canvas-frame" id="canvasFrame"><img id="stageImg" class="stage-img" alt="" aria-hidden="true"></div>
-      <button class="nav-zone prev" id="zonePrev" aria-label="Previous day"><span class="nav-glyph">‹</span></button>
-      <button class="nav-zone next" id="zoneNext" aria-label="Next day"><span class="nav-glyph">›</span></button>
+      <button class="nav-zone prev" id="zonePrev" aria-label="Previous day"></button>
+      <button class="nav-zone next" id="zoneNext" aria-label="Next day"></button>
       <a class="archive-side" href="#archive" id="archiveLink">Archive</a>
     </div>
     <div class="label">
-      <button class="label-title" id="labelTitle"></button>
+      <div class="title-row">
+        <button class="stage-arrow prev" id="navPrev" aria-label="Previous day">‹</button>
+        <button class="label-title" id="labelTitle"></button>
+        <button class="stage-arrow next" id="navNext" aria-label="Next day">›</button>
+      </div>
       <div class="label-medium" id="labelMedium"></div>
       <div class="label-life" id="labelLife"></div>
       <div class="info-line" id="infoLine" aria-live="polite"></div>
@@ -229,7 +239,7 @@
 
   <div class="no-perform" id="noPerform">
     The work exists only in performance. This screen cannot perform it.<br><br>
-    Nikolai Grigoriev — Variations 87, 2022–<br>
+    Nikolai Grigoriev — Variations 87, 2022–TODAY<br>
     Lived time, written daily by an unchanging rule.
   </div>
 
@@ -239,18 +249,18 @@
     <div class="prose">
       <div class="kicker">Info</div>
       <h2 id="stmtHead">Nikolai Grigoriev</h2>
-      <p>I make a life visible so that it can be lived as a work of art. My subject is not death — it is what death sharpens: the attention a life is worth once you know it ends. I take a single life, the quiet traces a body leaves without being asked, and turn it slowly into an image; and each life joins a larger one — many lives gathered into a single form for a museum, a monument to attentive living. The work holds up no live mirror. It takes your life now and never shows it to you now, so there is nothing to perform for and nothing to do with a day but be entirely inside it. Where medicine works to lengthen the body, I work to lengthen a life in the register art can reach — its felt time, and the meaning of having lived it.</p>
+      <p>I make a life visible so that it can be lived as a work of art. What death sharpens is attention: a life is worth this much once you know it ends. I take one life — the quiet record a body keeps without being asked — and turn it slowly into an image. Many of these lives gather into a single form for a museum, a monument to attentive living. The work keeps no live mirror. It takes your day and shows it back only once the day has closed, so there is nothing to perform for and nothing to do but be inside it. Medicine lengthens the body. I work on the part of a life that art can reach: its felt time, and the sense of having lived it.</p>
       <button class="reveal" id="stmtReveal" aria-expanded="false" aria-controls="stmtMore">Continue ↓</button>
       <div class="more" id="stmtMore" hidden>
-        <p>I have been afraid of dying since I was a child, and I refused to make that fear my subject. I made its opposite my subject. If death is what ends a life, it is also what makes a life worth composing — the pressure that turns ordinary days into something you would want to have lived on purpose. I aestheticise living, not dying. Death only stands behind me, sharpening the attention.</p>
-        <p>I take a single life as material — mine first, because I do not ask of a work what I have not lived inside it. A body records itself while you are busy being alive; the work holds up no mirror and asks nothing of you, so what it takes is a life lived, not one staged for it. But no single life is the whole of the work. Each one feeds a larger body: the lives gathered into a piece accrue, together, into a collective form made to stand in a museum — a common portrait of many people living with attention. A private reflection at home; a shared one in public — art at the scale of many lives.</p>
-        <p>The work takes your life now but never shows it to you now. There is no live mirror to perform for — no way to pose a day, to shape it toward how it will look, to live for the image instead of the moment. I once thought that delay was a flaw. It is the whole point. Emptied of an audience, you are left with the only thing that was ever real: this moment, and the choice to be entirely in it. Being present is not watching your life from a distance; it is disappearing into the day as it happens. What forms later is only the honest residue — the living was the art, and the living is now.</p>
-        <p>Underneath all of it is a refusal to end. I do not want to die. Where medicine works to lengthen the body, I work to lengthen a life in the register art can reach, and I mean it literally: the work stretches perceived time by slowing it; it keeps every day it has lived, so a life is made imperishable as a record; and it is built to outlast the body, continuing after me from the life of a stranger I will never meet. Three durations against the one that runs out. I came to art late and built its language myself. I do not want to leave objects. I want to leave a way of living, and a work that keeps living it.</p>
+        <p>I have been afraid of dying since I was a child. I refused to make that fear my subject and made its opposite my subject instead. Death ends a life, but it is also what makes a life worth composing: the pressure that turns ordinary days into something you would want to have lived on purpose. So I work on living rather than on dying, with death behind me, sharpening the attention.</p>
+        <p>I take a single life as material, mine first, because I do not ask of a work what I have not lived inside it. A body records itself while you are busy being alive. The work asks nothing of you, so what it takes is a life lived rather than one staged for it. No single life is the whole of the work, though. Each one feeds a larger body: the lives kept in a piece accrue into a collective form made to stand in a museum, a common portrait of many people living with attention. At home it is a private reflection; in public, a shared one.</p>
+        <p>The work takes your day but never shows it back while the day is still open. There is no live mirror to perform for: no way to pose the hours, to shape them toward how they will look, to live for the image instead of the moment. I once thought the delay was a flaw. It is the whole point. Without an audience you are left with the moment and the choice to be inside it. Being present is not watching your life from a distance; it is disappearing into the day as it happens. What forms afterwards is the residue of a day that was actually lived.</p>
+        <p>Under all of it is a refusal to end. I do not want to die, and I mean the work literally, not as a metaphor: it slows perception, so a day is felt for longer than it lasted; it keeps every day it has lived, so the life survives as a record; and it is built to outlast the body, continuing after me from the life of a stranger I will never meet. I came to art late, and built its language myself. I do not want to leave objects. I want to leave a way of living.</p>
         <div class="rule"></div>
         <div class="kicker">Biography</div>
         <p>Nikolai Grigoriev (b. 1987, Moscow) is a conceptual artist. He lives and works in Barcelona.</p>
         <p>He has been alive for <span id="bioAlive">—</span> days. <span id="bioWritten">—</span> of them are written into Variations 87.</p>
-        <p>Each of his works takes a single life — the quiet record a body leaves without being asked — and turns it, day after day, by one unchanging rule, into an image. The work and the life evolve together for as long as the life lasts: the image changes as the life changes, the archive keeps every day, and the rule is made to outlast the body. He came to art late, out of necessity, and intends to leave not objects but a way of living — and works that keep living it.</p>
+        <p>Each of his works takes a single life — the quiet record a body keeps without being asked — and turns it, day after day, by one unchanging rule, into an image. Work and life evolve together for as long as the life lasts: the image changes as the life changes, the archive keeps every day, and the rule is made to outlast the body. He came to art late, out of necessity, and means to leave not objects but a way of living.</p>
       </div>
       <div class="rule"></div>
       <div class="kicker">Contact</div>
@@ -284,7 +294,7 @@
     <button class="overlay-close" data-home>Close</button>
     <div class="archive-scroll">
       <div class="archive-head" id="arcHead">Archive</div>
-      <div class="archive-work" id="arcWork">Variations 87 · 2022–</div>
+      <div class="archive-work" id="arcWork">Variations 87 · 2022–TODAY</div>
       <div class="archive-note">Every state is frozen as it was written on its own day. Silence is shown, never compressed.</div>
       <div id="arcList"></div>
     </div>
@@ -430,7 +440,7 @@
       // Open en-dash while the work lives ("2022–"); it closes only at death.
       const endYear = terminal && META.lastDataDay ? META.lastDataDay.slice(0,4) : '';
       $('labelTitle').innerHTML =
-        `<span class="lt-name">${WORK.TITLE}</span><span class="lt-range">, ${epochYear}–${endYear}</span>`;
+        `<span class="lt-name">${WORK.TITLE}</span><span class="lt-range">, ${epochYear}–${endYear || 'TODAY'}</span>`;
       $('labelMedium').textContent = WORK.MEDIUM;
       const life = $('labelLife');
       life.className = 'label-life' + (terminal ? ' complete' : silent ? ' silent' : '');
@@ -534,8 +544,11 @@
       $('modalNext').classList.toggle('disabled', modalIdx >= DATA.days.length - 1);
     }
     function updateNavZones() {
-      $('zonePrev').classList.toggle('disabled', stageIdx <= 0);
-      $('zoneNext').classList.toggle('disabled', stageIdx >= DATA.days.length - 1);
+      const atStart = stageIdx <= 0, atEnd = stageIdx >= DATA.days.length - 1;
+      $('zonePrev').classList.toggle('disabled', atStart);
+      $('zoneNext').classList.toggle('disabled', atEnd);
+      $('navPrev').classList.toggle('disabled', atStart);
+      $('navNext').classList.toggle('disabled', atEnd);
     }
 
     // === Archive calendar (built once) ============================
@@ -544,7 +557,7 @@
       const birth = META.birth || DATA.days[0].d;
       const last = (META.live && META.serverDate && META.serverDate > (META.lastDataDay || ''))
         ? META.serverDate : (META.lastDataDay || DATA.days[DATA.days.length-1].d);
-      $('arcWork').textContent = `Variations 87 · ${birth.slice(0,4)}–${(META.live && META.status==='terminal') ? last.slice(0,4) : ''}`;
+      $('arcWork').textContent = `Variations 87 · ${birth.slice(0,4)}–${(META.live && META.status==='terminal') ? last.slice(0,4) : 'TODAY'}`;
       const byDate = new Map(DATA.days.map((x,i) => [x.d, i]));
       const list = $('arcList'); list.innerHTML = '';
       const frag = document.createDocumentFragment();
@@ -735,6 +748,8 @@
 
       $('zonePrev').addEventListener('click', () => { if (stageIdx>0) toStageDay(stageIdx-1); });
       $('zoneNext').addEventListener('click', () => { if (stageIdx<DATA.days.length-1) toStageDay(stageIdx+1); });
+      $('navPrev').addEventListener('click', () => { if (stageIdx>0) toStageDay(stageIdx-1); });
+      $('navNext').addEventListener('click', () => { if (stageIdx<DATA.days.length-1) toStageDay(stageIdx+1); });
 
       document.querySelectorAll('[data-home]').forEach(b => b.addEventListener('click', goHome));
       document.querySelectorAll('[data-archive]').forEach(b => b.addEventListener('click', () => go('archive')));
@@ -804,21 +819,14 @@
       if (!DATA || !DATA.days || !DATA.days.length) { cannotPerform(); return; }
       renderLabel(); renderBioCounts();
 
-      const probe = document.createElement('canvas');
-      if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) { cannotPerform(); return; }
-
+      // No WebGL probing: a throwaway probe canvas consumes one of the browser's
+      // limited live GL contexts and can false-negative, hiding a working piece.
+      // The honest failure signal is createCanvas throwing — caught below.
       try {
         p5Instance = new p5(p => {
           p.setup = function () {
             p.pixelDensity(2);   // one canonical buffer 1960×1400 on every screen
             const canvas = p.createCanvas(CANVAS_W, CANVAS_H, p.WEBGL2 || p.WEBGL);
-            // If the browser refuses a WebGL context (per-domain GPU blocklist
-            // after past crashes, GPU sandbox failure), say so honestly instead
-            // of leaving a black rectangle.
-            try {
-              const glOk = canvas.elt.getContext('webgl2') || canvas.elt.getContext('webgl');
-              if (!glOk) cannotPerform();
-            } catch (e) {}
             canvas.parent('canvasFrame');
             // A lost context must NOT reload the page: repeated reloads make
             // Chromium blocklist WebGL for the whole domain (black canvas until
