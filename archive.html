@@ -141,7 +141,7 @@
 
   <div class="sheet">
     <h1>Archive</h1>
-    <div class="work-line" id="workLine">Variations 87 · 2022–</div>
+    <div class="work-line" id="workLine">Variations 87 · 2022–TODAY</div>
     <div class="semantics">Every state is frozen as it was written on its own day. Silence is shown, never compressed.</div>
     <div id="list"></div>
   </div>
@@ -166,7 +166,7 @@
 
       // A complete work closes its date range; a living one stays open.
       document.getElementById('workLine').textContent =
-        `Variations 87 · ${birth.slice(0, 4)}–${(meta.live && meta.status === 'terminal') ? lastData.slice(0, 4) : ''}`;
+        `Variations 87 · ${birth.slice(0, 4)}–${(meta.live && meta.status === 'terminal') ? lastData.slice(0, 4) : 'TODAY'}`;
 
       const list = document.getElementById('list');
       const frag = document.createDocumentFragment();
