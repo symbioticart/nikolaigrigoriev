@@ -1,15 +1,20 @@
 name: daily-89
 
 # Every morning at 9:00 Madrid the channel receives the current Variation 89
-# story as a PNG — the painting exactly as the site renders it (the page's own
-# canvas pixels, 1080×1920, via canvas.toDataURL — no lossy re-screenshot).
-# The frame is sent EVERY day, silent days included: an unchanged painting is
-# part of the work's record.
+# story — as a FILE (sendDocument), full resolution 1080×1920, exactly the
+# page's own canvas pixels via canvas.toDataURL. The frame goes out EVERY day,
+# silent days included: while the signal is lost the painting drains a little
+# more each day, so every frame is different — the record of the dying.
+# Each frame is also committed into the repo at 89/record/<date>.png —
+# the write-once archive of what the painting looked like on that day.
 
 on:
   schedule:
     - cron: '0 7 * * *'   # 9:00 Europe/Madrid in summer (CEST); 8:00 in winter
   workflow_dispatch: {}
+
+permissions:
+  contents: write
 
 env:
   SITE: https://nikolaigrigoriev.com
@@ -18,6 +23,8 @@ jobs:
   shot:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Render /89 and capture the canvas
         run: |
           npm init -y > /dev/null && npm i --no-save puppeteer-core@23 > /dev/null 2>&1
@@ -37,13 +44,13 @@ jobs:
               await new Promise(r => setTimeout(r, 1500));
               const dataUrl = await page.evaluate(() =>
                 document.getElementById("story").toDataURL("image/png"));
-              fs.writeFileSync("89.png", Buffer.from(dataUrl.split(",")[1], "base64"));
+              fs.writeFileSync("89-frame.png", Buffer.from(dataUrl.split(",")[1], "base64"));
               await browser.close();
-              console.log("captured", fs.statSync("89.png").size, "bytes");
+              console.log("captured", fs.statSync("89-frame.png").size, "bytes");
             })().catch(e => { console.error(e); process.exit(1); });
           '
 
-      - name: Send the PNG to the channel
+      - name: Send the full-resolution file to the channel
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
@@ -53,12 +60,30 @@ jobs:
           last=$(echo "$H" | jq -r '.lastDataDay // "?"')
           n=$(echo "$H" | jq -r '.dayCount // "?"')
           gap=$(echo "$H" | jq -r '.gapDays // 0')
-          today=$(TZ=Europe/Madrid date +%d.%m.%Y)
+          today=$(TZ=Europe/Madrid date +%Y-%m-%d)
+          pretty=$(TZ=Europe/Madrid date +%d.%m.%Y)
           note=""
-          [ "$gap" -gt 1 ] 2>/dev/null && note=" Тишина ${gap} дн. — картина держит последний записанный день."
-          curl -fsS --max-time 60 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendPhoto" \
-            -F chat_id="${TG_CHAT_ID}" -F photo=@89.png -F disable_notification=true \
-            -F caption="🎨 Проект 89 — утренний кадр ${today}. Последний записанный день: ${last} (№${n}).${note} ${SITE}/89" > /dev/null
+          [ "$gap" -gt 1 ] 2>/dev/null && note=" Тишина ${gap} дн. — картина выцветает."
+          cp 89-frame.png "variation-89-${today}.png"
+          curl -fsS --max-time 120 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendDocument" \
+            -F chat_id="${TG_CHAT_ID}" -F document=@"variation-89-${today}.png" -F disable_notification=true \
+            -F caption="🎨 Проект 89 — утренний кадр ${pretty}, полное разрешение 1080×1920. Последний записанный день: ${last} (№${n}).${note} ${SITE}/89" > /dev/null
+
+      - name: Commit the frame into the record (89/record/)
+        run: |
+          today=$(TZ=Europe/Madrid date +%Y-%m-%d)
+          mkdir -p 89/record
+          if [ -f "89/record/${today}.png" ]; then
+            echo "frame for ${today} already recorded — write-once, keeping the original"
+          else
+            cp 89-frame.png "89/record/${today}.png"
+            git config user.name "variation-89 record"
+            git config user.email "record@nikolaigrigoriev.com"
+            git add "89/record/${today}.png"
+            git commit -m "record: variation 89 frame ${today} [skip ci]"
+            git pull --rebase origin main
+            git push origin main
+          fi
 
       - name: Telegram alert if the frame failed
         if: failure()
@@ -69,4 +94,4 @@ jobs:
           [ -z "$TG_BOT_TOKEN" ] && exit 0
           curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
             -d chat_id="${TG_CHAT_ID}" \
-            --data-urlencode "text=🟡 Не получилось сделать вечерний кадр проекта 89. Лог: github.com/symbioticart/nikolaigrigoriev/actions" || true
+            --data-urlencode "text=🟡 Не получилось сделать утренний кадр проекта 89. Лог: github.com/symbioticart/nikolaigrigoriev/actions" || true

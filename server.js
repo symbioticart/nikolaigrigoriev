@@ -415,6 +415,28 @@ function archiveRead() {
   } catch (e) { console.warn('[record] read failed:', e.message); return []; }
 }
 
+// Confirmed silence is part of the record: every full calendar day after the
+// last data day is a dead day — the painting drains in proportion — and is
+// written once into the archive as `<day>.dead.json`. The marker never blocks
+// a later biometric backfill (data lives in `<day>.json`, a different file):
+// the death was truly observed, and the body's record stays complete.
+function archiveSilence() {
+  if (!STATE.live || !STATE.lastDataDay) return;   // silence must be live-confirmed
+  try {
+    fs.mkdirSync(ARCHIVE_DIR, { recursive: true });
+    const lastCompleted = new Date(Date.now() - 864e5);   // today is not over yet
+    for (let t = Date.parse(STATE.lastDataDay) + 864e5; t <= lastCompleted.getTime(); t += 864e5) {
+      const day = isoDate(new Date(t));
+      const f = path.join(ARCHIVE_DIR, `${day}.dead.json`);
+      if (!fs.existsSync(f)) fs.writeFileSync(f, JSON.stringify({ day, dead: true, recordedAt: new Date().toISOString() }));
+    }
+  } catch (e) { console.warn('[record] silence write skipped:', e.message); }
+}
+function deadDayCount() {
+  try { return fs.readdirSync(ARCHIVE_DIR).filter(f => /^\d{4}-\d{2}-\d{2}\.dead\.json$/.test(f)).length; }
+  catch (e) { return 0; }
+}
+
 // Bundled snapshot (repo) — the cold-start record.
 function snapshotRead() {
   try {
@@ -526,6 +548,7 @@ async function sync() {
     setDays(rawDays, true);
     STATE.lastSync = new Date().toISOString();
     STATE.tokenError = false;
+    archiveSilence();   // dead days petrify into the record (live-confirmed only)
 
     // self-check: silent degradation is a data malfunction, not slow Oura.
     const reasons = [];
@@ -588,6 +611,7 @@ function healthObj() {
     lastSyncAgeSec: STATE.lastSync ? Math.round((Date.now() - Date.parse(STATE.lastSync)) / 1000) : null,
     syncedAt: STATE.lastSync,
     perCollection: STATE.perCollection || {},
+    deadDays: deadDayCount(),
     buildSha: BUILD_SHA,
     uptimeSec: Math.round((Date.now() - BOOT_TIME) / 1000),
   };
