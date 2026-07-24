@@ -53,8 +53,8 @@ const R = [
 
   // ---- § 02 ----
   ['<span class="lab">The protocol</span>', '<span class="lab">El protocolo</span>'],
-  ['<p class="st">You enter alone for 180 minutes. Watches and phones stay at the door; bring anything else you like. The door closes.</p>',
-   '<p class="st">Entras a solas por 180 minutos. Reloj y teléfono se quedan en la puerta; trae lo demás que quieras. La puerta se cierra.</p>'],
+  ['<p class="st">You enter alone for 180 minutes. Watches and phones stay at the door; bring anything else you like &mdash; even another person. What happens inside is yours to answer for, all of it. The door closes.</p>',
+   '<p class="st">Entras a solas por 180 minutos. Reloj y teléfono se quedan en la puerta; trae lo demás que quieras &mdash; incluso a otra persona. De todo lo que ocurra dentro respondes tú, de todo. La puerta se cierra.</p>'],
   ['<p class="st">36 exposures across the three hours. The count is announced; the moments aren&rsquo;t. They are drawn, before you enter, from quantum vacuum fluctuations &mdash; physical noise the laws of nature forbid anyone to predict. No one sees the schedule; after the session, anyone can verify it was never touched.</p>',
    '<p class="st">36 disparos a lo largo de las tres horas. La cantidad se anuncia; los momentos, no. Se extraen, antes de que entres, de las fluctuaciones cuánticas del vacío &mdash; un ruido físico que las leyes de la naturaleza prohíben predecir. Nadie ve la secuencia; después de la sesión, cualquiera puede verificar que nadie la tocó.</p>'],
   ['<p class="st">No choosing. No reshooting. No editing, by you or the studio. All 36 are printed and shown in full, in the order taken, at one size.</p>',
