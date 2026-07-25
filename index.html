@@ -70,7 +70,7 @@
        line, outside the frame. The canvas sides stay silently clickable. */
     .title-row { display:flex; align-items:baseline; justify-content:center; gap:18px; max-width:100%; }
     .stage-arrow {
-      font-size:17px; font-weight:300; font-family:'Manrope',sans-serif; color:#1a1a1a;
+      font-size:18px; font-weight:300; font-family:'Manrope',sans-serif; color:#1a1a1a;
       opacity:.3; background:none; border:none; cursor:pointer; padding:0 2px;
       line-height:1; flex:none; touch-action:manipulation; transition:opacity .2s ease;
     }
@@ -80,7 +80,7 @@
     /* Vertical per-work archive link, centred on the work's right edge */
     .archive-side {
       position:absolute; top:50%; right:-32px; transform:translateY(-50%);
-      writing-mode:vertical-rl; font-size:11px; font-weight:400; letter-spacing:0.2em;
+      writing-mode:vertical-rl; font-size:10px; font-weight:400; letter-spacing:0.2em;
       text-transform:uppercase; color:#1a1a1a; opacity:0.45; cursor:pointer;
       border:none; background:none; font-family:'Manrope',sans-serif; padding:0; z-index:20;
       text-decoration:none; touch-action:manipulation;
@@ -138,7 +138,7 @@
     /* ── Archive overlay (calendar) ──────────────────────────────── */
     .archive-scroll { width:100%; max-width:760px; max-height:calc(100dvh - 40px); overflow-y:auto; padding:64px 32px 56px; }
     .archive-scroll::-webkit-scrollbar { width:3px; } .archive-scroll::-webkit-scrollbar-thumb { background:rgba(0,0,0,.15); }
-    .archive-head { font-size:13px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; color:#1a1a1a; margin-bottom:5px; }
+    .archive-head { font-size:15px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; color:#1a1a1a; margin-bottom:5px; }
     .archive-work { font-size:9px; font-weight:400; letter-spacing:0.15em; text-transform:uppercase; opacity:0.5; margin-bottom:4px; }
     .archive-note { font-family:'JetBrains Mono',monospace; font-size:9px; font-weight:400; letter-spacing:0.05em; text-transform:uppercase; opacity:0.4; margin-bottom:38px; }
     .archive-year { font-size:12px; font-weight:400; letter-spacing:0.2em; text-transform:uppercase; opacity:0.75; margin:40px 0 4px; }
@@ -171,8 +171,8 @@
     .modal-canvas-slot { display:flex; align-items:center; justify-content:center; min-width:0; }
     .modal-cap { text-align:center; max-width:44ch; }
     .cap-date { font-size:13px; font-weight:300; letter-spacing:0.05em; color:#1a1a1a; opacity:0.5; }
-    .cap-status { display:block; margin-top:8px; font-size:11px; font-weight:300; line-height:1.6; color:#1a1a1a; opacity:0.45; }
-    .modal-arrow { position:fixed; top:50%; transform:translateY(-50%); z-index:270; font-size:30px; font-weight:200; font-family:'Manrope',sans-serif; color:#1a1a1a; opacity:0.3; background:none; border:none; cursor:pointer; padding:8px 14px; touch-action:manipulation; }
+    .cap-status { display:block; margin-top:8px; font-size:10px; font-weight:300; line-height:1.6; color:#1a1a1a; opacity:0.45; }
+    .modal-arrow { position:fixed; top:50%; transform:translateY(-50%); z-index:270; font-size:24px; font-weight:300; font-family:'Manrope',sans-serif; color:#1a1a1a; opacity:0.4; background:none; border:none; cursor:pointer; padding:8px 14px; touch-action:manipulation; }
     .modal-arrow:hover { opacity:0.75; }
     .modal-arrow.prev { left:6px; } .modal-arrow.next { right:6px; }
     .modal-arrow.disabled { opacity:0 !important; pointer-events:none; }
@@ -194,7 +194,7 @@
       .modal-inner { gap:16px; padding:52px 14px 28px; overflow-y:auto; justify-content:center; }
       .modal-canvas-slot { width:100%; }
       .modal-cap { max-width:100%; width:100%; }
-      .modal-arrow { top:auto; bottom:14px; transform:none; font-size:26px; }
+      .modal-arrow { top:auto; bottom:14px; transform:none; font-size:20px; }
       .modal-arrow.prev { left:18px; } .modal-arrow.next { right:18px; }
     }
 
@@ -249,13 +249,13 @@
     <div class="prose">
       <div class="kicker">Info</div>
       <h2 id="stmtHead">Nikolai Grigoriev</h2>
-      <p>I make a life visible so that it can be lived as a work of art. What death sharpens is attention: a life is worth this much once you know it ends. I take one life — the quiet record a body keeps without being asked — and turn it slowly into an image. Many of these lives gather into a single form for a museum, a monument to attentive living. The work keeps no live mirror. It takes your day and shows it back only once the day has closed, so there is nothing to perform for and nothing to do but be inside it. Medicine lengthens the body. I work on the part of a life that art can reach: its felt time, and the sense of having lived it.</p>
+      <p>I make a life visible, so it can be lived as a work of art. Attention is what death sharpens: you see what a day is worth once you know they run out. I take one life — the record a body keeps without being asked — and turn it, slowly, into an image. Many of these lives collect into one piece for a museum. The work holds up no live mirror: it gives your day back only after the day has closed, so there is nothing to perform for. Medicine lengthens the body. I work on the part of a life that art can reach — its felt time, and the sense of having lived it.</p>
       <button class="reveal" id="stmtReveal" aria-expanded="false" aria-controls="stmtMore">Continue ↓</button>
       <div class="more" id="stmtMore" hidden>
         <p>I have been afraid of dying since I was a child. I refused to make that fear my subject and made its opposite my subject instead. Death ends a life, but it is also what makes a life worth composing: the pressure that turns ordinary days into something you would want to have lived on purpose. So I work on living rather than on dying, with death behind me, sharpening the attention.</p>
         <p>I take a single life as material, mine first, because I do not ask of a work what I have not lived inside it. A body records itself while you are busy being alive. The work asks nothing of you, so what it takes is a life lived rather than one staged for it. No single life is the whole of the work, though. Each one feeds a larger body: the lives kept in a piece accrue into a collective form made to stand in a museum, a common portrait of many people living with attention. At home it is a private reflection; in public, a shared one.</p>
         <p>The work takes your day but never shows it back while the day is still open. There is no live mirror to perform for: no way to pose the hours, to shape them toward how they will look, to live for the image instead of the moment. I once thought the delay was a flaw. It is the whole point. Without an audience you are left with the moment and the choice to be inside it. Being present is not watching your life from a distance; it is disappearing into the day as it happens. What forms afterwards is the residue of a day that was actually lived.</p>
-        <p>Under all of it is a refusal to end. I do not want to die, and I mean the work literally, not as a metaphor: it slows perception, so a day is felt for longer than it lasted; it keeps every day it has lived, so the life survives as a record; and it is built to outlast the body, continuing after me from the life of a stranger I will never meet. I came to art late, and built its language myself. I do not want to leave objects. I want to leave a way of living.</p>
+        <p>Under all of it is a refusal to end. I do not want to die, and I mean the work literally, not as a metaphor. It slows perception, so a day is felt for longer than it lasted. It keeps every day it has lived, so the life survives as a record. It is built to outlast the body, and to go on after me from the life of a stranger I will never meet. I came to art late and built its language myself. I do not want to leave objects. I want to leave a way of living.</p>
         <div class="rule"></div>
         <div class="kicker">Biography</div>
         <p>Nikolai Grigoriev (b. 1987, Moscow) is a conceptual artist. He lives and works in Barcelona.</p>
@@ -281,7 +281,7 @@
       <p>The work never shows the present. A day can be met only once it has closed, when nothing in it can still be arranged. Because there is no one to live toward and no image to compose while the hours are passing, the day is handed back to the one inside it, to be spent fully and unwatched. The delay is a protection, and the painting is only the honest residue of a day actually lived.</p>
       <p>Nothing on the surface is arbitrary, and nothing can be read back out of it. What one life leaves is entangled before it reaches the canvas, so the image is a trace, not an account. The same day always makes the same painting, and once a day has ended its painting never changes: the past stays exactly as it was written. The work does not flatter — a hard day makes a hard image, and that too is a life made visible.</p>
       <p>When the life falls silent — by distance, by refusal, by illness, in the end by death — no new day arrives and the last painting sets. Stillness is not the subject of the work but the edge that sharpens it: because the record can stop, each day it keeps is worth this attention. The work carries its own means of survival and may come to rest on its own terms.</p>
-      <p>One life is only one panel of a larger form. These works are made to gather — many lives, each kept day by day under the same rule, assembled into a single body of days: a monument not to any person but to the act of attentive living. So the meaning is lengthened three ways — the eye is slowed, so a day is felt for longer than it lasted; every day lived is kept and none of it decays, the archive its memory; and the rule is handed on, continuing past the body that began it. I do not lengthen the body. I lengthen the meaning of a life. The form has a lineage — On Kawara, Roman Opałka, Sol LeWitt, Felix Gonzalez-Torres — but here the rule runs on a living body, and one day it will stop.</p>
+      <p>One life is only one panel of a larger form. These works are made to gather: many lives, each kept day by day under the same rule, assembled into a single body of days — a monument not to any person but to the act of attentive living. The work stretches a life where art can reach it. It slows the eye, so a day is felt for longer than it lasted. It keeps every day, so nothing is lost; the archive is its memory. And it hands the rule on, past the body that began it. Not the body — the sense a life makes. The form has a lineage: On Kawara, Roman Opałka, Sol LeWitt, Felix Gonzalez-Torres. Here the rule runs on a living body, and one day it will stop.</p>
       <div class="links">
         <button class="link" data-go="statement">About the artist →</button>
         <a class="link" href="conditions.html">Conditions of the Work →</a>
@@ -374,11 +374,16 @@
       let gray = 0, alpha = 1;
       if (mode === 'stage' && renderIdx === DATA.days.length - 1 && META.live && (META.gapDays||0) > 1) {
         const gap = META.gapDays;
-        gray = Math.min(1, (gap - 1) / 14);
-        alpha = 1 - 0.15 * Math.min(1, (gap - 1) / 14);
+        gray = Math.min(1, (gap - 1) / 13);
+        alpha = Math.max(0, 1 - (gap - 1) / 29);
       }
-      canvasFrame.style.filter = gray > 0 ? `grayscale(${gray.toFixed(3)})` : 'none';
-      canvasFrame.style.opacity = alpha.toFixed(3);
+      // Death = fast fade from the 2nd silent day: grayscale drains the colour,
+      // brightness dims toward black (like /89's fade over a #000 backing) so the
+      // work greys and darkens — never washing into the white page. Frame opacity
+      // stays 1. Recovery is automatic: a returning signal drops the gap, gray→0,
+      // brightness→1, and the work fills back with colour to its initial state.
+      canvasFrame.style.filter = gray > 0 ? `grayscale(${gray.toFixed(3)}) brightness(${alpha.toFixed(3)})` : 'none';
+      canvasFrame.style.opacity = '1';
     }
 
     // === Museum label ===
@@ -813,10 +818,20 @@
     function cannotPerform() { $('stage').style.display='none'; $('noPerform').classList.add('visible'); }
 
     // === Boot =====================================================
+    let booted = false;
     async function main() {
-      try { await loadData(); }
-      catch (e) { cannotPerform(); setTimeout(() => location.reload(), 60000); return; }
-      if (!DATA || !DATA.days || !DATA.days.length) { cannotPerform(); return; }
+      if (booted) return;
+      // Resilient data load. A network hiccup, a slept laptop, or a cold server
+      // is NOT a failure to perform — it is a wait. Retry quietly with backoff
+      // and never show the no-perform notice for a data problem. That notice is
+      // reserved for a browser that truly cannot run the work (createCanvas throws).
+      let ok = false;
+      for (let attempt = 0; attempt < 8 && !ok; attempt++) {
+        try { await loadData(); ok = !!(DATA && DATA.days && DATA.days.length); } catch (e) {}
+        if (!ok) await new Promise(r => setTimeout(r, Math.min(8000, 700 * (attempt + 1))));
+      }
+      if (!ok) { setTimeout(main, 8000); return; }   // keep waiting for the record
+      booted = true;
       renderLabel(); renderBioCounts();
 
       // No WebGL probing: a throwaway probe canvas consumes one of the browser's
