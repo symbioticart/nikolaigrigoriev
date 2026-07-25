@@ -85,11 +85,15 @@
     }
   });
 
-  // Render one day. w/h are CSS px; we upscale by DPR internally for crispness.
+  // Render one day. w/h are CSS px; we upscale by DPR (capped) for crispness,
+  // and cap the longest rendered side so the oil paint stays fast.
+  const RENDER_CAP = 1300;
   function render(id, date, w, h) {
     const state = getClient(id);
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+    let pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+    const m = Math.max(pw, ph);
+    if (m > RENDER_CAP) { const k = RENDER_CAP / m; pw = Math.round(pw * k); ph = Math.round(ph * k); }
     const key = `${date}@${pw}x${ph}`;
     if (state.cache.has(key)) return Promise.resolve(state.cache.get(key));
 
@@ -239,6 +243,10 @@
       const url = await render(id, date, d.w, d.h);
       if (url) { img.src = url; requestAnimationFrame(() => img.classList.add('in')); }
       plate.classList.remove('loading');
+      // Prefetch neighbours (both directions) so the next step is a cache hit.
+      for (const j of [idx + 1, idx - 1, idx + 2, idx - 2]) {
+        if (j >= 0 && j < cal.length) render(id, cal[j], d.w, d.h);
+      }
     }
 
     const step = (n) => show(idx + n, true);

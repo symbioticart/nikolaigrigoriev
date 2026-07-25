@@ -120,8 +120,10 @@
 
     new p5((p) => {
       p.setup = () => {
-        if (p.pixelDensity) p.pixelDensity(cfg.pd);
-        const c = p.createCanvas(cfg.baseW, cfg.baseH, p.WEBGL2 || p.WEBGL);
+        // Render at exactly the requested pixels (pixelDensity 1) — no oversized
+        // fixed buffer, no downscale. This is the main paging-speed win.
+        if (p.pixelDensity) p.pixelDensity(1);
+        const c = p.createCanvas(16, 16, p.WEBGL2 || p.WEBGL);
         c.parent('off');
         glCanvas = c.elt;
         p5i = p;
@@ -131,41 +133,38 @@
         // Warm-up frame: the oil engine's first paint after context creation
         // comes out cold/washed. Render one throwaway frame so the first real
         // request is correct.
-        queue.unshift({ warmup: true, date: cfg.last(DATA), ow: 8, oh: 8 });
+        queue.unshift({ warmup: true, date: cfg.last(DATA), ow: 32, oh: 32 });
         p.loop();
       };
       // The paint MUST run inside draw so p5's pre/post hooks fire and the oil
-      // engine binds/flushes each frame (paints render blank/washed otherwise).
-      // The frame is read back inside the same draw with gl.readPixels (alpha
-      // forced opaque), then downscaled and posted. One job per frame; the loop
-      // parks itself (noLoop) when the queue drains.
+      // engine binds/flushes each frame. The frame is read back with gl.readPixels
+      // (alpha forced opaque) and posted as JPEG. One job per frame; the loop
+      // parks itself when the queue drains.
       p.draw = () => {
         const jb = queue.shift();
         if (!jb) { p.noLoop(); return; }
-        // resolve calendar date → painting + silence
         const r = jb.warmup ? { target: jb.date, gap: 0 } : resolve.get(jb.date);
         const day = r && byDate.get(r.target);
         if (!day) { if (!jb.warmup) post({ type: 'render', reqId: jb.reqId, ok: false, date: jb.date, err: 'no-day' }); return; }
         const sil = silenceFor(r.gap);
         try {
-          const pd = p.pixelDensity ? p.pixelDensity() : 1;
-          cfg.paint(p, day, DATA, p.width * pd, p.height * pd, sil.margin);
+          if (p.width !== jb.ow || p.height !== jb.oh) p.resizeCanvas(jb.ow, jb.oh);
+          cfg.paint(p, day, DATA, p.width, p.height, sil.margin);   // pd 1 → paint at exact px
           if (jb.warmup) return;           // discard the cold first frame
-          grabFull();
-          out.width = jb.ow; out.height = jb.oh;
-          octx.clearRect(0, 0, jb.ow, jb.oh);
-          octx.imageSmoothingQuality = 'high';
-          // withering: colour stills/drains, then presence dissolves into the
-          // ivory ground until the canvas is blank (death), never toward black.
+          const g = grabFull();            // reads ow×oh into `full`, opaque, flipped
+          out.width = g.w; out.height = g.h;
+          octx.clearRect(0, 0, g.w, g.h);
+          // withering: colour drains, then presence dissolves into the ivory
+          // ground until the canvas is blank (death), never toward black.
           octx.filter = r.gap > 0 && sil.gray > 0 ? `grayscale(${sil.gray.toFixed(3)})` : 'none';
-          octx.drawImage(full, 0, 0, jb.ow, jb.oh);
+          octx.drawImage(full, 0, 0);      // 1:1, no downscale
           octx.filter = 'none';
           if (sil.fade > 0) {
-            const g = fctx.getImageData(1, 1, 1, 1).data;   // the painting's ground colour
-            octx.fillStyle = `rgba(${g[0]},${g[1]},${g[2]},${sil.fade.toFixed(3)})`;
-            octx.fillRect(0, 0, jb.ow, jb.oh);
+            const gc = fctx.getImageData(1, 1, 1, 1).data;   // ground colour
+            octx.fillStyle = `rgba(${gc[0]},${gc[1]},${gc[2]},${sil.fade.toFixed(3)})`;
+            octx.fillRect(0, 0, g.w, g.h);
           }
-          post({ type: 'render', reqId: jb.reqId, ok: true, date: jb.date, gap: r.gap, url: out.toDataURL('image/png') });
+          post({ type: 'render', reqId: jb.reqId, ok: true, date: jb.date, gap: r.gap, url: out.toDataURL('image/jpeg', 0.9) });
         } catch (e) {
           if (!jb.warmup) post({ type: 'render', reqId: jb.reqId, ok: false, date: jb.date, err: 'paint:' + String((e && e.stack) || e) });
         }
@@ -204,8 +203,8 @@
   window.addEventListener('message', (e) => {
     const m = e.data;
     if (!m || m.__artcmd !== true || m.type !== 'render') return;
-    const ow = Math.max(2, Math.min(2600, Math.round(m.w || 0)));
-    const oh = Math.max(2, Math.min(2600, Math.round(m.h || 0)));
+    const ow = Math.max(2, Math.min(1500, Math.round(m.w || 0)));
+    const oh = Math.max(2, Math.min(1500, Math.round(m.h || 0)));
     queue.push({ reqId: m.reqId, date: m.date, ow, oh });
     if (ready && p5i) p5i.loop();       // wake the draw loop to consume the queue
   });
