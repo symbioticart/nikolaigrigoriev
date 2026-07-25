@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About — Nikolai Grigoriev</title>
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<main id="main">
+  <div class="wrap">
+    <div class="about">
+      <div class="portrait empty" id="portrait">Portrait<br>to be added</div>
+      <div class="prose">
+        <h1>Nikolai Grigoriev</h1>
+
+        <p>I make a life visible, so it can be lived as a work of art. Attention is what death sharpens: you see what a day is worth once you know they run out. I take one life — the record a body keeps without being asked — and turn it, slowly, into an image. Many of these lives collect into one piece for a museum. The work holds up no live mirror: it gives your day back only after the day has closed, so there is nothing to perform for. Medicine lengthens the body. I work on the part of a life that art can reach — its felt time, and the sense of having lived it.</p>
+
+        <p>I have been afraid of dying since I was a child. I refused to make that fear my subject and made its opposite my subject instead. Death ends a life, but it is also what makes a life worth composing: the pressure that turns ordinary days into something you would want to have lived on purpose. So I work on living rather than on dying, with death behind me, sharpening the attention.</p>
+
+        <p>I take a single life as material, mine first, because I do not ask of a work what I have not lived inside it. A body records itself while you are busy being alive. The work asks nothing of you, so what it takes is a life lived rather than one staged for it. No single life is the whole of the work, though. Each one feeds a larger body: the lives kept in a piece accrue into a collective form made to stand in a museum, a common portrait of many people living with attention.</p>
+
+        <p>Under all of it is a refusal to end. The work slows perception, so a day is felt for longer than it lasted. It keeps every day it has lived, so the life survives as a record. It is built to outlast the body, and to go on after me from the life of a stranger I will never meet. I came to art late and built its language myself. I do not want to leave objects. I want to leave a way of living.</p>
+
+        <div class="rule"></div>
+        <div class="kicker">Biography</div>
+        <p>Nikolai Grigoriev (b. 1987, Moscow) is a conceptual artist. He lives and works in Barcelona.</p>
+
+        <div class="kicker">Contact</div>
+        <div class="links">
+          <a href="/assets/cv.pdf" id="cvLink" target="_blank" rel="noopener">Curriculum Vitae (PDF)</a>
+          <a href="https://www.instagram.com/niko.grigoriev" target="_blank" rel="noopener">Instagram — @niko.grigoriev</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="/assets/site.js"></script>
+<script>
+  Site.mountHeader('about');
+
+  // If a real portrait exists at /assets/portrait.jpg, use it; else keep the placeholder.
+  (function () {
+    const img = new Image();
+    img.onload = () => {
+      const box = document.getElementById('portrait');
+      box.classList.remove('empty'); box.textContent = '';
+      const el = document.createElement('img');
+      el.src = img.src; el.alt = 'Nikolai Grigoriev';
+      box.appendChild(el);
+    };
+    img.src = '/assets/portrait.jpg';
+  })();
+
+  // Hide the CV link until a real cv.pdf is present (avoids a dead 404 link).
+  fetch('/assets/cv.pdf', { method: 'HEAD' })
+    .then((r) => { if (!r.ok) document.getElementById('cvLink').style.display = 'none'; })
+    .catch(() => { document.getElementById('cvLink').style.display = 'none'; });
+</script>
+</body>
+</html>

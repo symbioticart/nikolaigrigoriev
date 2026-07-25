@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Works — Nikolai Grigoriev</title>
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<main id="main">
+  <div class="wrap">
+    <div class="grid-head">
+      <h1>Works</h1>
+    </div>
+    <div class="works-grid" id="grid"></div>
+  </div>
+</main>
+<script src="/assets/site.js"></script>
+<script>
+  Site.mountHeader('works');
+  const grid = document.getElementById('grid');
+
+  async function mountTile(w) {
+    const a = document.createElement('a');
+    a.className = 'tile';
+    a.href = `/work.html?id=${w.id}`;
+    a.innerHTML =
+      `<div class="tile-frame"><img alt="${w.title}"></div>` +
+      `<div class="tile-cap"><span class="t">${w.title}</span> <span class="s"></span></div>`;
+    grid.appendChild(a);
+
+    // Shape + caption as soon as metadata is known — never blocked on a paint.
+    const meta = await Site.ready(w.id);
+    const frame = a.querySelector('.tile-frame');
+    frame.style.setProperty('--r', meta.ratio);
+    a.querySelector('.s').textContent = `${Site.fmtYear(meta.birth)} – Today`;
+
+    // Fire the render without blocking; fill the tile when it arrives.
+    const wpx = Math.round(frame.getBoundingClientRect().width) || 540;
+    const hpx = Math.round(wpx / meta.ratio);
+    const latest = meta.aliveList[meta.aliveList.length - 1];
+    Site.render(w.id, latest, wpx, hpx).then((url) => {
+      if (!url) return;
+      const img = a.querySelector('img');
+      img.onload = () => img.classList.add('in');
+      img.src = url;
+    });
+  }
+
+  // Build every tile up front; paints resolve independently.
+  Site.WORKS.forEach(mountTile);
+</script>
+</body>
+</html>

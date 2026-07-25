@@ -64,7 +64,8 @@ const BASE_HEADERS = {
   'Content-Security-Policy':
     "default-src 'none'; script-src 'self' 'unsafe-inline'; " +
     "style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; " +
-    "img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    "img-src 'self' data:; frame-src 'self'; child-src 'self'; " +
+    "base-uri 'none'; form-action 'none'; frame-ancestors 'self'",
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer',
   'Strict-Transport-Security': 'max-age=31536000',
@@ -760,6 +761,22 @@ http.createServer((req, res) => {
     });
     return;
   }
+  // ── Portfolio front-end surfaces (the site's new root): stylesheet + shared
+  //    JS under /assets, and the isolated painter iframes + shared p5 under /art.
+  //    The live paintings still read /data/days.json and /89/data.json above. ──
+  if (/^\/(assets|art)\//.test(url)) {
+    const subExt = path.extname(url).toLowerCase();
+    const SUB_OK = new Set(['.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.svg', '.woff2', '.json', '.map']);
+    if (!SUB_OK.has(subExt)) { res.writeHead(404, head({})); res.end('Not found'); return; }
+    const fp = path.join(dir, decodeURIComponent(url));
+    if (!fp.startsWith(dir)) { res.writeHead(404, head({})); res.end('Not found'); return; }
+    fs.readFile(fp, (err, data) => {
+      if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }
+      res.writeHead(200, head({ 'Content-Type': mimeTypes[subExt] || 'text/plain', 'Cache-Control': 'no-cache' }));
+      res.end(data);
+    });
+    return;
+  }
   if (url === '/og.jpg') {
     fs.readFile(path.join(dir, 'og.jpg'), (err, data) => {
       if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }
@@ -771,7 +788,8 @@ http.createServer((req, res) => {
   // The certificate's conditions are a public surface (council C-8): the terms
   // of the work are part of its honesty. Appendix A alone stays sealed.
   const SERVED = new Set([
-    '/index.html', '/archive.html', '/conditions.html',
+    '/index.html', '/works.html', '/work.html', '/about.html', '/archive.html',
+    '/conditions.html',
     '/painter.js', '/p5.oil.js', '/p5.oil.js.map',
     '/vendor/p5.min.js',
     '/fonts/manrope-latin.woff2', '/fonts/jetbrainsmono-latin.woff2',
@@ -790,8 +808,9 @@ http.createServer((req, res) => {
   // browser holds a poisoned copy (new page + old engine = black canvas).
   // Clear-Site-Data on the page response wipes the origin's cache the moment
   // the page revalidates; assets are also version-stamped (?v87r2).
-  const extra = (url === '/index.html' || url === '/archive.html' || url === '/conditions.html')
-    ? { 'Clear-Site-Data': '"cache"' } : {};
+  // Legacy cache-buster kept only for the old certificate page. The portfolio
+  // pages must NOT clear cache on every load — that would drop the 948 KB p5 lib.
+  const extra = (url === '/conditions.html') ? { 'Clear-Site-Data': '"cache"' } : {};
   fs.readFile(filePath, (err, data) => {
     if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }
     res.writeHead(200, head(Object.assign({ 'Content-Type': mimeTypes[ext] || 'text/plain', 'Cache-Control': cache }, extra)));

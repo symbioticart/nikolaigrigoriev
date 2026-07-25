@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>render</title>
+<style>
+  html,body{margin:0;background:transparent;overflow:hidden}
+  #off{position:fixed;left:-10000px;top:0}
+</style>
+</head>
+<body>
+<div id="off"></div>
+
+<!-- shared engine (identical across works) -->
+<script src="lib/p5.min.js"></script>
+<script src="lib/p5.oil.js"></script>
+<script>
+/* ─────────────────────────────────────────────────────────────────────────
+   Generic painter host. One iframe = one work = one JS realm, so the two
+   painters' colliding globals never meet and the `oil` singleton binds to
+   this iframe's single WEBGL context only.
+
+   The painting is rendered at a FIXED high-resolution buffer and painted
+   SYNCHRONOUSLY (p5 2.x redraw() is deferred and would capture the previous
+   frame — the cause of washed-out / mismatched output). The full buffer is
+   read back with gl.readPixels (alpha forced to 255 to avoid the
+   premultiplied-alpha washout of translucent oil) and downscaled to the
+   requested display size.
+
+   Protocol (postMessage with parent):
+     iframe → parent  {type:'ready', work, birth, last, ratio, alive:[…], incomplete:[…]}
+     parent → iframe  {type:'render', reqId, date, w, h}
+     iframe → parent  {type:'render', reqId, ok, date, url}
+   ───────────────────────────────────────────────────────────────────────── */
+(function () {
+  const params = new URLSearchParams(location.search);
+  const WORK = params.get('work') || '87';
+
+  const CONFIG = {
+    '87': {
+      // LIVE: the same record that feeds nikolaigrigoriev.com, so the work
+      // keeps living. Server returns { days:[{d,s,c,i}], meta:{birth,lastDataDay,…} }.
+      painter: '87/painter.js', dataUrl: '/data/days.json', dateField: 'd',
+      baseW: 980, baseH: 700, pd: 2,
+      birth: (D) => (D.meta && D.meta.birth) || (D.days[0] && D.days[0].d),
+      last:  (D) => (D.meta && (D.meta.lastDataDay || D.meta.last)) || (D.days[D.days.length - 1] && D.days[D.days.length - 1].d),
+      days: (D) => D.days,
+      paint: (p, day, D, w, h, sil) => window.Painter.paintDay(p, day, D, w, h, sil),
+    },
+    '89': {
+      // LIVE: /89/data.json returns { days:[raw Oura metrics], meta }.
+      painter: '89/painter.js', dataUrl: '/89/data.json', dateField: 'day',
+      baseW: 920, baseH: 1350, pd: 1,
+      birth: (D) => D.days[0] && D.days[0].day,
+      last:  (D) => D.days[D.days.length - 1] && D.days[D.days.length - 1].day,
+      days: (D) => D.days,
+      // OuraPainter has no silence arg — withering is applied as a filter below.
+      paint: (p, day, D, w, h, sil) => window.OuraPainter.paintDay(p, day, D, w, h),
+    },
+  };
+  const cfg = CONFIG[WORK];
+  const RATIO = cfg.baseW / cfg.baseH;
+
+  let DATA = null, p5i = null, glCanvas = null, ready = false;
+  const queue = [];
+  const byDate = new Map();
+  const resolve = new Map();     // every calendar date → { target, gap }
+
+  function daysBetween(a, b) {
+    return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000);
+  }
+  function addDaysISO(iso, n) {
+    return new Date(Date.parse(iso + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);
+  }
+  // Silence / withering — data-room canon "Death without erasure" (C-12,
+  // 2026-07-23): a short silence (≤14d) PAUSES — the last painting petrifies,
+  // held. A longer silence DESICCATES — colour drains and presence fades until,
+  // by day 90, the image DISAPPEARS into a blank canvas (death is blank, never
+  // black). Any later signal resurrects it to full colour. Lineage: Opałka, Kawara.
+  function silenceFor(gap) {
+    const g = Math.max(0, gap);
+    const desicc = g <= 14 ? 0 : Math.min(1, (g - 14) / (90 - 14));  // 0 at day 14 → 1 at day 90
+    return {
+      margin: desicc,                              // form contracts into void (painter silence)
+      gray:   Math.min(1, g / 40),                 // colour stills (petrify) then drains
+      fade:   desicc,                              // presence dissolves into the ground → blank at day 90
+    };
+  }
+
+  // scratch canvases: `full` = the opaque, Y-corrected full-res frame;
+  // `out` = the downscaled deliverable.
+  const full = document.createElement('canvas');
+  const fctx = full.getContext('2d');
+  const out = document.createElement('canvas');
+  const octx = out.getContext('2d');
+
+  function loadScript(src) {
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = src; s.onload = res; s.onerror = () => rej(new Error('load ' + src));
+      document.body.appendChild(s);
+    });
+  }
+
+  async function boot() {
+    await loadScript(cfg.painter);
+    DATA = await fetch(cfg.dataUrl, { cache: 'no-store' }).then((r) => r.json());
+    cfg.days(DATA).forEach((d) => byDate.set(d[cfg.dateField], d));
+
+    // Map every calendar date (birth → last data day) to the painting it shows:
+    // an alive date shows its own day (gap 0); a silent date holds the last
+    // painting before it, withering by the gap length.
+    const birth = cfg.birth(DATA), last = cfg.last(DATA);
+    let lastAlive = birth;
+    for (let d = birth; daysBetween(d, last) >= 0; d = addDaysISO(d, 1)) {
+      if (byDate.has(d)) { lastAlive = d; resolve.set(d, { target: d, gap: 0 }); }
+      else resolve.set(d, { target: lastAlive, gap: daysBetween(lastAlive, d) });
+    }
+
+    new p5((p) => {
+      p.setup = () => {
+        if (p.pixelDensity) p.pixelDensity(cfg.pd);
+        const c = p.createCanvas(cfg.baseW, cfg.baseH, p.WEBGL2 || p.WEBGL);
+        c.parent('off');
+        glCanvas = c.elt;
+        p5i = p;
+        p.noLoop();
+        ready = true;
+        announce();
+        // Warm-up frame: the oil engine's first paint after context creation
+        // comes out cold/washed. Render one throwaway frame so the first real
+        // request is correct.
+        queue.unshift({ warmup: true, date: cfg.last(DATA), ow: 8, oh: 8 });
+        p.loop();
+      };
+      // The paint MUST run inside draw so p5's pre/post hooks fire and the oil
+      // engine binds/flushes each frame (paints render blank/washed otherwise).
+      // The frame is read back inside the same draw with gl.readPixels (alpha
+      // forced opaque), then downscaled and posted. One job per frame; the loop
+      // parks itself (noLoop) when the queue drains.
+      p.draw = () => {
+        const jb = queue.shift();
+        if (!jb) { p.noLoop(); return; }
+        // resolve calendar date → painting + silence
+        const r = jb.warmup ? { target: jb.date, gap: 0 } : resolve.get(jb.date);
+        const day = r && byDate.get(r.target);
+        if (!day) { if (!jb.warmup) post({ type: 'render', reqId: jb.reqId, ok: false, date: jb.date, err: 'no-day' }); return; }
+        const sil = silenceFor(r.gap);
+        try {
+          const pd = p.pixelDensity ? p.pixelDensity() : 1;
+          cfg.paint(p, day, DATA, p.width * pd, p.height * pd, sil.margin);
+          if (jb.warmup) return;           // discard the cold first frame
+          grabFull();
+          out.width = jb.ow; out.height = jb.oh;
+          octx.clearRect(0, 0, jb.ow, jb.oh);
+          octx.imageSmoothingQuality = 'high';
+          // withering: colour stills/drains, then presence dissolves into the
+          // ivory ground until the canvas is blank (death), never toward black.
+          octx.filter = r.gap > 0 && sil.gray > 0 ? `grayscale(${sil.gray.toFixed(3)})` : 'none';
+          octx.drawImage(full, 0, 0, jb.ow, jb.oh);
+          octx.filter = 'none';
+          if (sil.fade > 0) {
+            const g = fctx.getImageData(1, 1, 1, 1).data;   // the painting's ground colour
+            octx.fillStyle = `rgba(${g[0]},${g[1]},${g[2]},${sil.fade.toFixed(3)})`;
+            octx.fillRect(0, 0, jb.ow, jb.oh);
+          }
+          post({ type: 'render', reqId: jb.reqId, ok: true, date: jb.date, gap: r.gap, url: out.toDataURL('image/png') });
+        } catch (e) {
+          if (!jb.warmup) post({ type: 'render', reqId: jb.reqId, ok: false, date: jb.date, err: 'paint:' + String((e && e.stack) || e) });
+        }
+      };
+    });
+  }
+
+  function announce() {
+    const list = cfg.days(DATA);
+    post({
+      type: 'ready', work: WORK,
+      birth: cfg.birth(DATA), last: cfg.last(DATA), ratio: RATIO,
+      count: list.length,
+      alive: list.map((d) => d[cfg.dateField]),
+      incomplete: list.filter((d) => d.i === 1).map((d) => d[cfg.dateField]),
+    });
+  }
+
+  // Read the full framebuffer, flip GL's bottom-up rows, force alpha=255.
+  function grabFull() {
+    const gl = glCanvas.getContext('webgl2') || glCanvas.getContext('webgl');
+    const w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
+    const buf = new Uint8Array(w * h * 4);
+    gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+    if (full.width !== w || full.height !== h) { full.width = w; full.height = h; }
+    const img = fctx.createImageData(w, h);
+    const row = w * 4;
+    for (let y = 0; y < h; y++) img.data.set(buf.subarray((h - 1 - y) * row, (h - y) * row), y * row);
+    for (let i = 3; i < img.data.length; i += 4) img.data[i] = 255;
+    fctx.putImageData(img, 0, 0);
+    return { w, h };
+  }
+
+  function post(obj) { parent.postMessage(Object.assign({ __art: true }, obj), '*'); }
+
+  window.addEventListener('message', (e) => {
+    const m = e.data;
+    if (!m || m.__artcmd !== true || m.type !== 'render') return;
+    const ow = Math.max(2, Math.min(2600, Math.round(m.w || 0)));
+    const oh = Math.max(2, Math.min(2600, Math.round(m.h || 0)));
+    queue.push({ reqId: m.reqId, date: m.date, ow, oh });
+    if (ready && p5i) p5i.loop();       // wake the draw loop to consume the queue
+  });
+
+  boot().catch((e) => post({ type: 'error', work: WORK, error: String((e && e.stack) || e) }));
+})();
+</script>
+</body>
+</html>

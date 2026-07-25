@@ -1,0 +1,259 @@
+/* ── Nikolai Grigoriev — portfolio ────────────────────────────────────────
+   Design language after austinlee.net: white ground, near-black ink,
+   Helvetica Neue, quiet grey navigation, the work centred and alone.      */
+
+:root{
+  --bg:#ffffff;
+  --ink:#111111;
+  --grey:#767676;      /* nav / secondary — WCAG AA (4.5:1) on white */
+  --faint:#666666;     /* caption year */
+  --hair:#e8e8e8;      /* hairlines */
+  --silence:#d4d4d4;   /* archive: a day with no data */
+  --pad: 26px;
+  --fs-name:16px;
+  --fs-nav:13px;
+  --fs-cap:13px;
+  --ease:cubic-bezier(.4,0,.2,1);
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{min-height:100vh;font-size:14px;line-height:1.5}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* skip link — visually hidden until focused */
+.skip{position:fixed;top:8px;left:8px;z-index:100;transform:translateY(-160%);
+  background:var(--ink);color:#fff;padding:10px 14px;font-size:13px;
+  transition:transform .2s var(--ease)}
+.skip:focus{transform:translateY(0)}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important}
+  .plate.loading::after{display:none}
+}
+
+/* ── Header ───────────────────────────────────────────────────────────── */
+.site-head{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:calc(var(--pad) - 2px) var(--pad);
+  background:linear-gradient(var(--bg) 62%, rgba(255,255,255,0));
+}
+.site-name{font-size:var(--fs-name);letter-spacing:.32px;color:var(--ink)}
+.site-nav{display:flex;gap:26px}
+.site-nav a{font-size:var(--fs-nav);color:var(--grey);
+  letter-spacing:.2px;transition:color .25s var(--ease)}
+.site-nav a:hover,.site-nav a[aria-current="page"]{color:var(--ink)}
+.site-nav .ext{font-size:9px;vertical-align:1px}
+
+/* ── Generic page frame ───────────────────────────────────────────────── */
+main{padding:0 var(--pad)}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* ── Hero / single work block ─────────────────────────────────────────── */
+.work-stage{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:120px 0 96px;
+  scroll-snap-align:center;
+}
+/* home: the first hero stops a little short of a full screen so the top of the
+   next work peeks above the fold — a wordless "scroll" cue. */
+.home-stage:first-child{min-height:64vh;padding-top:104px}
+/* plate centred in the viewport; the archive rail hangs off its right edge
+   without shifting the painting's centre. */
+.stage-inner{position:relative;display:block}
+.plate{position:relative;display:block}
+.plate img{
+  display:block;
+  box-shadow:0 22px 55px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.05);
+  background:transparent;
+  opacity:0;transition:opacity .5s var(--ease);
+}
+.plate img.in{opacity:1}
+.plate.loading::after{
+  content:"";position:absolute;inset:0;margin:auto;width:22px;height:22px;
+  border:1.5px solid var(--hair);border-top-color:var(--grey);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* left / right paging zones over the painting — invisible; only the cursor
+   changes to signal you can page left/right, no on-image arrows. */
+.nav-zone{
+  position:absolute;top:0;bottom:0;width:38%;z-index:4;
+  background:none;border:0;padding:0;
+}
+.nav-prev{left:0;cursor:w-resize}
+.nav-next{right:0;cursor:e-resize}
+.nav-zone:disabled{cursor:default}
+
+/* vertical archive link riding the right edge of the plate */
+.archive-rail{
+  position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:14px;
+  writing-mode:vertical-rl;text-orientation:mixed;
+  font-size:12px;letter-spacing:.08em;color:var(--grey);
+  padding:4px 2px;transition:color .25s var(--ease);
+  white-space:nowrap;
+}
+.archive-rail:hover{color:var(--ink)}
+/* close × — just OUTSIDE the painting, in the margin beside its top-right
+   corner (the header stays). A gutter is reserved so it never clips. */
+.close-btn{
+  position:absolute;top:0;left:100%;margin-left:10px;z-index:6;
+  width:26px;height:26px;display:flex;align-items:flex-start;justify-content:center;
+  font-size:24px;line-height:1;font-weight:300;color:var(--grey);
+  transition:color .2s var(--ease);
+}
+.close-btn:hover{color:var(--ink)}
+
+/* caption below the work */
+.caption{margin-top:22px;text-align:center;line-height:1.7}
+.caption .title{font-size:var(--fs-cap);font-weight:400;color:var(--ink);letter-spacing:.2px}
+.caption .title a{color:inherit}
+.caption .span{font-size:var(--fs-cap);color:var(--faint)}
+/* museum caption line: medium · support · dates */
+.caption .medium{max-width:44ch;margin:6px auto 0;font-size:12px;line-height:1.55;
+  color:var(--faint);letter-spacing:.2px}
+.daynav{margin-top:11px;display:flex;align-items:center;justify-content:center;gap:16px;
+  font-size:12px;color:var(--faint)}
+.daynav button{
+  font:inherit;font-size:15px;line-height:1;color:var(--grey);background:none;border:0;
+  cursor:pointer;padding:2px 4px;transition:color .2s var(--ease)}
+.daynav button:hover:not(:disabled){color:var(--ink)}
+.daynav button:disabled{color:var(--hair);cursor:default}
+.daynav .cur{min-width:112px;text-align:center;font-variant-numeric:tabular-nums}
+
+/* ── Works grid ───────────────────────────────────────────────────────── */
+.grid-head{padding:130px 0 40px}
+.grid-head h1{font-size:15px;font-weight:400;letter-spacing:.2px}
+.grid-head .sub{font-size:13px;color:var(--faint);margin-top:6px}
+.works-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:64px 56px;padding-bottom:120px;
+}
+.tile{display:block;cursor:pointer}
+.tile-frame{position:relative;width:100%;aspect-ratio:var(--r,1.4);
+  background:#f4f4f4;overflow:hidden;outline:1px solid rgba(0,0,0,.06);outline-offset:-1px}
+.tile-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity .5s var(--ease)}
+.tile-frame img.in{opacity:1}
+.tile-cap{margin-top:14px;font-size:13px;letter-spacing:.2px}
+.tile-cap .t{color:var(--ink)}
+.tile-cap .s{color:var(--faint)}
+.tile:hover .tile-frame{outline-color:rgba(0,0,0,.22)}
+
+/* ── Archive (vertical calendar) ──────────────────────────────────────── */
+.arch-head{padding:130px 0 30px}
+.arch-head .back{font-size:13px;color:var(--grey)}
+.arch-head .back:hover{color:var(--ink)}
+.arch-head h1{font-size:15px;font-weight:400;margin-top:16px;letter-spacing:.2px}
+.arch-head .sub{font-size:13px;color:var(--faint);margin-top:6px}
+.arch-legend{display:flex;gap:22px;margin-top:18px;font-size:12px;color:var(--faint)}
+.arch-legend i{display:inline-block;width:10px;height:10px;margin-right:7px;vertical-align:-1px}
+.i-alive{background:var(--ink)}
+.i-dead{background:var(--silence)}
+
+.arch-scroll{padding-bottom:140px}
+.arch-month{margin-top:40px}
+.arch-month h2{font-size:12px;letter-spacing:.16em;color:var(--grey);
+  text-transform:uppercase;margin-bottom:14px;font-weight:400}
+.arch-row{display:flex;flex-wrap:wrap;gap:7px}
+.cell{
+  position:relative;display:block;width:15px;height:15px;border-radius:2px;
+  background:var(--silence);cursor:pointer;
+  transition:transform .12s var(--ease),background .2s var(--ease);
+}
+.cell:hover{transform:scale(1.35);z-index:3}
+.cell:not(.alive):hover{background:#bdbdbd}
+.cell.alive{background:#1a1a1a}
+.cell.incomplete{background:#8a8a8a}
+
+/* hover preview bubble */
+.day-preview{
+  position:fixed;z-index:80;pointer-events:none;
+  padding:6px;background:#fff;box-shadow:0 12px 40px rgba(0,0,0,.18);
+  opacity:0;transform:translateY(4px);transition:opacity .16s var(--ease),transform .16s var(--ease);
+}
+.day-preview.show{opacity:1;transform:translateY(0)}
+.day-preview img{width:100%;height:auto;display:block;background:#000}
+.day-preview .pv-date{font-size:11px;color:var(--faint);text-align:center;
+  padding:6px 2px 2px;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+
+/* ── About ────────────────────────────────────────────────────────────── */
+.about{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);
+  gap:64px;padding:140px 0 130px;align-items:start}
+.about .portrait{width:100%;aspect-ratio:4/5;background:#f0f0f0;overflow:hidden;
+  outline:1px solid rgba(0,0,0,.06);outline-offset:-1px}
+.about .portrait img{width:100%;height:100%;object-fit:cover}
+.about .portrait.empty{display:flex;align-items:center;justify-content:center;
+  color:var(--grey);font-size:12px;letter-spacing:.05em;text-align:center;padding:20px}
+.about .prose{max-width:56ch}
+.about .prose h1{font-size:15px;font-weight:400;margin-bottom:22px;letter-spacing:.2px}
+.about .prose p{font-size:14px;line-height:1.75;margin-bottom:16px;color:#1c1c1c}
+.about .kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--grey);margin:34px 0 12px}
+.about .links{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+.about .links a{font-size:14px;color:var(--ink);width:max-content;
+  border-bottom:1px solid var(--hair);padding-bottom:2px;transition:border-color .2s var(--ease)}
+.about .links a:hover{border-color:var(--ink)}
+.about .prose .rule{height:1px;background:var(--hair);margin:30px 0}
+
+/* concept text on a work page */
+.concept{max-width:60ch;margin:56px auto 0;padding:0 4px}
+.concept .kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--grey);margin-bottom:14px;text-align:center}
+.concept p{font-size:14px;line-height:1.8;color:#1c1c1c;margin-bottom:15px}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width:900px){
+  .about{grid-template-columns:1fr;gap:36px;padding-top:120px}
+  .about .portrait{max-width:300px}
+  .works-grid{gap:48px 40px}
+}
+@media (max-width:640px){
+  :root{--pad:16px}
+  .site-head{padding:16px}
+  .site-name{font-size:16px;letter-spacing:.3px}   /* the page's one anchor */
+  .site-nav{gap:18px}
+  .site-nav a{font-size:12px;padding:6px 0}         /* taller tap target */
+  .work-stage{padding:100px 0 72px;min-height:84vh} /* each work sits alone */
+  .home-stage:first-child{min-height:64vh}          /* keep the peek */
+  .grid-head,.arch-head{padding-top:104px}
+  .works-grid{grid-template-columns:1fr;gap:40px}
+
+  /* primary paging arrows → 44px hit area */
+  .daynav{gap:22px;margin-top:12px}
+  .daynav button{min-width:44px;min-height:44px;padding:12px;font-size:18px}
+
+  /* archive link: drop the vertical rail, place it under the painting so the
+     image reclaims the full width */
+  .archive-rail{position:static;left:auto;top:auto;transform:none;margin:16px auto 0;
+    writing-mode:horizontal-tb;text-orientation:mixed;display:block;text-align:center;
+    font-size:12px;letter-spacing:.08em}
+
+  .close-btn{width:44px;height:44px;top:4px;right:4px;font-size:26px}
+
+  .cell{width:20px;height:20px}                     /* comfier tap target */
+  .arch-row{gap:9px}
+  .day-preview{display:none}                        /* no hover on touch */
+}
+
+/* stack the header on phones so name + all three nav links stay visible */
+@media (max-width:480px){
+  .site-head{flex-direction:column;align-items:flex-start;gap:10px}
+  .site-nav{gap:20px}
+}
+
+/* touch devices: remove pointer-only affordances and sticky :hover states */
+@media (hover:none){
+  .nav-zone{display:none}
+  .cell:hover{transform:none}
+  .cell:not(.alive):hover{background:var(--silence)}
+  .tile:hover .tile-frame{outline-color:rgba(0,0,0,.06)}
+}

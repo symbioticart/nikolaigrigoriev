@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Work — Nikolai Grigoriev</title>
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<main id="main">
+  <div class="wrap">
+    <section class="work-stage" id="stage" style="min-height:auto;padding-top:120px"></section>
+  </div>
+</main>
+<script src="/assets/site.js"></script>
+<script>
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id') || Site.WORKS[0].id;
+  const startDate = params.get('date') || null;
+  const stage = document.getElementById('stage');
+
+  // Arriving from the archive (a specific past date) is a single-state view:
+  // the header stays and a close × sits just outside the painting's top-right.
+  const fromArchive = !!startDate;
+  Site.mountHeader('works');
+
+  (async () => {
+    if (!Site.WORK_BY_ID[id]) { location.href = '/works.html'; return; }
+    await Site.mountArtBlock(stage, {
+      id, titleLink: false, keys: true, startDate,
+      rail: fromArchive ? 'close' : 'archive',
+      maxW: 1080, maxH: 760, maxHvh: 0.72, railGutter: 40,
+    });
+  })();
+</script>
+</body>
+</html>
