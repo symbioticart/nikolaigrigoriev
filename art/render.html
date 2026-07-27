@@ -167,7 +167,7 @@
             octx.fillStyle = `rgba(${gc[0]},${gc[1]},${gc[2]},${sil.fade.toFixed(3)})`;
             octx.fillRect(0, 0, jb.ow, jb.oh);
           }
-          post({ type: 'render', reqId: jb.reqId, ok: true, date: jb.date, gap: r.gap, url: out.toDataURL('image/jpeg', 0.9) });
+          post({ type: 'render', reqId: jb.reqId, ok: true, date: jb.date, gap: r.gap, url: out.toDataURL('image/png') });
         } catch (e) {
           if (!jb.warmup) post({ type: 'render', reqId: jb.reqId, ok: false, date: jb.date, err: 'paint:' + String((e && e.stack) || e) });
         }
@@ -206,8 +206,11 @@
   window.addEventListener('message', (e) => {
     const m = e.data;
     if (!m || m.__artcmd !== true || m.type !== 'render') return;
-    const ow = Math.max(2, Math.min(1500, Math.round(m.w || 0)));
-    const oh = Math.max(2, Math.min(1500, Math.round(m.h || 0)));
+    // Deliver at up to the full painted buffer (never upscale beyond it, never
+    // downscale below what the display asks) so the image stays crisp.
+    const capW = cfg.baseW * cfg.pd, capH = cfg.baseH * cfg.pd;
+    const ow = Math.max(2, Math.min(capW, Math.round(m.w || 0)));
+    const oh = Math.max(2, Math.min(capH, Math.round(m.h || 0)));
     queue.push({ reqId: m.reqId, date: m.date, ow, oh });
     if (ready && p5i) p5i.loop();       // wake the draw loop to consume the queue
   });

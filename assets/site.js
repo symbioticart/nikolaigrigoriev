@@ -85,15 +85,12 @@
     }
   });
 
-  // Render one day. w/h are CSS px; we upscale by DPR (capped) for crispness,
-  // and cap the longest rendered side so the oil paint stays fast.
-  const RENDER_CAP = 1300;
+  // Render one day. w/h are CSS px; we upscale by DPR for crispness. The iframe
+  // caps delivery at the full painted buffer, so this stays sharp on retina.
   function render(id, date, w, h) {
     const state = getClient(id);
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    let pw = Math.round(w * dpr), ph = Math.round(h * dpr);
-    const m = Math.max(pw, ph);
-    if (m > RENDER_CAP) { const k = RENDER_CAP / m; pw = Math.round(pw * k); ph = Math.round(ph * k); }
+    const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
     const key = `${date}@${pw}x${ph}`;
     if (state.cache.has(key)) return Promise.resolve(state.cache.get(key));
 
