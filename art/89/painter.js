@@ -257,10 +257,18 @@ function pickColorField(m, moodT, bgL, fv, rng) {
 // built from data.days once and cached on the object (data._dist).
 function paintDay(p, day, data, W, H) {
   const days = (data && data.days) || [];
-  if (data && !data._dist) data._dist = buildPercentiles(days);
-  const dist = (data && data._dist) || buildPercentiles(days);
-
-  const m = normalizeMetrics(day, dist);
+  // FROZEN INPUT: when the server supplies the day's causal channels (day._m),
+  // render from them — the ranking was fixed the day it ended, so the painting
+  // never drifts as the record grows (mirrors Variation 87 / rule.js). Fall back
+  // to a live global percentile sort only in standalone/dev use with no _m.
+  let m;
+  if (day && day._m) {
+    m = Object.assign({}, day._m, { _raw: day });
+  } else {
+    if (data && !data._dist) data._dist = buildPercentiles(days);
+    const dist = (data && data._dist) || buildPercentiles(days);
+    m = normalizeMetrics(day, dist);
+  }
   const moodT = (m.readiness + m.sleep + m.hrv) / 3;
 
   // Seed RNG and oil textures from body only — identical body ⇒ identical canvas.

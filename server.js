@@ -11,6 +11,7 @@ const fs     = require('fs');
 const path   = require('path');
 const crypto = require('crypto');
 const rule   = require('./rule');
+const rule89 = require('./rule89');
 
 const dir  = __dirname;
 const port = process.env.PORT || 3457;
@@ -494,8 +495,11 @@ function mergeDays(...sources) {
 function setDays(rawDays, live) {
   STATE.days = rule.transformDays(rawDays, WORK_OWNER);
   // Variation 89 (a sibling work on this domain, /89) renders from the daily
-  // record by its own older rule; it is served the record at /89/data.json.
+  // record. Its normalization is now FROZEN causally (rule89) — mirroring 87 —
+  // so a past day's painting never drifts as the record grows. The frozen
+  // channels are served per-day as day._m at /89/data.json.
   STATE.raw = rawDays;
+  STATE.m89 = rule89.freezeDays89(rawDays);
   STATE.lastDataDay = rawDays.length ? rawDays[rawDays.length - 1].day : null;
   STATE.live = live;
   // first load sets the baseline silently; only later advances are announced
@@ -739,8 +743,13 @@ http.createServer((req, res) => {
   // ── Variation 89 (vertical daily story) — its own data contract ──
   if (url === '/89/data.json') {
     if (!STATE.days) loadRecord();
+    // Attach the frozen causal channels (day._m) so the painter renders from a
+    // fixed input — no global sort, no drift. Shallow-clone so STATE.raw stays raw.
+    const raw = STATE.raw || [];
+    const m89 = STATE.m89 || [];
+    const days = raw.map((d, i) => Object.assign({}, d, { _m: m89[i] || null }));
     res.writeHead(200, head({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }));
-    res.end(JSON.stringify({ days: STATE.raw || [], meta: currentMeta() }));
+    res.end(JSON.stringify({ days, meta: currentMeta() }));
     return;
   }
   if (url === '/') url = '/index.html';
