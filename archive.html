@@ -23,6 +23,7 @@
 </main>
 <div class="day-preview" id="preview"><img alt=""><div class="pv-date"></div></div>
 
+<script src="/art/silence.js"></script>
 <script src="/assets/site.js"></script>
 <script>
   Site.mountHeader('works');
@@ -41,18 +42,10 @@
 
   function daysInMonth(y, m) { return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
 
-  // A silent day's shade follows the work's own death curve (data-room "Death
-  // without erasure"): held/petrified for the first ~14 days (dark grey, the
-  // last painting still present), then desiccating — lightening toward the blank
-  // canvas of death by day 90. So the calendar itself shows the work living
-  // (black), pausing, fading, and dying (near-white) across every gap.
-  function silenceShade(gap) {
-    const desicc = gap <= 14 ? 0 : Math.min(1, (gap - 14) / (90 - 14));
-    const petrify = 0.30 + Math.min(1, (gap - 1) / 13) * 0.12;   // 0.30 → 0.42 over 14 days
-    const L = petrify + (0.93 - petrify) * desicc;               // → 0.93 (near blank) by day 90
-    const v = Math.round(L * 255);
-    return `rgb(${v},${v},${v})`;
-  }
+  // A silent day's shade follows the ONE shared death curve (art/silence.js) —
+  // the same the painting uses: day with data = near-black, silence lightens,
+  // death = near-white (blank canvas). One source, every surface identical.
+  const silenceShade = (gap) => window.SILENCE.shade(gap);
 
   (async () => {
     const meta = await Site.ready(id);

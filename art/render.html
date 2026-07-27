@@ -15,6 +15,7 @@
 <!-- shared engine (identical across works) -->
 <script src="lib/p5.min.js"></script>
 <script src="lib/p5.oil.js"></script>
+<script src="silence.js"></script>
 <script>
 /* ─────────────────────────────────────────────────────────────────────────
    Generic painter host. One iframe = one work = one JS realm, so the two
@@ -78,15 +79,9 @@
   // held. A longer silence DESICCATES — colour drains and presence fades until,
   // by day 90, the image DISAPPEARS into a blank canvas (death is blank, never
   // black). Any later signal resurrects it to full colour. Lineage: Opałka, Kawara.
-  function silenceFor(gap) {
-    const g = Math.max(0, gap);
-    const desicc = g <= 14 ? 0 : Math.min(1, (g - 14) / (90 - 14));  // 0 at day 14 → 1 at day 90
-    return {
-      margin: desicc,                              // form contracts into void (painter silence)
-      gray:   Math.min(1, g / 40),                 // colour stills (petrify) then drains
-      fade:   desicc,                              // presence dissolves into the ground → blank at day 90
-    };
-  }
+  // Silence/death curve lives in one shared module (art/silence.js), used here
+  // and by the archive — so every surface withers identically.
+  const silenceFor = (gap) => window.SILENCE.params(gap);
 
   // scratch canvases: `full` = the opaque, Y-corrected full-res frame;
   // `out` = the downscaled deliverable.
