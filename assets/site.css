@@ -83,12 +83,24 @@ main{padding:0 var(--pad)}
   opacity:0;transition:opacity .5s var(--ease);
 }
 .plate img.in{opacity:1}
+/* The wait is the work forming, not a technical delay. While a day is being made
+   into paint, the plate states the event — never "loading/rendering" (council
+   C-12, 2026-07-27). Two lines: the event, then its duration, in the language of
+   the work. Kin to On Kawara / Opałka / Hsieh — duration as material. */
+.plate.loading::before,
 .plate.loading::after{
-  content:"";position:absolute;inset:0;margin:auto;width:22px;height:22px;
-  border:1.5px solid var(--hair);border-top-color:var(--grey);border-radius:50%;
-  animation:spin .8s linear infinite;
+  position:absolute;left:8%;right:8%;text-align:center;pointer-events:none;
 }
-@keyframes spin{to{transform:rotate(360deg)}}
+.plate.loading::before{
+  content:"A day the body recorded is being made into paint.";
+  top:50%;transform:translateY(calc(-100% - 8px));
+  font-size:15px;line-height:1.5;color:var(--ink);
+}
+.plate.loading::after{
+  content:"It takes the time it takes.";
+  top:50%;transform:translateY(10px);
+  font-size:12px;line-height:1.4;color:var(--grey);
+}
 
 /* left / right paging zones over the painting — invisible; only the cursor
    changes to signal you can page left/right, no on-image arrows. */
