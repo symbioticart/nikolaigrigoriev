@@ -121,7 +121,7 @@
       (opts.minimal ? '' :
         `<nav class="site-nav" aria-label="Primary">` +
         nav.map((n) => n.external
-          ? `<a href="${n.href}" target="_blank" rel="noopener" aria-label="${n.label} (opens in a new tab)">${n.label}<span class="ext" aria-hidden="true"> ↗</span></a>`
+          ? `<a href="${n.href}" target="_blank" rel="noopener" aria-label="${n.label} (opens in a new tab)">${n.label}<svg class="ext" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.4 8.6 L8.6 3.4 M4.9 3.4 H8.6 V7.1" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></a>`
           : `<a href="${n.href}"${n.key === active ? ' aria-current="page"' : ''}>${n.label}</a>`).join('') +
         `</nav>`);
     document.body.prepend(el);

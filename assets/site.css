@@ -49,7 +49,10 @@ img{max-width:100%;display:block}
 .site-nav a{font-size:var(--fs-nav);color:var(--grey);
   letter-spacing:.2px;transition:color .25s var(--ease)}
 .site-nav a:hover,.site-nav a[aria-current="page"]{color:var(--ink)}
-.site-nav .ext{font-size:9px;vertical-align:1px}
+/* ascetic north-east arrow — an inline SVG, never an emoji glyph (U+2197 renders
+   as a colour emoji on iOS). Sized in em so it tracks the link's font-size. */
+.site-nav .ext{width:.6em;height:.6em;margin-left:4px;vertical-align:baseline;
+  display:inline-block;overflow:visible}
 
 /* ── Generic page frame ───────────────────────────────────────────────── */
 main{padding:0 var(--pad)}
@@ -62,9 +65,13 @@ main{padding:0 var(--pad)}
   padding:120px 0 96px;
   scroll-snap-align:center;
 }
-/* home: the first hero stops a little short of a full screen so the top of the
-   next work peeks above the fold — a wordless "scroll" cue. */
-.home-stage:first-child{min-height:64vh;padding-top:104px}
+/* home: the first hero fills the screen but stops a fixed gap short, so the TOP
+   OF THE NEXT PAINTING (not empty padding) peeks above the fold — a wordless
+   "there is more below" cue. The next stage is top-aligned so what shows in the
+   gap is the painting itself. */
+.home-stage:first-child{min-height:calc(100vh - 132px);padding-top:104px;padding-bottom:0}
+.home-stage:first-child{min-height:calc(100svh - 132px)}
+.home-stage:not(:first-child){justify-content:flex-start;padding-top:22px}
 /* plate centred in the viewport; the archive rail hangs off its right edge
    without shifting the painting's centre. */
 .stage-inner{position:relative;display:block}
@@ -223,7 +230,9 @@ main{padding:0 var(--pad)}
   .site-nav{gap:18px}
   .site-nav a{font-size:12px;padding:6px 0}         /* taller tap target */
   .work-stage{padding:100px 0 72px;min-height:84vh} /* each work sits alone */
-  .home-stage:first-child{min-height:64vh}          /* keep the peek */
+  .home-stage:first-child{min-height:calc(100vh - 104px);padding-top:100px;padding-bottom:0}
+  .home-stage:first-child{min-height:calc(100svh - 104px)} /* next painting peeks */
+  .home-stage:not(:first-child){padding-top:14px}
   .grid-head,.arch-head{padding-top:104px}
   .works-grid{grid-template-columns:1fr;gap:40px}
 
