@@ -49,7 +49,7 @@
     async function run() {
       try {
         // ABSOLUTE path — /89 is a subdir, the live data lives at the site root.
-        const DATA = await fetch('/89/data.json', { cache: 'no-store' }).then(r => r.json());
+        const DATA = await fetch('/89/data.json', { cache: 'no-cache' }).then(r => r.json());
         if (!DATA || !Array.isArray(DATA.days) || !DATA.days.length) { showErr(new Error('no data days')); return; }
         let idx = Math.max(0, DATA.days.length - 1);     // open on the present body
         if (params.has('day')) {

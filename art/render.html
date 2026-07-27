@@ -100,7 +100,10 @@
 
   async function boot() {
     await loadScript(cfg.painter);
-    DATA = await fetch(cfg.dataUrl, { cache: 'no-store' }).then((r) => r.json());
+    // 'no-cache' (not 'no-store'): still always revalidated against the server,
+    // but an unchanged record comes back as a tiny 304 instead of re-downloading
+    // the whole payload — the data is live yet costs almost nothing on repeat views.
+    DATA = await fetch(cfg.dataUrl, { cache: 'no-cache' }).then((r) => r.json());
     cfg.days(DATA).forEach((d) => byDate.set(d[cfg.dateField], d));
 
     // Map every calendar date (birth → last data day) to the painting it shows:

@@ -73,6 +73,38 @@ const BASE_HEADERS = {
 };
 function head(extra) { return Object.assign({}, BASE_HEADERS, extra); }
 
+// Serve a static file with a validator (ETag + Last-Modified) so a `no-cache`
+// asset revalidates to a tiny 304 instead of re-downloading its full body — the
+// 926 KB p5 lib, painters and CSS stop being re-fetched on every navigation,
+// while any real change is still picked up immediately (no stale-engine risk).
+function serveFile(req, res, fp, mime, cache, extra) {
+  fs.stat(fp, (e, st) => {
+    if (e || !st.isFile()) { res.writeHead(404, head({})); res.end('Not found'); return; }
+    const etag = 'W/"' + st.size.toString(36) + '-' + Math.round(st.mtimeMs).toString(36) + '"';
+    const h = head(Object.assign({
+      'Content-Type': mime, 'Cache-Control': cache,
+      'ETag': etag, 'Last-Modified': st.mtime.toUTCString(),
+    }, extra || {}));
+    const inm = req.headers['if-none-match'];
+    if (inm && inm === etag) { res.writeHead(304, h); res.end(); return; }
+    fs.readFile(fp, (err, data) => {
+      if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }
+      res.writeHead(200, h); res.end(data);
+    });
+  });
+}
+
+// Serve a live JSON payload with an ETag over its body: identical data (no new
+// day, no new sync) revalidates to a 304, so the ~0.5 MB record is not re-sent
+// on every navigation — yet any change mints a new ETag and is delivered at once.
+function serveJSON(req, res, obj) {
+  const body = JSON.stringify(obj);
+  const etag = 'W/"' + crypto.createHash('sha1').update(body).digest('base64').slice(0, 22) + '"';
+  const h = head({ 'Content-Type': 'application/json', 'Cache-Control': 'no-cache', 'ETag': etag });
+  if (req.headers['if-none-match'] === etag) { res.writeHead(304, h); res.end(); return; }
+  res.writeHead(200, h); res.end(body);
+}
+
 // === OPS — Telegram monitoring + two-way bot ===
 // Every outgoing message is plain Russian: what happened, is the site OK,
 // what to do. Problems alert once + a reminder every 48h; recovery once.
@@ -732,10 +764,9 @@ http.createServer((req, res) => {
 
   if (url === '/data/days.json') {
     if (!STATE.days) loadRecord();
-    res.writeHead(200, head({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }));
-    res.end(JSON.stringify(STATE.days
+    serveJSON(req, res, STATE.days
       ? { days: STATE.days, meta: currentMeta() }
-      : { days: [], meta: { status: 'record', live: false } }));
+      : { days: [], meta: { status: 'record', live: false } });
     return;
   }
   // Only the work's own surfaces are served. The raw record, the rule, the
@@ -748,8 +779,7 @@ http.createServer((req, res) => {
     const raw = STATE.raw || [];
     const m89 = STATE.m89 || [];
     const days = raw.map((d, i) => Object.assign({}, d, { _m: m89[i] || null }));
-    res.writeHead(200, head({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }));
-    res.end(JSON.stringify({ days, meta: currentMeta() }));
+    serveJSON(req, res, { days, meta: currentMeta() });
     return;
   }
   if (url === '/') url = '/index.html';
@@ -779,11 +809,12 @@ http.createServer((req, res) => {
     if (!SUB_OK.has(subExt)) { res.writeHead(404, head({})); res.end('Not found'); return; }
     const fp = path.join(dir, decodeURIComponent(url));
     if (!fp.startsWith(dir)) { res.writeHead(404, head({})); res.end('Not found'); return; }
-    fs.readFile(fp, (err, data) => {
-      if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }
-      res.writeHead(200, head({ 'Content-Type': mimeTypes[subExt] || 'text/plain', 'Cache-Control': 'no-cache' }));
-      res.end(data);
-    });
+    // Vendored p5 and the woff2 fonts never change (a swap would carry a new
+    // path) → cache them hard. Our own painters / css / render host stay
+    // `no-cache` but now revalidate cheaply via the ETag serveFile adds.
+    const immutable = subExt === '.woff2' || /^\/art\/lib\/p5\.min\.js(\.map)?$/.test(url);
+    const cache = immutable ? 'public, max-age=31536000, immutable' : 'no-cache';
+    serveFile(req, res, fp, mimeTypes[subExt] || 'text/plain', cache);
     return;
   }
   if (url === '/og.jpg') {
@@ -820,11 +851,7 @@ http.createServer((req, res) => {
   // Legacy cache-buster kept only for the old certificate page. The portfolio
   // pages must NOT clear cache on every load — that would drop the 948 KB p5 lib.
   const extra = (url === '/conditions.html') ? { 'Clear-Site-Data': '"cache"' } : {};
-  fs.readFile(filePath, (err, data) => {
-    if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }
-    res.writeHead(200, head(Object.assign({ 'Content-Type': mimeTypes[ext] || 'text/plain', 'Cache-Control': cache }, extra)));
-    res.end(data);
-  });
+  serveFile(req, res, filePath, mimeTypes[ext] || 'text/plain', cache, extra);
 }).listen(port, () => {
   console.log(`Variations 87 — http://localhost:${port}`);
   restoreRefreshToken();
