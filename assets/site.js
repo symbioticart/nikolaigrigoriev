@@ -6,9 +6,9 @@
   // Order defines Selected Works + Works grid ordering.
   const WORKS = [
     { id: '87', title: 'Variation 87', selected: true,
-      medium: 'Generative oil, driven by the artist’s biometric record — one painting a day. Dimensions variable · continuous since 2022.' },
+      medium: 'Software, lived time written daily by an unchanging rule, screen. Dimensions variable — continuous since 2022.' },
     { id: '89', title: 'Variation 89', selected: true,
-      medium: 'Generative oil from the artist’s biometric record, in the format of a portrait — one painting a day. Dimensions variable · since 2025.' },
+      medium: 'Software, lived time written daily by an unchanging rule, screen — in the format of a portrait. Dimensions variable — since 2025.' },
   ];
   const WORK_BY_ID = Object.fromEntries(WORKS.map((w) => [w.id, w]));
 
