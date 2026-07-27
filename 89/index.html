@@ -27,6 +27,7 @@
   <script src="/89/p5.min.js"></script>
   <script src="/89/p5.oil.js?v=det1"></script>
   <script src="/89/painter.js"></script>
+  <script src="/art/silence.js"></script>
   <script>
     // ===== Variation 89 — vertical daily story, served at /89 on the main site =====
     // It reads the same live daily record (served at /89/data.json), so the
@@ -79,10 +80,11 @@
             try {
               var pd = p.pixelDensity ? p.pixelDensity() : 1;
               OuraPainter.paintDay(p, day, DATA, PW * pd, PH * pd);   // fill the painting buffer
-              requestAnimationFrame(function () {
-                try { composite(canvasEl, DATA, day, idx); window.__STORY_READY = true; }
-                catch (e) { showErr(e); }
-              });
+              // Read back the frame with alpha forced opaque — same as the portfolio
+              // render. drawImage-ing the raw WEBGL canvas washes the colours out
+              // (premultiplied alpha); this makes /89 identical to главная/works.
+              composite(grabOpaque(canvasEl), DATA, day, idx);
+              window.__STORY_READY = true;
             } catch (e) { showErr(e); }
           };
         });
@@ -146,107 +148,54 @@
     }
     document.getElementById('dl').addEventListener('click', downloadPNG);
 
+    // Read the WEBGL frame, flip GL's bottom-up rows, force alpha=255 → an
+    // opaque 2D canvas. Identical technique to the portfolio's render, so the
+    // colours are rich (no premultiplied-alpha washout) and /89 matches it.
+    function grabOpaque(cnv) {
+      var gl = cnv.getContext('webgl2') || cnv.getContext('webgl');
+      var w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
+      var buf = new Uint8Array(w * h * 4);
+      gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+      var c2 = document.createElement('canvas'); c2.width = w; c2.height = h;
+      var x = c2.getContext('2d'); var img = x.createImageData(w, h);
+      var row = w * 4;
+      for (var y = 0; y < h; y++) img.data.set(buf.subarray((h - 1 - y) * row, (h - y) * row), y * row);
+      for (var i = 3; i < img.data.length; i += 4) img.data[i] = 255;
+      x.putImageData(img, 0, 0);
+      return c2;
+    }
+
     function composite(p5canvas, DATA, day, idx) {
       window.__dlDay = day;                 // remember which day, for the PNG filename
       var ctx = document.getElementById('story').getContext('2d');
 
-      // ===== silence = fading death — reverted 2026-07-24 from the 14-day "pause"
-      // canon, at the artist's direction =====
-      // The painting opens on the present day. When the signal stops (gap > 1) the
-      // last day fades from the SECOND day of silence: colour drains (grayscale)
-      // and presence eases toward absence — noticeably grey within a week, gone by
-      // ~a month. Recovery is automatic and leaves NO scar: when a signal returns
-      // the gap drops, a fresh full-colour day is painted, and the work is whole
-      // again — it fills back with colour and returns to its initial state.
-      var meta = DATA.meta || {};
-      var gap = meta.gapDays || 0;
-      var live = !!meta.live;
+      // The painting must be IDENTICAL to the portfolio (главная/works): the
+      // painting alone on the clean ground, a soft shadow, no frame, no museum
+      // label. This page exists only to export that same image as a portrait PNG
+      // for Instagram. Silence uses the ONE shared model (art/silence.js):
+      // fast fade from the 2nd day, dissolving into the ivory ground, auto-recovery.
+      // Match the portfolio exactly: the default view is the last painted day at
+      // FULL colour (the portfolio home opens there without the real-time fade).
+      // Silence is shown only when explicitly previewed (?gap=N or ?dead).
       var manualGap = params.has('gap') ? parseInt(params.get('gap'), 10) : (params.has('dead') ? 40 : null);
-      if (Number.isFinite(manualGap)) { gap = manualGap; live = true; }   // ?gap=N previews any silence depth
+      var sil = (Number.isFinite(manualGap) && manualGap > 1) ? window.SILENCE.params(manualGap) : { gray: 0, fade: 0 };
 
-      // fade. gray = desaturation [0..1], alpha = presence [0..1].
-      var liveSilent = live && gap > 1;
-      var gray = 0, alpha = 1;
-      if (liveSilent) { gray = Math.min(1, (gap - 1) / 13); alpha = Math.max(0, 1 - (gap - 1) / 29); }
-      var dead = liveSilent;   // "faded" — kept the var name for the backing + plate code below
-
-      // ===== wall =====
+      // clean ground
       ctx.fillStyle = WALL; ctx.fillRect(0, 0, W, H);
 
-      // ===== framed painting: soft drop shadow + backing + thin outline (the site frame) =====
-      // shadow kept faint + even (a plate-mounted work, not a poster bevel), per artist.
-      // Backing stays #000 always (reverted from the canon's dead->WALL switch):
-      // as the signal is lost the painting greys and darkens over black — "как было",
-      // noticeably grey within a week, not washed out to white.
-      var backing = '#000';
+      // the painting, with a soft shadow (no frame, no backing plate)
       ctx.save();
-      ctx.shadowColor = 'rgba(0,0,0,0.09)';
+      ctx.shadowColor = 'rgba(0,0,0,0.10)';
       ctx.shadowBlur = 55; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 18;
-      ctx.fillStyle = backing;
-      ctx.fillRect(FX, FY, PW, PH);
+      ctx.filter = sil.gray > 0 ? 'grayscale(' + sil.gray.toFixed(3) + ')' : 'none';
+      ctx.drawImage(p5canvas, FX, FY, PW, PH);
       ctx.restore();
 
-      if (dead) {
-        ctx.save();
-        ctx.filter = 'grayscale(' + gray.toFixed(3) + ') opacity(' + alpha.toFixed(3) + ')';
-        ctx.drawImage(p5canvas, FX, FY, PW, PH);
-        ctx.restore();
-      } else {
-        ctx.drawImage(p5canvas, FX, FY, PW, PH);
+      // death = dissolve into the ivory ground (blank), never toward black
+      if (sil.fade > 0) {
+        ctx.fillStyle = 'rgba(240,236,226,' + sil.fade.toFixed(3) + ')';
+        ctx.fillRect(FX, FY, PW, PH);
       }
-
-      // thin outline, like .canvas-frame outline: 1px rgba(0,0,0,.08)
-      ctx.strokeStyle = 'rgba(0,0,0,0.09)'; ctx.lineWidth = 1;
-      ctx.strokeRect(FX + 0.5, FY + 0.5, PW - 1, PH - 1);
-
-      // ===== plate (museum label) — site DNA, larger + legible, above IG reply-bar (≤~1745) =====
-      ctx.textAlign = 'center';
-      var cx = W / 2;
-
-      // TITLE — Manrope 400, 28px, ls 0.15em, uppercase. main @.78 / year @.55
-      var tY = 1606;
-      ctx.font = '400 28px Manrope';
-      try { ctx.letterSpacing = '4.2px'; } catch (e) {}
-      var titleMain = 'VARIATION 89';
-      var titleYear = '   ·   ' + inceptionOf(DATA).slice(0, 4) + '–TODAY';
-      var wMain = ctx.measureText(titleMain).width;
-      var wYear = ctx.measureText(titleYear).width;
-      var startX = cx - (wMain + wYear) / 2;
-      ctx.textAlign = 'left';
-      ctx.fillStyle = alphaInk(0.78); ctx.fillText(titleMain, startX, tY);
-      ctx.fillStyle = alphaInk(0.55); ctx.fillText(titleYear, startX + wMain, tY);
-      ctx.textAlign = 'center';
-
-      // SUB — JetBrains Mono 300, 19px, ls 0.14em, uppercase, @.55.
-      // alive → lifespan line + green dot ; silent → SIGNAL LOST (no dot).
-      var sY = 1656;
-      ctx.font = '300 19px "JetBrains Mono"';
-      try { ctx.letterSpacing = '2.6px'; } catch (e) {}
-      ctx.fillStyle = alphaInk(0.55);
-      if (dead) {
-        ctx.fillText('SIGNAL LOST · ' + gap + ' DAYS WITHOUT SIGNAL', cx, sY);
-      } else {
-        var subText = lifespanText(DATA);
-        // center the WHOLE unit (dot + gap + text), not the text alone
-        var r = 4, g = 13;
-        var subW = ctx.measureText(subText).width;
-        var unitW = r * 2 + g + subW;
-        var uStart = cx - unitW / 2;
-        ctx.save(); ctx.beginPath(); ctx.arc(uStart + r, sY - 6, r, 0, Math.PI * 2);
-        ctx.fillStyle = DOT_GREEN; ctx.fill(); ctx.restore();
-        ctx.textAlign = 'left'; ctx.fillStyle = alphaInk(0.55);
-        ctx.fillText(subText, uStart + r * 2 + g, sY);
-        ctx.textAlign = 'center';
-      }
-
-      // MEDIUM — provenance credit, two meaning-grouped lines (museum credit wrap).
-      ctx.font = '300 16px "JetBrains Mono"';
-      try { ctx.letterSpacing = '1.6px'; } catch (e) {}
-      ctx.fillStyle = alphaInk(0.45);
-      ctx.fillText('SYMBIOTIC PAINTING · GENERATIVE OIL', cx, 1696);
-      ctx.fillStyle = alphaInk(0.42);
-      ctx.fillText('LIVE OURA RING BIOMETRICS', cx, 1724);
-      try { ctx.letterSpacing = '0px'; } catch (e) {}
 
       window.__STORY_READY = true;
     }
