@@ -36,9 +36,30 @@ const RANKED = [
   ['restless',   'restlessPeriods'],
 ];
 
-// Build the frozen channels for every day, ranked causally (trailing window of
-// the days up to and including it — never the future). Returns an array aligned
-// by index with rawDays.
+// Body-only seed — a byte-for-byte replica of hashMetrics() in art/89/painter.js.
+// Integer math only, so node and the browser produce the identical seed. Computing
+// it here lets /89/data.json ship only {day, _m, _s} and drop every raw metric
+// field (the client no longer needs the raw body to reseed), shrinking the payload.
+function hashMetrics(day) {
+  const parts = [
+    day.readinessScore, day.sleepScore, day.hrv,
+    day.avgHeartRate,   day.avgBreath,
+    day.totalSleepHours, day.deepSleepPct, day.remSleepPct,
+    day.efficiency,     day.latency,      day.restlessPeriods,
+    day.tempDeviation,  day.workoutCount, day.workoutIntensity,
+  ];
+  let h = 0x811c9dc5;
+  for (const v of parts) {
+    const q = Math.round(((v ?? 0) + 1e-9) * 1000) | 0;
+    h = ((h << 5) - h + q) | 0;
+    h = Math.imul(h ^ (h >>> 13), 0x85ebca6b);
+  }
+  return Math.abs(h) || 1;
+}
+
+// Build the transported form of Variation 89: for every day, the causally-frozen
+// channels (_m) and the precomputed body seed (_s). No raw metric survives — the
+// painter renders purely from _m + _s + the date. Returns the days to serve.
 function freezeDays89(rawDays) {
   const out = [];
   for (let i = 0; i < rawDays.length; i++) {
@@ -56,9 +77,9 @@ function freezeDays89(rawDays) {
     m.workoutCount     = day.workoutCount || 0;
     m.workoutIntensity = day.workoutIntensity || 0;
 
-    out.push(m);
+    out.push({ day: day.day, _m: m, _s: hashMetrics(day) });
   }
   return out;
 }
 
-module.exports = { RANKED, freezeDays89 };
+module.exports = { RANKED, hashMetrics, freezeDays89 };

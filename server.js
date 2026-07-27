@@ -531,7 +531,9 @@ function setDays(rawDays, live) {
   // so a past day's painting never drifts as the record grows. The frozen
   // channels are served per-day as day._m at /89/data.json.
   STATE.raw = rawDays;
-  STATE.m89 = rule89.freezeDays89(rawDays);
+  // Transported form of 89: {day, _m, _s} per day — no raw metric fields, so the
+  // served payload is a fraction of the size and a past day can never drift.
+  STATE.days89 = rule89.freezeDays89(rawDays);
   STATE.lastDataDay = rawDays.length ? rawDays[rawDays.length - 1].day : null;
   STATE.live = live;
   // first load sets the baseline silently; only later advances are announced
@@ -774,12 +776,9 @@ http.createServer((req, res) => {
   // ── Variation 89 (vertical daily story) — its own data contract ──
   if (url === '/89/data.json') {
     if (!STATE.days) loadRecord();
-    // Attach the frozen causal channels (day._m) so the painter renders from a
-    // fixed input — no global sort, no drift. Shallow-clone so STATE.raw stays raw.
-    const raw = STATE.raw || [];
-    const m89 = STATE.m89 || [];
-    const days = raw.map((d, i) => Object.assign({}, d, { _m: m89[i] || null }));
-    serveJSON(req, res, { days, meta: currentMeta() });
+    // Serve the transported form {day, _m, _s} — the painter renders from a
+    // fixed input (no global sort, no drift) and the raw body never leaves.
+    serveJSON(req, res, { days: STATE.days89 || [], meta: currentMeta() });
     return;
   }
   if (url === '/') url = '/index.html';

@@ -272,7 +272,9 @@ function paintDay(p, day, data, W, H) {
   const moodT = (m.readiness + m.sleep + m.hrv) / 3;
 
   // Seed RNG and oil textures from body only — identical body ⇒ identical canvas.
-  const seed = hashMetrics(day);
+  // The server precomputes this seed (day._s) so the payload can drop the raw
+  // metrics; hashMetrics stays as the fallback for standalone/dev use.
+  const seed = (day && day._s != null) ? day._s : hashMetrics(day);
   const rng = makeRNG(seed);
   oil.seed(seed);
 
