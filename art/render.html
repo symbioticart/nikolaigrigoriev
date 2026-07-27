@@ -120,10 +120,11 @@
 
     new p5((p) => {
       p.setup = () => {
-        // Render at exactly the requested pixels (pixelDensity 1) — no oversized
-        // fixed buffer, no downscale. This is the main paging-speed win.
-        if (p.pixelDensity) p.pixelDensity(1);
-        const c = p.createCanvas(16, 16, p.WEBGL2 || p.WEBGL);
+        // Fixed painting buffer — the painter composes its fill for this exact
+        // size (as in production), so the work occupies the right ~75% of the
+        // canvas. We downscale the readback to the requested delivery size.
+        if (p.pixelDensity) p.pixelDensity(cfg.pd);
+        const c = p.createCanvas(cfg.baseW, cfg.baseH, p.WEBGL2 || p.WEBGL);
         c.parent('off');
         glCanvas = c.elt;
         p5i = p;
@@ -133,13 +134,14 @@
         // Warm-up frame: the oil engine's first paint after context creation
         // comes out cold/washed. Render one throwaway frame so the first real
         // request is correct.
-        queue.unshift({ warmup: true, date: cfg.last(DATA), ow: 32, oh: 32 });
+        queue.unshift({ warmup: true, date: cfg.last(DATA), ow: 8, oh: 8 });
         p.loop();
       };
       // The paint MUST run inside draw so p5's pre/post hooks fire and the oil
-      // engine binds/flushes each frame. The frame is read back with gl.readPixels
-      // (alpha forced opaque) and posted as JPEG. One job per frame; the loop
-      // parks itself when the queue drains.
+      // engine binds/flushes each frame. The full buffer is read back with
+      // gl.readPixels (alpha forced opaque), downscaled to the delivery size,
+      // and posted as JPEG (fast, small). One job per frame; the loop parks
+      // itself when the queue drains.
       p.draw = () => {
         const jb = queue.shift();
         if (!jb) { p.noLoop(); return; }
@@ -148,21 +150,22 @@
         if (!day) { if (!jb.warmup) post({ type: 'render', reqId: jb.reqId, ok: false, date: jb.date, err: 'no-day' }); return; }
         const sil = silenceFor(r.gap);
         try {
-          if (p.width !== jb.ow || p.height !== jb.oh) p.resizeCanvas(jb.ow, jb.oh);
-          cfg.paint(p, day, DATA, p.width, p.height, sil.margin);   // pd 1 → paint at exact px
+          const pd = p.pixelDensity ? p.pixelDensity() : 1;
+          cfg.paint(p, day, DATA, p.width * pd, p.height * pd, sil.margin);
           if (jb.warmup) return;           // discard the cold first frame
-          const g = grabFull();            // reads ow×oh into `full`, opaque, flipped
-          out.width = g.w; out.height = g.h;
-          octx.clearRect(0, 0, g.w, g.h);
+          grabFull();
+          out.width = jb.ow; out.height = jb.oh;
+          octx.clearRect(0, 0, jb.ow, jb.oh);
+          octx.imageSmoothingQuality = 'high';
           // withering: colour drains, then presence dissolves into the ivory
           // ground until the canvas is blank (death), never toward black.
           octx.filter = r.gap > 0 && sil.gray > 0 ? `grayscale(${sil.gray.toFixed(3)})` : 'none';
-          octx.drawImage(full, 0, 0);      // 1:1, no downscale
+          octx.drawImage(full, 0, 0, jb.ow, jb.oh);
           octx.filter = 'none';
           if (sil.fade > 0) {
             const gc = fctx.getImageData(1, 1, 1, 1).data;   // ground colour
             octx.fillStyle = `rgba(${gc[0]},${gc[1]},${gc[2]},${sil.fade.toFixed(3)})`;
-            octx.fillRect(0, 0, g.w, g.h);
+            octx.fillRect(0, 0, jb.ow, jb.oh);
           }
           post({ type: 'render', reqId: jb.reqId, ok: true, date: jb.date, gap: r.gap, url: out.toDataURL('image/jpeg', 0.9) });
         } catch (e) {
