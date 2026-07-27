@@ -89,16 +89,17 @@ main{padding:0 var(--pad)}
 .plate.loading::before,
 .plate.loading::after{
   position:absolute;left:8%;right:8%;text-align:center;pointer-events:none;
+  color:var(--grey);font-weight:400;
 }
 .plate.loading::before{
   content:"A day the body recorded is being made into paint.";
-  top:50%;transform:translateY(calc(-100% - 8px));
-  font-size:15px;line-height:1.5;color:var(--ink);
+  top:50%;transform:translateY(calc(-100% - 2px));
+  font-size:10px;line-height:1.5;letter-spacing:.05em;
 }
 .plate.loading::after{
   content:"It takes the time it takes.";
-  top:50%;transform:translateY(10px);
-  font-size:12px;line-height:1.4;color:var(--grey);
+  top:50%;transform:translateY(4px);
+  font-size:9px;line-height:1.4;letter-spacing:.07em;color:#a3a3a3;
 }
 
 /* left / right paging zones over the painting — invisible; only the cursor
