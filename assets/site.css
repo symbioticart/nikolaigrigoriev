@@ -242,7 +242,10 @@ main{padding:0 var(--pad)}
 }
 @media (max-width:640px){
   :root{--pad:16px}
-  .site-head{padding:16px}
+  /* On a phone the nav wraps to a second line, so the header is ~96px tall and
+     the desktop gradient (solid to 62%) left the links standing over bare
+     painting as it scrolled past. Carry the ground down past the nav. */
+  .site-head{padding:16px;background:linear-gradient(var(--bg) 88%, rgba(255,255,255,0))}
   .site-name{font-size:16px;letter-spacing:.3px}   /* the page's one anchor */
   .site-nav{gap:18px}
   .site-nav a{font-size:12px;padding:6px 0}         /* taller tap target */
