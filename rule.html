@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Rule — Nikolai Grigoriev</title>
+<meta name="description" content="Variations 87 — the rule by which one day of a living body becomes one painting.">
+<link rel="stylesheet" href="/assets/site.css">
+<style>
+  /* The instruction is shown with the work, the way a wall drawing is shown
+     with its own text. It states the law and never the meaning: no clause here
+     explains what the work is about. */
+  .rule-sheet{max-width:600px;margin:0 auto;padding:120px 0 96px}
+  .rule-sheet h1{font-size:var(--fs-cap);font-weight:400;letter-spacing:.2px;color:var(--ink)}
+  .rule-sheet .of{font-size:12px;color:var(--faint);margin-top:4px}
+  .rule-list{list-style:none;counter-reset:r;margin:46px 0 0;padding:0}
+  .rule-list li{counter-increment:r;position:relative;padding-left:38px;margin-bottom:19px;
+    font-size:14px;line-height:1.65;color:var(--ink)}
+  .rule-list li::before{content:counter(r) ".";position:absolute;left:0;top:0;
+    color:var(--grey);font-size:12px;font-variant-numeric:tabular-nums}
+  .rule-foot{margin-top:46px;padding-top:22px;border-top:1px solid var(--hair);
+    font-size:12px;line-height:1.7;color:var(--faint)}
+  .rule-foot a{color:var(--grey);border-bottom:1px solid var(--hair);padding-bottom:1px}
+  .rule-foot a:hover{color:var(--ink)}
+  @media (max-width:640px){
+    .rule-sheet{padding:104px 0 72px}
+    .rule-list li{padding-left:32px;font-size:13.5px}
+  }
+</style>
+</head>
+<body>
+<main id="main">
+  <div class="wrap">
+    <div class="rule-sheet">
+      <h1>The Rule</h1>
+      <div class="of">Variations 87 · Variation 89</div>
+
+      <ol class="rule-list">
+        <li>Each day, one painting.</li>
+        <li>The painting is made from that day’s record of one living body, and from nothing else.</li>
+        <li>Nothing is arranged by hand.</li>
+        <li>A day is painted only after it has closed.</li>
+        <li>A day is weighed against the days of this body that came before it, never against the days that follow.</li>
+        <li>Several signals drive every visible feature, so that no single one can be read back out.</li>
+        <li>The same day always makes the same painting.</li>
+        <li>A day that has been painted is never repainted.</li>
+        <li>When no day arrives, the last painting is held. From the second day of silence it fades.</li>
+        <li>When the days resume, the painting returns.</li>
+        <li>Every day the work has lived is kept.</li>
+      </ol>
+
+      <div class="rule-foot">
+        Both works follow this rule. First day 24 May 2022.<br>
+        The full conditions of Variations 87 — its definition, its silence, its transfer —
+        are set out in the document that constitutes it:
+        <a href="/conditions.html">Conditions of the Work</a>.
+      </div>
+    </div>
+  </div>
+</main>
+<script src="/assets/site.js"></script>
+<script>Site.mountHeader(null);</script>
+</body>
+</html>

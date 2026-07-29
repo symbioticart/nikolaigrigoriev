@@ -828,7 +828,7 @@ http.createServer((req, res) => {
   // of the work are part of its honesty. Appendix A alone stays sealed.
   const SERVED = new Set([
     '/index.html', '/works.html', '/work.html', '/about.html', '/archive.html',
-    '/conditions.html',
+    '/rule.html', '/conditions.html',
     '/painter.js', '/p5.oil.js', '/p5.oil.js.map',
     '/vendor/p5.min.js',
     '/fonts/manrope-latin.woff2', '/fonts/jetbrainsmono-latin.woff2',

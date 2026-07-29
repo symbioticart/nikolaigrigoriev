@@ -182,11 +182,15 @@
       close.textContent = '×';
       inner.appendChild(close);
     } else {
-      // Living view: the vertical Archive link riding the plate's right edge.
-      const rail = document.createElement('a');
+      // Living view: the vertical rail riding the plate's right edge — the
+      // archive of every state, and the rule that writes them. The rule is
+      // reachable from the work itself, the way a wall drawing is shown with
+      // its instruction; it states the law and never the meaning.
+      const rail = document.createElement('div');
       rail.className = 'archive-rail';
-      rail.href = `/archive.html?id=${id}`;
-      rail.textContent = 'Archive';
+      rail.innerHTML =
+        `<a href="/archive.html?id=${id}">Archive</a>` +
+        `<a href="/rule.html">The rule</a>`;
       inner.appendChild(rail);
     }
 
@@ -201,12 +205,22 @@
         `<button class="prev" aria-label="Earlier day">←</button>` +
         `<span class="cur"></span>` +
         `<button class="next" aria-label="Later day">→</button>` +
-      `</div>`;
+      `</div>` +
+      `<div class="state" role="status"></div>`;
     container.append(inner, cap);
 
     const curEl = cap.querySelector('.cur');
+    const stateEl = cap.querySelector('.state');
     const prevBtn = cap.querySelector('.prev');
     const nextBtn = cap.querySelector('.next');
+
+    // How many days of silence the viewed day stands in: 0 if the body wrote
+    // that day, otherwise the count since the last day it did.
+    function gapAt(i) {
+      let g = 0;
+      for (let j = i; j >= 0 && !meta.alive.has(cal[j]); j--) g++;
+      return g;
+    }
 
     const ratio = meta.ratio || 1.4;
     let dims = { w: 0, h: 0 };
@@ -231,6 +245,10 @@
       const date = cal[idx];
       const isLast = idx === cal.length - 1;
       curEl.textContent = `${fmtDate(meta.birth)} – ${isLast ? 'Today' : fmtDate(date)}`;
+      // On a silent day, the count and nothing else. The number does the work;
+      // that the painting returns when the days do is stated in the rule.
+      const gap = gapAt(idx);
+      stateEl.textContent = gap > 0 ? `Silence, day ${gap}.` : '';
       prevBtn.disabled = zPrev.disabled = idx === 0;
       nextBtn.disabled = zNext.disabled = isLast;
       img.alt = `${work.title} — ${isLast ? 'today' : fmtDate(date)}` +
