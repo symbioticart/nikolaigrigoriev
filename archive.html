@@ -50,7 +50,7 @@
   (async () => {
     const meta = await Site.ready(id);
     const { birth } = meta;
-    const last = meta.last;                       // calendar runs to the last day the body spoke
+    const last = meta.last;                       // calendar runs to TODAY — the silent days are days of the work too
     const written = meta.alive.size;
     document.getElementById('asub').textContent =
       `${Site.fmtDate(birth)} — today · ${written.toLocaleString('en-US')} days written`;

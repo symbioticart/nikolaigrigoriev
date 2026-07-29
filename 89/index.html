@@ -174,11 +174,19 @@
       // label. This page exists only to export that same image as a portrait PNG
       // for Instagram. Silence uses the ONE shared model (art/silence.js):
       // fast fade from the 2nd day, dissolving into the ivory ground, auto-recovery.
-      // Match the portfolio exactly: the default view is the last painted day at
-      // FULL colour (the portfolio home opens there without the real-time fade).
-      // Silence is shown only when explicitly previewed (?gap=N or ?dead).
+      // The state shown is the state the work is in TODAY: the last painted day,
+      // withered by however long the body has been silent (meta.gapDays). This is
+      // the same arithmetic the portfolio runs, so every surface — and the frame
+      // the morning bot files into 89/record/ — carries the identical fade.
+      // ?gap=N / ?dead force a state for preview. False-death guard: if the
+      // server never confirmed a sync (meta.live === false) it is serving a
+      // frozen record and cannot tell a silent body from an unreachable vendor —
+      // hold the last state rather than paint a vendor outage as the owner's.
       var manualGap = params.has('gap') ? parseInt(params.get('gap'), 10) : (params.has('dead') ? 40 : null);
-      var sil = (Number.isFinite(manualGap) && manualGap > 1) ? window.SILENCE.params(manualGap) : { gray: 0, fade: 0 };
+      var liveGap = (DATA.meta && DATA.meta.live !== false && Number.isFinite(DATA.meta.gapDays))
+        ? DATA.meta.gapDays : 0;
+      var gap = Number.isFinite(manualGap) ? manualGap : liveGap;
+      var sil = gap > 1 ? window.SILENCE.params(gap) : { gray: 0, fade: 0 };
 
       // clean ground
       ctx.fillStyle = WALL; ctx.fillRect(0, 0, W, H);

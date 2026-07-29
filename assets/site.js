@@ -72,7 +72,7 @@
 
     if (m.type === 'ready') {
       state.meta = {
-        birth: m.birth, last: m.last, ratio: m.ratio,
+        birth: m.birth, last: m.last, lastData: m.lastData || m.last, ratio: m.ratio,
         alive: new Set(m.alive), aliveList: m.alive,
         incomplete: new Set(m.incomplete || []),
       };
@@ -137,7 +137,8 @@
     return { w: Math.round(w), h: Math.round(h) };
   }
 
-  // Full calendar of a work: every date from birth to the last data day.
+  // Full calendar of a work: every date from birth to TODAY. Days the body did
+  // not write are days of the work too — it goes on living through them, fading.
   function calendarOf(meta) {
     const out = [];
     for (let d = meta.birth; daysBetween(d, meta.last) >= 0; d = addDaysISO(d, 1)) out.push(d);
@@ -150,7 +151,7 @@
     const work = WORK_BY_ID[id];
     const meta = await getClient(id).ready;
     const cal = calendarOf(meta);            // every calendar day, ascending
-    let idx = cal.length - 1;                // open on the last data day ("Today")
+    let idx = cal.length - 1;                // open on today — the work as it stands now
     if (opts.startDate) {
       const i = cal.indexOf(opts.startDate);
       if (i >= 0) idx = i;
