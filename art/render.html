@@ -49,7 +49,14 @@
       today: (D) => D.meta && D.meta.serverDate,
       live:  (D) => !D.meta || D.meta.live !== false,
       days: (D) => D.days,
-      paint: (p, day, D, w, h, sil) => window.Painter.paintDay(p, day, D, w, h, sil),
+      // Silence is NOT fed to the painter. The painter still accepts a `silence`
+      // argument from the superseded model, where the unwritten ground grew and
+      // every mark was re-placed inside a shrinking frame — which meant a body
+      // that wrote nothing still produced a differently composed painting each
+      // day. The approved model (art/silence.js, 2026-07-27) is the opposite: the
+      // last painting is HELD, and only its colour drains and dissolves. No new
+      // data, no new form.
+      paint: (p, day, D, w, h, sil) => window.Painter.paintDay(p, day, D, w, h),
     },
     '89': {
       // LIVE: /89/data.json returns { days:[raw Oura metrics], meta }.
@@ -171,7 +178,9 @@
         const sil = silenceFor(r.gap);
         try {
           const pd = p.pixelDensity ? p.pixelDensity() : 1;
-          cfg.paint(p, day, DATA, p.width * pd, p.height * pd, sil.margin);
+          // Painted as it was written. Silence never reaches the painter — it is
+          // applied below, to the finished image, so the form cannot move.
+          cfg.paint(p, day, DATA, p.width * pd, p.height * pd);
           if (jb.warmup) return;           // discard the cold first frame
           grabFull();
           out.width = jb.ow; out.height = jb.oh;
