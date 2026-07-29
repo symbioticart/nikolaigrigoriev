@@ -11,7 +11,7 @@
   <div class="wrap">
     <div class="arch-head">
       <a class="back" id="back">← Back to the work</a>
-      <a class="back rule-link" href="/rule.html">The rule →</a>
+      <a class="back rule-link" id="rulelink">The rule →</a>
       <h1 id="atitle">Archive</h1>
       <div class="sub" id="asub"></div>
       <div class="arch-legend">
@@ -32,6 +32,7 @@
   const work = Site.WORK_BY_ID[id];
   if (!work) location.href = '/works.html';
   document.getElementById('back').href = `/work.html?id=${id}`;
+  document.getElementById('rulelink').href = `/rule.html?id=${id}`;   // each work keeps its own rule
   document.getElementById('atitle').textContent = `${work.title} — Archive`;
 
   const cal = document.getElementById('cal');

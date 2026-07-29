@@ -190,7 +190,7 @@
       rail.className = 'archive-rail';
       rail.innerHTML =
         `<a href="/archive.html?id=${id}">Archive</a>` +
-        `<a href="/rule.html">The rule</a>`;
+        `<a href="/rule.html?id=${id}">The rule</a>`;
       inner.appendChild(rail);
     }
 

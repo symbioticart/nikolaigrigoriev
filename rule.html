@@ -4,12 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Rule — Nikolai Grigoriev</title>
-<meta name="description" content="Variations 87 — the rule by which one day of a living body becomes one painting.">
+<meta name="description" content="The rule by which one day of a living body becomes one painting.">
 <link rel="stylesheet" href="/assets/site.css">
 <style>
   /* The instruction is shown with the work, the way a wall drawing is shown
      with its own text. It states the law and never the meaning: no clause here
-     explains what the work is about. */
+     explains what the work is about. Each work carries its own rule — they
+     agree on almost everything and part on one law, the seed of a day. */
   .rule-sheet{max-width:600px;margin:0 auto;padding:120px 0 96px}
   .rule-sheet h1{font-size:var(--fs-cap);font-weight:400;letter-spacing:.2px;color:var(--ink)}
   .rule-sheet .of{font-size:12px;color:var(--faint);margin-top:4px}
@@ -22,6 +23,7 @@
     font-size:12px;line-height:1.7;color:var(--faint)}
   .rule-foot a{color:var(--grey);border-bottom:1px solid var(--hair);padding-bottom:1px}
   .rule-foot a:hover{color:var(--ink)}
+  .rule-other{margin-top:14px}
   @media (max-width:640px){
     .rule-sheet{padding:104px 0 72px}
     .rule-list li{padding-left:32px;font-size:13.5px}
@@ -33,32 +35,64 @@
   <div class="wrap">
     <div class="rule-sheet">
       <h1>The Rule</h1>
-      <div class="of">Variations 87 · Variation 89</div>
-
-      <ol class="rule-list">
-        <li>Each day, one painting.</li>
-        <li>The painting is made from that day’s record of one living body, and from nothing else.</li>
-        <li>Nothing is arranged by hand.</li>
-        <li>A day is painted only after it has closed.</li>
-        <li>A day is weighed against the days of this body that came before it, never against the days that follow.</li>
-        <li>Several signals drive every visible feature, so that no single one can be read back out.</li>
-        <li>The same day always makes the same painting.</li>
-        <li>A day that has been painted is never repainted.</li>
-        <li>When no day arrives, the last painting is held. From the second day of silence it fades.</li>
-        <li>When the days resume, the painting returns.</li>
-        <li>Every day the work has lived is kept.</li>
-      </ol>
-
-      <div class="rule-foot">
-        Both works follow this rule. First day 24 May 2022.<br>
-        The full conditions of Variations 87 — its definition, its silence, its transfer —
-        are set out in the document that constitutes it:
-        <a href="/conditions.html">Conditions of the Work</a>.
-      </div>
+      <div class="of" id="of"></div>
+      <ol class="rule-list" id="list"></ol>
+      <div class="rule-foot" id="foot"></div>
     </div>
   </div>
 </main>
 <script src="/assets/site.js"></script>
-<script>Site.mountHeader(null);</script>
+<script>
+  Site.mountHeader(null);
+
+  // Every law both works obey, in order. The seventh is the one they part on:
+  // 87 binds a day to its date and to the artist's name, so no two days can
+  // ever coincide; 89 binds a day to the body alone, so the same body makes
+  // the same painting whenever it returns.
+  const COMMON = [
+    'Each day, one painting.',
+    'The painting is made from that day’s record of one living body, and from nothing else.',
+    'Nothing is arranged by hand.',
+    'A day is painted only after it has closed.',
+    'A day is weighed against the days of this body that came before it, never against the days that follow.',
+    'Several signals drive every visible feature, so that no single one can be read back out.',
+    null,                                   // ← the seed law, per work
+    'The same day always makes the same painting.',
+    'A day that has been painted is never repainted.',
+    'When no day arrives, the last painting is held. From the second day of silence it fades.',
+    'When the days resume, the painting returns.',
+    'Every day the work has lived is kept.',
+  ];
+
+  const RULES = {
+    '87': {
+      seed: 'The seed of a day is drawn from the artist’s name, the date, and the day’s record together; no two days can coincide.',
+      foot: 'First recorded day 24 May 2022.<br>' +
+            'The full conditions of this work — its definition, its silence, its transfer — ' +
+            'are set out in the document that constitutes it: ' +
+            '<a href="/conditions.html">Conditions of the Work</a>.',
+    },
+    '89': {
+      seed: 'The seed of a day is drawn from the day’s record alone; the date plays no part in it. Two days of the same body make the same painting, however far apart they fall.',
+      foot: 'First recorded day 24 May 2022.',
+    },
+  };
+
+  const id = Site.WORK_BY_ID[new URLSearchParams(location.search).get('id')]
+    ? new URLSearchParams(location.search).get('id') : '87';
+  const work = Site.WORK_BY_ID[id];
+  const spec = RULES[id];
+
+  document.title = `The Rule — ${work.title}`;
+  document.getElementById('of').textContent = work.title;
+  document.getElementById('list').innerHTML =
+    COMMON.map((line) => `<li>${line === null ? spec.seed : line}</li>`).join('');
+
+  // The other work keeps its own rule; say so and go there.
+  const other = Site.WORKS.find((w) => w.id !== id);
+  document.getElementById('foot').innerHTML = spec.foot +
+    (other ? `<div class="rule-other">${other.title} follows its own rule: ` +
+             `<a href="/rule.html?id=${other.id}">read it</a>.</div>` : '');
+</script>
 </body>
 </html>
