@@ -254,7 +254,11 @@
       img.alt = `${work.title} — ${isLast ? 'today' : fmtDate(date)}` +
         (meta.alive.has(date) ? '' : ' — silence, no data recorded this day');
       if (animate) img.classList.remove('in');
-      plate.classList.add('loading');
+      // The waiting text belongs on an empty plate only: on the first mount and
+      // while paging, when the painting has been faded out. A silent re-render
+      // (a resize) keeps the picture on screen, and printing the text over it
+      // reads as a fault.
+      if (!img.src || animate) plate.classList.add('loading');
       const d = measure();
       const url = await render(id, date, d.w, d.h);
       if (url) { img.src = url; requestAnimationFrame(() => img.classList.add('in')); }
@@ -281,10 +285,22 @@
     measure();
     await show(idx, false);
 
-    let rt;
+    // Re-render only when the viewport WIDTH really changed. On a phone the
+    // address bar collapses as you scroll, the window loses ~100px of height,
+    // and that alone moved a portrait painting's fitted width past the old
+    // threshold — so every scroll repainted the second work from scratch. The
+    // layout still re-fits on any resize; only the repaint is width-gated.
+    let rt, lastVW = window.innerWidth;
     window.addEventListener('resize', () => {
       clearTimeout(rt);
-      rt = setTimeout(() => { const p = dims.w; measure(); if (Math.abs(dims.w - p) > 40) show(idx, false); }, 200);
+      rt = setTimeout(() => {
+        const vw = window.innerWidth;
+        const widthChanged = vw !== lastVW;
+        lastVW = vw;
+        const prevW = dims.w;
+        measure();
+        if (widthChanged && Math.abs(dims.w - prevW) > 40) show(idx, false);
+      }, 200);
     });
 
     return { work, meta };

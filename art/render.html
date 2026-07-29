@@ -75,6 +75,7 @@
   const RATIO = cfg.baseW / cfg.baseH;
 
   let DATA = null, p5i = null, glCanvas = null, ready = false;
+  let painted = null;      // target day currently held in the readback buffer
   // The calendar ends TODAY, not on the last day the body wrote — otherwise the
   // days of silence never exist and the work can never be seen dying.
   let calEnd = null;
@@ -178,11 +179,23 @@
         const sil = silenceFor(r.gap);
         try {
           const pd = p.pixelDensity ? p.pixelDensity() : 1;
+          if (jb.warmup) {
+            // The oil engine's first paint after context creation comes out
+            // cold. Render it, throw it away, and cache nothing.
+            cfg.paint(p, day, DATA, p.width * pd, p.height * pd);
+            painted = null;
+            return;
+          }
           // Painted as it was written. Silence never reaches the painter — it is
-          // applied below, to the finished image, so the form cannot move.
-          cfg.paint(p, day, DATA, p.width * pd, p.height * pd);
-          if (jb.warmup) return;           // discard the cold first frame
-          grabFull();
+          // applied below, to the finished image, so the form cannot move. And a
+          // silence shows the SAME painting every day, only further faded: so
+          // repaint only when the target day changes. Paging through a fortnight
+          // of silence then costs one paint instead of fourteen.
+          if (painted !== r.target) {
+            cfg.paint(p, day, DATA, p.width * pd, p.height * pd);
+            grabFull();
+            painted = r.target;
+          }
           out.width = jb.ow; out.height = jb.oh;
           octx.clearRect(0, 0, jb.ow, jb.oh);
           octx.imageSmoothingQuality = 'high';
