@@ -88,11 +88,7 @@
   document.getElementById('list').innerHTML =
     COMMON.map((line) => `<li>${line === null ? spec.seed : line}</li>`).join('');
 
-  // The other work keeps its own rule; say so and go there.
-  const other = Site.WORKS.find((w) => w.id !== id);
-  document.getElementById('foot').innerHTML = spec.foot +
-    (other ? `<div class="rule-other">${other.title} follows its own rule: ` +
-             `<a href="/rule.html?id=${other.id}">read it</a>.</div>` : '');
+  document.getElementById('foot').innerHTML = spec.foot;
 </script>
 </body>
 </html>

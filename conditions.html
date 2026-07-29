@@ -113,6 +113,15 @@
       border-bottom: 1px solid rgba(0,0,0,0.2);
       padding-bottom: 1px;
     }
+    /* Touch: enlarge the hit area of the footer links without moving their
+       underline off the text (WCAG 2.5.8). */
+    @media (max-width: 640px) {
+      .sheet { padding: 96px 20px 80px; }
+      .back, .artist, .back-top { position: relative; }
+      .back::after, .artist::after, .back-top::after {
+        content: ''; position: absolute; left: -6px; right: -6px; top: -11px; bottom: -11px;
+      }
+    }
     @page { margin: 25mm 22mm; }
     @media print {
       html, body { background: #fff; color: #000; }
@@ -176,15 +185,6 @@
 
     <h2><span class="n">12</span>Provenance</h2>
     <p>First recorded day 24 May 2022. The full provenance log, including earlier working titles, accompanies the signed certificate.</p>
-
-    <h2><span class="n">13</span>Signature</h2>
-    <div class="sig">
-      <div class="field"><span class="rule"></span><span class="cap">Place</span></div>
-      <div class="field"><span class="rule"></span><span class="cap">Date</span></div>
-      <div class="field"><span class="rule"></span><span class="cap">Artist — Nikolai Grigoriev</span></div>
-      <div class="field"><span class="rule"></span><span class="cap">Owner</span></div>
-    </div>
-    <p class="mono hash doc-hash">SHA-256 of this document · printed at signing · —</p>
 
     <div style="margin-top:56px; display:flex; gap:26px; flex-wrap:wrap;">
       <a class="back" href="/rule.html?id=87" style="margin-top:0;">The rule →</a>

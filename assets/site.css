@@ -259,10 +259,15 @@ main{padding:0 var(--pad)}
 
   /* archive link: drop the vertical rail, place it under the painting so the
      image reclaims the full width */
-  .archive-rail{position:static;left:auto;top:auto;transform:none;margin:16px auto 0;
+  .archive-rail{position:static;left:auto;top:auto;transform:none;margin:10px auto 0;
     writing-mode:horizontal-tb;text-orientation:mixed;
-    display:flex;justify-content:center;gap:26px;
+    display:flex;justify-content:center;gap:20px;
     font-size:12px;letter-spacing:.08em}
+  /* touch targets: WCAG 2.5.8 asks 24px; these are standalone links, not inline */
+  .archive-rail a{padding:8px 6px}
+  .arch-head .back{display:inline-block;padding:7px 0}
+  .caption .title a{display:inline-block;padding:5px 4px}
+  .arch-head .rule-link{margin-left:22px}
 
   .close-btn{width:44px;height:44px;top:4px;right:4px;font-size:26px}
 
