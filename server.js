@@ -57,6 +57,7 @@ const mimeTypes = {
   '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json',
   '.map': 'application/json', '.woff2': 'font/woff2',
+  '.webp': 'image/webp', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml',
 };
 
 // Security headers: the conservation promise ("no request to anyone else's
@@ -802,9 +803,11 @@ http.createServer((req, res) => {
   // ── Portfolio front-end surfaces (the site's new root): stylesheet + shared
   //    JS under /assets, and the isolated painter iframes + shared p5 under /art.
   //    The live paintings still read /data/days.json and /89/data.json above. ──
-  if (/^\/(assets|art)\//.test(url)) {
+  // `state/` holds one small ready-made image per work — how it stands today —
+  // so a visitor sees the paintings before any engine has loaded.
+  if (/^\/(assets|art|state)\//.test(url)) {
     const subExt = path.extname(url).toLowerCase();
-    const SUB_OK = new Set(['.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.svg', '.woff2', '.json', '.map']);
+    const SUB_OK = new Set(['.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.svg', '.woff2', '.json', '.map', '.webp']);
     if (!SUB_OK.has(subExt)) { res.writeHead(404, head({})); res.end('Not found'); return; }
     const fp = path.join(dir, decodeURIComponent(url));
     if (!fp.startsWith(dir)) { res.writeHead(404, head({})); res.end('Not found'); return; }

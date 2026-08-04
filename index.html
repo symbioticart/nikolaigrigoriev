@@ -17,19 +17,22 @@
   const host = document.getElementById('selected');
   const selected = Site.WORKS.filter((w) => w.selected);
 
-  (async () => {
-    for (let i = 0; i < selected.length; i++) {
-      const w = selected[i];
+  (() => {
+    // Both works are mounted at once. Each shows its ready-made state image
+    // straight away, so neither waits on the other's engine — and no painting
+    // happens at all until a day is paged.
+    const sections = selected.map((w) => {
       const section = document.createElement('section');
       section.className = 'work-stage home-stage';
       host.appendChild(section);
-      // mount sequentially: the two works share the browser's WebGL budget,
-      // and each work's iframe renders through a single context.
-      await Site.mountArtBlock(section, {
+      return { w, section };
+    });
+    sections.forEach(({ w, section }) => {
+      Site.mountArtBlock(section, {
         id: w.id, titleLink: true,
         maxW: 940, maxH: 620, maxHvh: 0.60, railGutter: 40,
       });
-    }
+    });
   })();
 </script>
 </body>

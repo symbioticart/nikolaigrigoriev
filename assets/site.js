@@ -5,9 +5,12 @@
   // ── Work registry ───────────────────────────────────────────────────────
   // Order defines Selected Works + Works grid ordering.
   const WORKS = [
-    { id: '87', title: 'Variation 87', selected: true,
+    // `ratio` is the work's aspect, known without asking the engine — it lets the
+    // plate take its place, and the ready-made state image show, before any
+    // painting machinery has loaded.
+    { id: '87', title: 'Variation 87', selected: true, ratio: 980 / 700,
       medium: 'Software, lived time written daily by an unchanging rule, screen. Dimensions variable — continuous since 2022.' },
-    { id: '89', title: 'Variation 89', selected: true,
+    { id: '89', title: 'Variation 89', selected: true, ratio: 920 / 1350,
       medium: 'Software, lived time written daily by an unchanging rule, screen — in the format of a portrait. Dimensions variable — since 2025.' },
   ];
   const WORK_BY_ID = Object.fromEntries(WORKS.map((w) => [w.id, w]));
@@ -149,15 +152,9 @@
   async function mountArtBlock(container, opts) {
     const id = opts.id;
     const work = WORK_BY_ID[id];
-    const meta = await getClient(id).ready;
-    const cal = calendarOf(meta);            // every calendar day, ascending
-    let idx = cal.length - 1;                // open on today — the work as it stands now
-    if (opts.startDate) {
-      const i = cal.indexOf(opts.startDate);
-      if (i >= 0) idx = i;
-    }
 
     // DOM — plate is a viewer (not a link); left/right zones page through days.
+    let rail = null;
     const inner = document.createElement('div');
     inner.className = 'stage-inner';
     const plate = document.createElement('div');
@@ -186,12 +183,14 @@
       // archive of every state, and the rule that writes them. The rule is
       // reachable from the work itself, the way a wall drawing is shown with
       // its instruction; it states the law and never the meaning.
-      const rail = document.createElement('div');
+      rail = document.createElement('div');
       rail.className = 'archive-rail';
       rail.innerHTML =
         `<a href="/archive.html?id=${id}">Archive</a>` +
         `<a href="/rule.html?id=${id}">The rule</a>`;
-      inner.appendChild(rail);
+      // Hung on <main>, not on the plate: the labels ride the window's right
+      // edge, while measure() keeps them level with this painting's middle.
+      (container.closest('main') || document.body).appendChild(rail);
     }
 
     const cap = document.createElement('div');
@@ -214,6 +213,37 @@
     const prevBtn = cap.querySelector('.prev');
     const nextBtn = cap.querySelector('.next');
 
+    const ratio = opts.ratio || work.ratio || 1.4;
+    let dims = { w: 0, h: 0 };
+    let heldVH = 0, heldForVW = -1;
+    measure();
+
+    // The work as it stands today, as a ready-made image of a few tens of
+    // kilobytes. It arrives over the network alone: the phone is not asked to
+    // paint anything before the page can be looked at. The engine — a megabyte
+    // of code and thousands of strokes, seconds of work on a phone — wakes in
+    // the background and takes the plate over the moment a day is paged.
+    let primed = false;
+    if (!opts.startDate) {
+      primed = await new Promise((res) => {
+        img.onload = () => res(true);
+        img.onerror = () => res(false);
+        img.src = `/state/${id}.webp`;
+      });
+      if (primed) {
+        plate.classList.remove('loading');
+        requestAnimationFrame(() => img.classList.add('in'));
+      }
+    }
+
+    const meta = await getClient(id).ready;
+    const cal = calendarOf(meta);            // every calendar day, ascending
+    let idx = cal.length - 1;                // open on today — the work as it stands now
+    if (opts.startDate) {
+      const i = cal.indexOf(opts.startDate);
+      if (i >= 0) idx = i;
+    }
+
     // How many days of silence the viewed day stands in: 0 if the body wrote
     // that day, otherwise the count since the last day it did.
     function gapAt(i) {
@@ -221,38 +251,55 @@
       for (let j = i; j >= 0 && !meta.alive.has(cal[j]); j--) g++;
       return g;
     }
-
-    const ratio = meta.ratio || 1.4;
-    let dims = { w: 0, h: 0 };
     function measure() {
       const padX = 2 * (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pad')) || 26);
       const vw = window.innerWidth || document.documentElement.clientWidth || 1024;
-      const vh = window.innerHeight || document.documentElement.clientHeight || 720;
+      // A phone's window grows and shrinks by ~100px as its address bar hides
+      // and returns while you scroll. Sizing the plate off the live height made
+      // the painting change size under the reader's thumb, so the height is
+      // taken once per width and held: the picture keeps still.
+      if (vw !== heldForVW) { heldForVW = vw; heldVH = window.innerHeight || 720; }
+      const vh = heldVH;
       // Close view reserves a right margin for the outside × ; living view
       // reserves the rail gutter on desktop; mobile living view reclaims it.
-      const gutter = opts.rail === 'close' ? 48 : (vw <= 640 ? 0 : (opts.railGutter || 34));
+      // The rail sits on the window edge on every screen, so the painting always
+      // yields it a margin — on a phone too, where it used to reclaim the space.
+      const gutter = opts.rail === 'close' ? 48 : (vw <= 640 ? 34 : (opts.railGutter || 34));
       const maxW = Math.max(200, Math.min(opts.maxW, vw - padX - gutter));
       const maxH = Math.max(200, Math.min(opts.maxH, vh * (opts.maxHvh || 0.62)));
       dims = fitPlate(ratio, maxW, maxH);
       plate.style.width = dims.w + 'px';
       img.style.width = dims.w + 'px';
       img.style.height = dims.h + 'px';
+      if (rail) {
+        const host = rail.offsetParent || document.body;
+        const pr = plate.getBoundingClientRect(), hr = host.getBoundingClientRect();
+        rail.style.top = Math.round(pr.top - hr.top + pr.height / 2) + 'px';
+      }
       return dims;
+    }
+
+    // The words around the painting: date, state, arrows, alt. Split out so a
+    // plate already holding today's image can be labelled without waking the
+    // painter for a picture it is already showing.
+    function label(i) {
+      const date = cal[i];
+      const isLast = i === cal.length - 1;
+      curEl.textContent = `${fmtDate(meta.birth)} – ${isLast ? 'Today' : fmtDate(date)}`;
+      // On a silent day, the count and nothing else. The number does the work;
+      // that the painting returns when the days do is stated in the rule.
+      const gap = gapAt(i);
+      stateEl.textContent = gap > 0 ? `Silence, day ${gap}.` : '';
+      prevBtn.disabled = zPrev.disabled = i === 0;
+      nextBtn.disabled = zNext.disabled = isLast;
+      img.alt = `${work.title} — ${isLast ? 'today' : fmtDate(date)}` +
+        (meta.alive.has(date) ? '' : ' — silence, no data recorded this day');
+      return date;
     }
 
     async function show(newIdx, animate) {
       idx = Math.max(0, Math.min(cal.length - 1, newIdx));
-      const date = cal[idx];
-      const isLast = idx === cal.length - 1;
-      curEl.textContent = `${fmtDate(meta.birth)} – ${isLast ? 'Today' : fmtDate(date)}`;
-      // On a silent day, the count and nothing else. The number does the work;
-      // that the painting returns when the days do is stated in the rule.
-      const gap = gapAt(idx);
-      stateEl.textContent = gap > 0 ? `Silence, day ${gap}.` : '';
-      prevBtn.disabled = zPrev.disabled = idx === 0;
-      nextBtn.disabled = zNext.disabled = isLast;
-      img.alt = `${work.title} — ${isLast ? 'today' : fmtDate(date)}` +
-        (meta.alive.has(date) ? '' : ' — silence, no data recorded this day');
+      const date = label(idx);
       if (animate) img.classList.remove('in');
       // The waiting text belongs on an empty plate only: on the first mount and
       // while paging, when the painting has been faded out. A silent re-render
@@ -283,7 +330,9 @@
     }
 
     measure();
-    await show(idx, false);
+    // Already holding today from the state image: only put the words in place.
+    // Nothing is painted until a day is actually paged.
+    if (primed) label(idx); else await show(idx, false);
 
     // Re-render only when the viewport WIDTH really changed. On a phone the
     // address bar collapses as you scroll, the window loses ~100px of height,

@@ -54,7 +54,9 @@ img{max-width:100%;display:block}
   display:inline-block;overflow:visible}
 
 /* ── Generic page frame ───────────────────────────────────────────────── */
-main{padding:0 var(--pad)}
+/* positioned so the vertical rails can hang off the window's right edge while
+   staying level with their own painting */
+main{padding:0 var(--pad);position:relative}
 .wrap{max-width:1180px;margin:0 auto}
 
 /* ── Hero / single work block ─────────────────────────────────────────── */
@@ -71,6 +73,9 @@ main{padding:0 var(--pad)}
 .home-stage:first-child{min-height:calc(100vh - 132px);padding-top:104px;padding-bottom:0}
 .home-stage:first-child{min-height:calc(100svh - 132px)}
 .home-stage:not(:first-child){justify-content:flex-start;padding-top:22px}
+/* the last work ends where it ends: top-aligned stages kept a screenful of
+   min-height, and all of it fell as empty ground beneath the final painting */
+.home-stage:not(:first-child):last-child{min-height:auto;padding-bottom:72px}
 /* plate centred in the viewport; the archive rail hangs off its right edge
    without shifting the painting's centre. */
 .stage-inner{position:relative;display:block}
@@ -113,8 +118,10 @@ main{padding:0 var(--pad)}
 .nav-zone:disabled{cursor:default}
 
 /* vertical archive link riding the right edge of the plate */
+/* Pinned to the right edge of the window, level with the middle of its own
+   painting (the top is set in JS, since each work sits at its own height). */
 .archive-rail{
-  position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:14px;
+  position:absolute;right:0;transform:translateY(-50%);
   writing-mode:vertical-rl;text-orientation:mixed;
   display:flex;align-items:center;gap:24px;
   font-size:12px;letter-spacing:.08em;
@@ -253,6 +260,7 @@ main{padding:0 var(--pad)}
   .home-stage:first-child{min-height:calc(100vh - 104px);padding-top:100px;padding-bottom:0}
   .home-stage:first-child{min-height:calc(100svh - 104px)} /* next painting peeks */
   .home-stage:not(:first-child){padding-top:14px}
+  .home-stage:not(:first-child):last-child{min-height:auto;padding-bottom:48px}
   .grid-head,.arch-head{padding-top:104px}
   .works-grid{grid-template-columns:1fr;gap:40px}
 
@@ -262,12 +270,11 @@ main{padding:0 var(--pad)}
 
   /* archive link: drop the vertical rail, place it under the painting so the
      image reclaims the full width */
-  .archive-rail{position:static;left:auto;top:auto;transform:none;margin:10px auto 0;
-    writing-mode:horizontal-tb;text-orientation:mixed;
-    display:flex;justify-content:center;gap:20px;
-    font-size:12px;letter-spacing:.08em}
+  /* the rail keeps its place on the window's right edge here too; the painting
+     yields a narrow margin for it rather than the labels moving underneath */
+  .archive-rail{gap:18px;font-size:11px}
   /* touch targets: WCAG 2.5.8 asks 24px; these are standalone links, not inline */
-  .archive-rail a{padding:8px 6px}
+  .archive-rail a{padding:8px 5px}
   .arch-head .back{display:inline-block;padding:7px 0}
   .caption .title a{display:inline-block;padding:5px 4px}
   .arch-head .rule-link{margin-left:22px}
