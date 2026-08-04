@@ -100,6 +100,26 @@
 
   // Render one day. w/h are CSS px; we upscale by DPR for crispness. The iframe
   // caps delivery at the full painted buffer, so this stays sharp on retina.
+  // What a work needs to label itself, straight from the server: the engine is
+  // a megabyte of code and seconds of a phone's time, and none of it is needed
+  // to know the dates. If the server has nothing to say, ask the engine.
+  let metaAllP = null;
+  function metaOf(id) {
+    if (!metaAllP) {
+      metaAllP = fetch('/state/meta.json', { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    }
+    return metaAllP.then((all) => {
+      const m = all && all[id];
+      if (!m || !m.birth || !m.last) return getClient(id).ready;
+      return {
+        birth: m.birth, last: m.last, lastData: m.lastData || m.last, ratio: m.ratio,
+        alive: new Set(m.alive), aliveList: m.alive,
+        incomplete: new Set(m.incomplete || []),
+      };
+    });
+  }
+
   function render(id, date, w, h) {
     // Already painted and waiting on disk — hand it over without the engine.
     if (PRE[id] && PRE[id].has(date)) return Promise.resolve(`/state/${id}-${date}.webp`);
@@ -248,7 +268,7 @@
       }
     }
 
-    const meta = await getClient(id).ready;
+    const meta = await metaOf(id);
     const cal = calendarOf(meta);            // every calendar day, ascending
     let idx = cal.length - 1;                // open on today — the work as it stands now
     if (opts.startDate) {
@@ -373,7 +393,7 @@
   window.Site = {
     mountArtBlock,
     WORKS, WORK_BY_ID,
-    ready: (id) => getClient(id).ready,
+    ready: (id) => metaOf(id),
     render,
     mountHeader,
     fmtDate, fmtYear, fmtDateLong: (iso) => { const { y, m, d } = parseISO(iso); return `${MONTHS_LONG[m - 1]} ${d}, ${y}`; },

@@ -557,6 +557,13 @@ function currentMeta() {
     disappearDays: DISAPPEAR_DAYS,
     lastDataDay: STATE.lastDataDay, serverDate, gapDays, status,
     live: STATE.live, syncedAt: STATE.lastSync,
+    // Where the work's calendar ends today. A silence does not suspend the work
+    // — it goes on living through it — so the calendar runs to today. Unless the
+    // record is frozen (no confirmed sync): a vendor that has stopped answering
+    // must never be painted as a body that has fallen silent. Decided here, in
+    // one place, and read by every surface.
+    calendarEnd: (STATE.live && STATE.lastDataDay && serverDate > STATE.lastDataDay)
+      ? serverDate : STATE.lastDataDay,
   };
 }
 
@@ -765,6 +772,22 @@ http.createServer((req, res) => {
   if (url === '/wit36/es' || url === '/wit36/es/') url = '/wit36/es.html';
   if (url === '/wit36/es/terms' || url === '/wit36/es/terms/') url = '/wit36/es/terms.html';
 
+  // What each work needs to label itself — its birth, where its calendar ends
+  // today, which days the body wrote. A few kilobytes, so a visitor gets the
+  // dates and the arrows without waiting on a painting engine to announce them.
+  if (url === '/state/meta.json') {
+    if (!STATE.days) loadRecord();
+    const m = currentMeta();
+    const alive87 = (STATE.days || []).map(d => d.d);
+    const alive89 = (STATE.days89 || []).map(d => d.day);
+    const common = { birth: m.birth, last: m.calendarEnd, lastData: m.lastDataDay };
+    serveJSON(req, res, {
+      '87': Object.assign({}, common, { ratio: 980 / 700, alive: alive87,
+        incomplete: (STATE.days || []).filter(d => d.i === 1).map(d => d.d) }),
+      '89': Object.assign({}, common, { ratio: 920 / 1350, alive: alive89, incomplete: [] }),
+    });
+    return;
+  }
   if (url === '/data/days.json') {
     if (!STATE.days) loadRecord();
     serveJSON(req, res, STATE.days

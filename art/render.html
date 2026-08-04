@@ -137,9 +137,16 @@
     // stops at the last written day — a vendor outage must never be painted as
     // the owner's silence. Self-heals on the next successful sync.
     const birth = cfg.birth(DATA), last = cfg.last(DATA);
-    const today = cfg.today && cfg.today(DATA);
-    const liveOk = !cfg.live || cfg.live(DATA);
-    calEnd = (liveOk && today && daysBetween(last, today) > 0) ? today : last;
+    // The server decides where the calendar ends (meta.calendarEnd) — including
+    // the false-death guard — so this and the page agree by construction.
+    const served = DATA.meta && DATA.meta.calendarEnd;
+    if (served && daysBetween(last, served) >= 0) {
+      calEnd = served;
+    } else {
+      const today = cfg.today && cfg.today(DATA);
+      const liveOk = !cfg.live || cfg.live(DATA);
+      calEnd = (liveOk && today && daysBetween(last, today) > 0) ? today : last;
+    }
     let lastAlive = birth;
     for (let d = birth; daysBetween(d, calEnd) >= 0; d = addDaysISO(d, 1)) {
       if (byDate.has(d)) { lastAlive = d; resolve.set(d, { target: d, gap: 0 }); }
