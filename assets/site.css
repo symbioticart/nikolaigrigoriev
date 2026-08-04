@@ -102,25 +102,32 @@ main{padding:0 var(--pad);position:relative}
   color:var(--grey);font-weight:400;
   font-size:10px;line-height:1.5;letter-spacing:.05em;
 }
+/* A mark passing across the canvas, over and over, so a reader can see that
+   work is going on and nothing has stalled. Moved with `transform` — animating
+   a gradient's background-position is quietly ignored on mobile Safari, which
+   left the mark sitting still on exactly the devices that wait longest. */
 .plate.loading::after{
   content:"";
-  position:absolute;left:50%;top:50%;margin-top:11px;
-  width:132px;height:2px;transform:translateX(-50%);
-  background:linear-gradient(90deg,transparent 0%,var(--ink) 45%,var(--ink) 55%,transparent 100%);
-  background-size:55% 100%;background-repeat:no-repeat;
-  opacity:.6;
-  animation:stroke 1.15s linear infinite;
+  position:absolute;left:50%;top:50%;margin-top:11px;margin-left:-66px;
+  width:46px;height:2px;border-radius:1px;
+  background:var(--ink);
+  animation:stroke 1.2s ease-in-out infinite;
+  will-change:transform;
   pointer-events:none;
 }
-/* a mark passing across the canvas, over and over, so a reader can see that
-   work is going on and nothing has stalled */
 @keyframes stroke{
-  from{background-position:-55% 0}
-  to  {background-position:155% 0}
+  0%   {transform:translateX(0);    opacity:.12}
+  50%  {                            opacity:.62}
+  100% {transform:translateX(86px); opacity:.12}
 }
+/* A reader who asks for less movement still needs to know the work is being
+   made and nothing has stalled. The blanket rule at the top of this file stops
+   every animation with !important, which left this mark frozen — so here it is
+   restored deliberately, as a breath rather than a traversal. */
 @media (prefers-reduced-motion: reduce){
-  .plate.loading::after{animation-duration:2.6s}
+  .plate.loading::after{animation:breath 2s ease-in-out infinite !important}
 }
+@keyframes breath{0%,100%{opacity:.14}50%{opacity:.62}}
 
 /* left / right paging zones over the painting — invisible; only the cursor
    changes to signal you can page left/right, no on-image arrows. */
