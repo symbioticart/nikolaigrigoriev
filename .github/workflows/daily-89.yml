@@ -94,6 +94,28 @@ jobs:
             git push origin main
           fi
 
+      # The last few states of every work, painted here so no visitor's phone has
+      # to. Oil compresses to ~30kb as WebP, so the whole window is a few hundred
+      # kilobytes and the site opens — and pages back a week — without waking a
+      # painting engine at all. Regenerated daily, because a silence deepens.
+      - name: Paint the recent states ahead (state/)
+        run: |
+          cd "$RUNNER_TEMP"
+          CHROME=$(command -v google-chrome || command -v chromium-browser || command -v chromium)
+          cd "$GITHUB_WORKSPACE"
+          CHROME="$CHROME" NODE_PATH="$RUNNER_TEMP/node_modules" \
+            node scripts/gen-state.js "$SITE" state 5
+          if [ -n "$(git status --porcelain state)" ]; then
+            git config user.name "variation states"
+            git config user.email "record@nikolaigrigoriev.com"
+            git add state
+            git commit -m "state: repaint the recent states [skip ci]"
+            git pull --rebase --autostash origin main
+            git push origin main
+          else
+            echo "states unchanged"
+          fi
+
       - name: Telegram alert if the frame failed
         if: failure()
         env:
