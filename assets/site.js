@@ -35,6 +35,16 @@
   // One hidden iframe per work. Promise-based render(date,w,h) with a dataURL cache.
   const clients = new Map();
 
+  // The last few states of each work, painted ahead and kept as small images.
+  // Stepping back through them costs a download, not a repaint — so the days a
+  // reader actually looks at arrive at once, and the engine is only woken for
+  // the deeper past, where waiting is understood.
+  const PRE = Object.create(null);
+  fetch('/state/index.json', { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((j) => { if (j) for (const k of Object.keys(j)) PRE[k] = new Set(j[k]); })
+    .catch(() => {});
+
   function getClient(id) {
     if (clients.has(id)) return clients.get(id);
 
@@ -91,6 +101,8 @@
   // Render one day. w/h are CSS px; we upscale by DPR for crispness. The iframe
   // caps delivery at the full painted buffer, so this stays sharp on retina.
   function render(id, date, w, h) {
+    // Already painted and waiting on disk — hand it over without the engine.
+    if (PRE[id] && PRE[id].has(date)) return Promise.resolve(`/state/${id}-${date}.webp`);
     const state = getClient(id);
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
@@ -252,7 +264,8 @@
       return g;
     }
     function measure() {
-      const padX = 2 * (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pad')) || 26);
+      const pad = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pad')) || 26;
+      const padX = 2 * pad;
       const vw = window.innerWidth || document.documentElement.clientWidth || 1024;
       // A phone's window grows and shrinks by ~100px as its address bar hides
       // and returns while you scroll. Sizing the plate off the live height made
@@ -262,9 +275,10 @@
       const vh = heldVH;
       // Close view reserves a right margin for the outside × ; living view
       // reserves the rail gutter on desktop; mobile living view reclaims it.
-      // The rail sits on the window edge on every screen, so the painting always
-      // yields it a margin — on a phone too, where it used to reclaim the space.
-      const gutter = opts.rail === 'close' ? 48 : (vw <= 640 ? 34 : (opts.railGutter || 34));
+      // The rail stands on the page's own right margin, so the painting yields
+      // it that margin plus its own width. Doubled, because the plate is centred:
+      // half of what is taken away comes off the right side, where the rail is.
+      const gutter = opts.rail === 'close' ? 48 : 2 * (pad + (vw <= 640 ? 26 : 34));
       const maxW = Math.max(200, Math.min(opts.maxW, vw - padX - gutter));
       const maxH = Math.max(200, Math.min(opts.maxH, vh * (opts.maxHvh || 0.62)));
       dims = fitPlate(ratio, maxW, maxH);
