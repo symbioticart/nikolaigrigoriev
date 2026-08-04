@@ -186,7 +186,7 @@
     const work = WORK_BY_ID[id];
 
     // DOM — plate is a viewer (not a link); left/right zones page through days.
-    let rail = null;
+    let rail = null, closeBtn = null;
     const inner = document.createElement('div');
     inner.className = 'stage-inner';
     const plate = document.createElement('div');
@@ -202,14 +202,16 @@
     plate.append(zPrev, zNext);
     inner.appendChild(plate);
     if (opts.rail === 'close') {
-      // Single-state view: a close × just outside the painting's top-right
-      // corner (the header stays), returning to the archive it was opened from.
-      const close = document.createElement('a');
-      close.className = 'close-btn';
-      close.href = `/archive.html?id=${id}`;
-      close.setAttribute('aria-label', 'Close');
-      close.textContent = '×';
-      inner.appendChild(close);
+      // Single-state view: the close × stands on the page's own right margin,
+      // level with the top of the painting — the same margin the rail and the
+      // nav use, so it reads as part of the page rather than as something left
+      // beside the picture by accident.
+      closeBtn = document.createElement('a');
+      closeBtn.className = 'close-btn';
+      closeBtn.href = `/archive.html?id=${id}`;
+      closeBtn.setAttribute('aria-label', 'Close');
+      closeBtn.textContent = '×';
+      (container.closest('main') || document.body).appendChild(closeBtn);
     } else {
       // Living view: the vertical rail riding the plate's right edge — the
       // archive of every state, and the rule that writes them. The rule is
@@ -255,17 +257,22 @@
     // paint anything before the page can be looked at. The engine — a megabyte
     // of code and thousands of strokes, seconds of work on a phone — wakes in
     // the background and takes the plate over the moment a day is paged.
-    let primed = false;
-    if (!opts.startDate) {
-      primed = await new Promise((res) => {
-        img.onload = () => res(true);
-        img.onerror = () => res(false);
-        img.src = `/state/${id}.webp`;
-      });
-      if (primed) {
-        plate.classList.remove('loading');
-        requestAnimationFrame(() => img.classList.add('in'));
-      }
+    // A dated view (opened from the archive) asks for that day by name; if it
+    // falls inside the painted-ahead window it arrives just as fast, and if it
+    // does not, the miss costs one quick 404 and the engine takes over.
+    const wanted = opts.startDate
+      ? `/state/${id}-${opts.startDate}.webp`
+      : `/state/${id}.webp`;
+    let primed = await new Promise((res) => {
+      img.onload = () => res(true);
+      img.onerror = () => res(false);
+      img.src = wanted;
+    });
+    if (primed) {
+      plate.classList.remove('loading');
+      requestAnimationFrame(() => img.classList.add('in'));
+    } else {
+      img.removeAttribute('src');
     }
 
     const meta = await metaOf(id);
@@ -298,17 +305,22 @@
       // The rail stands on the page's own right margin, so the painting yields
       // it that margin plus its own width. Doubled, because the plate is centred:
       // half of what is taken away comes off the right side, where the rail is.
-      const gutter = opts.rail === 'close' ? 48 : 2 * (pad + (vw <= 640 ? 26 : 34));
+      // the ×'s 44px tap area is wider than the glyph, so this view yields a
+      // little more — a tap meant for closing must never page the work instead
+      const gutter = 2 * (pad + (opts.rail === 'close' ? 32 : (vw <= 640 ? 26 : 34)));
       const maxW = Math.max(200, Math.min(opts.maxW, vw - padX - gutter));
       const maxH = Math.max(200, Math.min(opts.maxH, vh * (opts.maxHvh || 0.62)));
       dims = fitPlate(ratio, maxW, maxH);
       plate.style.width = dims.w + 'px';
       img.style.width = dims.w + 'px';
       img.style.height = dims.h + 'px';
-      if (rail) {
-        const host = rail.offsetParent || document.body;
+      const edge = rail || closeBtn;
+      if (edge) {
+        const host = edge.offsetParent || document.body;
         const pr = plate.getBoundingClientRect(), hr = host.getBoundingClientRect();
-        rail.style.top = Math.round(pr.top - hr.top + pr.height / 2) + 'px';
+        const top = pr.top - hr.top;
+        // the rail rides the painting's middle, the × its top corner
+        edge.style.top = Math.round(rail ? top + pr.height / 2 : top) + 'px';
       }
       return dims;
     }

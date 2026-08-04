@@ -38,7 +38,11 @@
     // Fire the render without blocking; fill the tile when it arrives.
     const wpx = Math.round(frame.getBoundingClientRect().width) || 540;
     const hpx = Math.round(wpx / meta.ratio);
-    const latest = meta.aliveList[meta.aliveList.length - 1];
+    // The work as it stands today — the end of its calendar, not the last day
+    // the body wrote. A silence is part of the work, so the tile should show it
+    // faded exactly as the home page does; and today is painted ahead, so the
+    // tile arrives as a download instead of a repaint.
+    const latest = meta.last;
     Site.render(w.id, latest, wpx, hpx).then((url) => {
       if (!url) return;
       const img = a.querySelector('img');

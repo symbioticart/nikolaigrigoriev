@@ -104,19 +104,22 @@ main{padding:0 var(--pad);position:relative}
 }
 .plate.loading::after{
   content:"";
-  position:absolute;left:50%;top:50%;margin-top:8px;
-  width:56px;height:1px;transform:translateX(-50%);
-  background:var(--grey);transform-origin:left center;
-  animation:stroke 1.5s ease-in-out infinite;
+  position:absolute;left:50%;top:50%;margin-top:11px;
+  width:132px;height:2px;transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent 0%,var(--ink) 45%,var(--ink) 55%,transparent 100%);
+  background-size:55% 100%;background-repeat:no-repeat;
+  opacity:.6;
+  animation:stroke 1.15s linear infinite;
   pointer-events:none;
 }
+/* a mark passing across the canvas, over and over, so a reader can see that
+   work is going on and nothing has stalled */
 @keyframes stroke{
-  0%   {clip-path:inset(0 100% 0 0);opacity:.15}
-  45%  {clip-path:inset(0 0 0 0);   opacity:.75}
-  100% {clip-path:inset(0 0 0 0);   opacity:0}
+  from{background-position:-55% 0}
+  to  {background-position:155% 0}
 }
 @media (prefers-reduced-motion: reduce){
-  .plate.loading::after{animation:none;opacity:.4;clip-path:none}
+  .plate.loading::after{animation-duration:2.6s}
 }
 
 /* left / right paging zones over the painting — invisible; only the cursor
@@ -148,8 +151,10 @@ main{padding:0 var(--pad);position:relative}
   min-height:1em}
 /* close × — just OUTSIDE the painting, in the margin beside its top-right
    corner (the header stays). A gutter is reserved so it never clips. */
+/* on the page's right margin, level with the top of the painting — the same
+   margin the nav and the rails stand on (the top is set in JS) */
 .close-btn{
-  position:absolute;top:0;left:100%;margin-left:10px;z-index:6;
+  position:absolute;right:var(--pad);z-index:6;
   width:26px;height:26px;display:flex;align-items:flex-start;justify-content:center;
   font-size:24px;line-height:1;font-weight:300;color:var(--grey);
   transition:color .2s var(--ease);
@@ -293,7 +298,9 @@ main{padding:0 var(--pad);position:relative}
   .caption .title a{display:inline-block;padding:5px 4px}
   .arch-head .rule-link{margin-left:22px}
 
-  .close-btn{width:44px;height:44px;top:4px;right:4px;font-size:26px}
+  /* a proper 44px target: the tap area grows inwards and down, while the glyph
+     itself stays on the page margin with everything else */
+  .close-btn{width:44px;height:44px;font-size:26px;justify-content:flex-end;margin-top:-8px}
 
   .cell{width:20px;height:20px}                     /* comfier tap target */
   .arch-row{gap:9px}
