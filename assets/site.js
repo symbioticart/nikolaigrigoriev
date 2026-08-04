@@ -40,7 +40,7 @@
   // reader actually looks at arrive at once, and the engine is only woken for
   // the deeper past, where waiting is understood.
   const PRE = Object.create(null);
-  fetch('/state/index.json', { cache: 'no-store' })
+  const preReady = fetch('/state/index.json', { cache: 'no-store' })
     .then((r) => (r.ok ? r.json() : null))
     .then((j) => { if (j) for (const k of Object.keys(j)) PRE[k] = new Set(j[k]); })
     .catch(() => {});
@@ -120,9 +120,17 @@
     });
   }
 
+  // Wait for the list of painted-ahead days before deciding. Without this the
+  // first request of a page can outrun the manifest and wake the engine for a
+  // day that was already waiting on disk — which is what made the works grid
+  // slow while the home page, priming from a known filename, stayed fast.
   function render(id, date, w, h) {
+    return preReady.then(() => renderNow(id, date, w, h));
+  }
+
+  function renderNow(id, date, w, h) {
     // Already painted and waiting on disk — hand it over without the engine.
-    if (PRE[id] && PRE[id].has(date)) return Promise.resolve(`/state/${id}-${date}.webp`);
+    if (PRE[id] && PRE[id].has(date)) return `/state/${id}-${date}.webp`;
     const state = getClient(id);
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
