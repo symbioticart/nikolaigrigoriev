@@ -32,6 +32,7 @@ const CLIENT_ID     = process.env.OURA_CLIENT_ID     || '';
 const CLIENT_SECRET = process.env.OURA_CLIENT_SECRET || '';
 
 const SYNC_INTERVAL = 6 * 60 * 60 * 1000;   // re-sync every 6h
+const NIGHT_WINDOW  = 200;                  // nights served without ?all=1
 const FETCH_CHUNK_DAYS = 90;                // API pull window per request
 
 const BUILD_SHA = (process.env.RENDER_GIT_COMMIT || 'dev').slice(0, 7);
@@ -51,6 +52,10 @@ const STATE = {
   degradedReasons: [],
   perCollection: {},        // { name: { ok, count } }
   lastKnownGoodCount: 0,
+  // Archipelago reads the night itself, not the day it belongs to: the
+  // five-minute hypnogram, the movement, the heart and the recovery inside those
+  // hours. The daily record cannot carry them — it is fourteen scalars.
+  nights: null,             // [{ day, phase5, move30, hrv[], hr[], … }]
 };
 
 const mimeTypes = {
@@ -430,6 +435,53 @@ function buildDays(sleepRaw, dailySleep, dailyReady, workoutRaw) {
   return days;
 }
 
+// ---------- raw upstream -> the night itself ----------
+// Archipelago (a third work on this domain) is painted from ONE night, not from
+// the day it closed. Every five minutes of sleep becomes a charge whose weight
+// is the depth of those minutes and whose radius is the body's recovery in them;
+// the painting is the level set of their sum. None of that survives buildDays,
+// which reduces a night to fourteen scalars — so the series are kept here
+// instead of being thrown away with the rest of the upstream response.
+//
+// Only the fields the work actually reads are kept. `sleep_phase_30_sec` is not
+// among them and is dropped: data the work does not use is not stored.
+function buildNights(sleepRaw, spo2Raw, dailyReady) {
+  const spo2ByDay = Object.fromEntries((spo2Raw || []).map(r => [r.day, r]));
+  const rdByDay = Object.fromEntries((dailyReady || []).map(r => [r.day, r]));
+
+  // Same choice as buildDays: one night per day, the longest sleep of it.
+  const slByDay = {};
+  for (const s of sleepRaw) {
+    if (s.type !== 'long_sleep') continue;
+    const cur = slByDay[s.day];
+    if (!cur || (s.total_sleep_duration || 0) > (cur.total_sleep_duration || 0)) slByDay[s.day] = s;
+  }
+
+  const nights = [];
+  for (const day of Object.keys(slByDay).sort()) {
+    const s = slByDay[day];
+    if (!s.sleep_phase_5_min) continue;         // without the hypnogram there is no painting
+    const sp = spo2ByDay[day], rd = rdByDay[day];
+    nights.push({
+      day,
+      bedtime_start: s.bedtime_start, bedtime_end: s.bedtime_end,
+      latency: s.latency, efficiency: s.efficiency,
+      time_in_bed: s.time_in_bed, tst: s.total_sleep_duration,
+      deep: s.deep_sleep_duration, rem: s.rem_sleep_duration,
+      light: s.light_sleep_duration, awake: s.awake_time,
+      phase5: s.sleep_phase_5_min, move30: s.movement_30_sec || '',
+      hrv: (s.hrv && s.hrv.items) || [], hr: (s.heart_rate && s.heart_rate.items) || [],
+      hr_int: (s.heart_rate && s.heart_rate.interval) || 300,
+      lowest_hr: s.lowest_heart_rate, avg_hrv: s.average_hrv,
+      avg_breath: s.average_breath,
+      // the ground's grain: how the air of that night behaved
+      bdi: sp ? sp.breathing_disturbance_index : null,
+      temp_dev: rd ? rd.temperature_deviation : null,   // density of the ink
+    });
+  }
+  return nights;
+}
+
 function isoDate(d) { return d.toISOString().slice(0, 10); }
 function daysBetween(a, b) { return Math.round((Date.parse(b) - Date.parse(a)) / 864e5); }
 
@@ -456,6 +508,32 @@ function archiveRead() {
       .map(f => JSON.parse(fs.readFileSync(path.join(ARCHIVE_DIR, f), 'utf8')))
       .sort((a, b) => a.day < b.day ? -1 : 1);
   } catch (e) { console.warn('[record] read failed:', e.message); return []; }
+}
+
+// The nights are their own write-once record, beside the days and under the same
+// rule: what was written first stays as written. A night is bulkier than a day —
+// two strings and two series — so it lives in its own directory rather than
+// swelling every day file of a work that never asked for it.
+const NIGHTS_DIR = path.join(path.dirname(ARCHIVE_DIR), 'nights');
+
+function nightsWrite(nights) {
+  try {
+    fs.mkdirSync(NIGHTS_DIR, { recursive: true });
+    for (const n of nights) {
+      const f = path.join(NIGHTS_DIR, `${n.day}.json`);
+      if (!fs.existsSync(f)) fs.writeFileSync(f, JSON.stringify(n));   // write once, never rewrite
+    }
+  } catch (e) { console.warn('[nights] write skipped:', e.message); }
+}
+
+function nightsRead() {
+  try {
+    if (!fs.existsSync(NIGHTS_DIR)) return [];
+    return fs.readdirSync(NIGHTS_DIR)
+      .filter(f => /^\d{4}-\d{2}-\d{2}\.json$/.test(f))
+      .map(f => JSON.parse(fs.readFileSync(path.join(NIGHTS_DIR, f), 'utf8')))
+      .sort((a, b) => a.day < b.day ? -1 : 1);
+  } catch (e) { console.warn('[nights] read failed:', e.message); return []; }
 }
 
 // Confirmed silence enters the record as DORMANCY, not death (canon, ratified
@@ -567,6 +645,30 @@ function currentMeta() {
   };
 }
 
+// Archipelago is fed by the NIGHTS, not by the days, and the two can part ways:
+// a ring worn through the day but not through the night keeps the daily record
+// advancing while this work has heard nothing. Reporting the daily silence here
+// would tell the visitor the work is fresh while it holds a fortnight-old sheet.
+// So its clock is its own — same rules, counted from its own last night.
+function nightMeta() {
+  const m = currentMeta();
+  const nights = STATE.nights || [];
+  const lastNight = nights.length ? nights[nights.length - 1].day : null;
+  if (!lastNight) return Object.assign({}, m, { lastDataDay: null, gapDays: 0, status: 'record' });
+  const gapDays = Math.max(0, daysBetween(lastNight, m.serverDate));
+  return Object.assign({}, m, {
+    birth: nights[0].day,
+    lastDataDay: lastNight,
+    gapDays,
+    status: !STATE.live ? 'record'
+      : gapDays <= 1 ? 'fresh'
+      : gapDays <= PAUSE_DAYS ? 'paused'
+      : gapDays >= DISAPPEAR_DAYS ? 'disappeared'
+      : 'dormant',
+    calendarEnd: (STATE.live && m.serverDate > lastNight) ? m.serverDate : lastNight,
+  });
+}
+
 // ---------- sync ----------
 async function sync() {
   if (STATE.syncing) return;
@@ -585,8 +687,12 @@ async function sync() {
 
     // allSettled per collection: one failing collection (e.g. workout) must
     // not lose the rest of the living record.
-    const COLS = ['sleep', 'daily_sleep', 'daily_readiness', 'workout'];
-    const acc = { sleep: [], daily_sleep: [], daily_readiness: [], workout: [] };
+    // daily_spo2 joined the list for Archipelago alone: the breathing
+    // disturbance index is the amplitude of that work's ground grain. It is the
+    // least important collection here — if it fails, allSettled isolates it, the
+    // index is null, and the grain sits at its floor. Nothing else notices.
+    const COLS = ['sleep', 'daily_sleep', 'daily_readiness', 'workout', 'daily_spo2'];
+    const acc = { sleep: [], daily_sleep: [], daily_readiness: [], workout: [], daily_spo2: [] };
     const failedCols = new Set();
     let authFailure = null;
     for (const [a, b] of chunks) {
@@ -620,6 +726,21 @@ async function sync() {
     const alreadySet = new Set(archived.map(d => d.day));
     archiveWrite(rawDays.filter(d => fetchedSet.has(d.day) || alreadySet.has(d.day)));
 
+    // The nights, on the same terms: the written record wins, the live fetch
+    // fills what it lacks, and only a night from a complete sleep fetch is
+    // allowed to petrify. A night is worthless without its hypnogram, so a
+    // failed `sleep` collection bars every write — while a failed daily_spo2
+    // only costs the grain, and must not bar them.
+    const nightsFetched = buildNights(acc.sleep, acc.daily_spo2, acc.daily_readiness);
+    const nightsArchived = nightsRead();
+    const nights = mergeDays(nightsArchived, nightsFetched);
+    if (!failedCols.has('sleep')) {
+      const seen = new Set(nightsArchived.map(n => n.day));
+      const fresh = new Set(nightsFetched.map(n => n.day));
+      nightsWrite(nights.filter(n => fresh.has(n.day) || seen.has(n.day)));
+    }
+    STATE.nights = nights;
+
     setDays(rawDays, true);
     STATE.lastSync = new Date().toISOString();
     STATE.tokenError = false;
@@ -627,7 +748,11 @@ async function sync() {
 
     // self-check: silent degradation is a data malfunction, not slow Oura.
     const reasons = [];
-    if (failedCols.size) reasons.push('collections failed: ' + [...failedCols].join(','));
+    // daily_spo2 is not load-bearing: losing it costs the grain of one work's
+    // ground and nothing else. It must not raise an alarm at three in the
+    // morning, or the alarm stops meaning anything.
+    const criticalFailed = [...failedCols].filter(n => n !== 'daily_spo2');
+    if (criticalFailed.length) reasons.push('collections failed: ' + criticalFailed.join(','));
     if (rawDays.length < STATE.lastKnownGoodCount) reasons.push(`dayCount ${rawDays.length} < known-good ${STATE.lastKnownGoodCount}`);
     else STATE.lastKnownGoodCount = rawDays.length;
     STATE.degraded = reasons.length > 0;
@@ -697,6 +822,10 @@ function healthObj() {
 // sync, otherwise a sleeping host would show a false death.
 function loadRecord() {
   if (STATE.days && STATE.live) return;
+  // The nights have no bundled snapshot to fall back on — they exist only where
+  // they were written. Before the first sync of a fresh disk, Archipelago has
+  // nothing to show, and says so rather than inventing a night.
+  if (!STATE.nights) STATE.nights = nightsRead();
   const rawDays = mergeDays(archiveRead(), snapshotRead());
   if (!rawDays.length) { console.error('[record] empty'); return; }
   setDays(rawDays, false);
@@ -781,10 +910,23 @@ http.createServer((req, res) => {
     const alive87 = (STATE.days || []).map(d => d.d);
     const alive89 = (STATE.days89 || []).map(d => d.day);
     const common = { birth: m.birth, last: m.calendarEnd, lastData: m.lastDataDay };
+    // Archipelago is alive only on the nights it actually has — a day the ring
+    // recorded without a hypnogram is not a night this work can paint, and must
+    // not appear in its calendar as though it were.
+    const nights = STATE.nights || [];
+    const nm = nightMeta();
     serveJSON(req, res, {
       '87': Object.assign({}, common, { ratio: 980 / 700, alive: alive87,
         incomplete: (STATE.days || []).filter(d => d.i === 1).map(d => d.d) }),
       '89': Object.assign({}, common, { ratio: 920 / 1350, alive: alive89, incomplete: [] }),
+      'archipelago': Object.assign({}, common, {
+        ratio: 900 / 1200,
+        birth: nm.birth,
+        last: nm.calendarEnd, lastData: nm.lastDataDay,
+        alive: nights.map(n => n.day),
+        // an hour of sleep is too little to be a night; it is marked, not hidden
+        incomplete: nights.filter(n => (n.tst || 0) < 3600).map(n => n.day),
+      }),
     });
     return;
   }
@@ -803,6 +945,20 @@ http.createServer((req, res) => {
     // Serve the transported form {day, _m, _s} — the painter renders from a
     // fixed input (no global sort, no drift) and the raw body never leaves.
     serveJSON(req, res, { days: STATE.days89 || [], meta: currentMeta() });
+    return;
+  }
+  // ── Archipelago — the night itself, its own data contract ──
+  // A night is bulky, so the window is the recent past by default and the whole
+  // record only on request: a visitor opening the work should not pay for four
+  // years of nights to see one.
+  if (url === '/archipelago/data.json') {
+    if (!STATE.nights) loadRecord();
+    const all = STATE.nights || [];
+    const q = new URL(req.url, 'http://x').searchParams;
+    const nights = q.get('all') === '1' ? all : all.slice(-NIGHT_WINDOW);
+    serveJSON(req, res, { nights, meta: Object.assign({}, nightMeta(), {
+      total: all.length, windowed: nights.length < all.length,
+    }) });
     return;
   }
   if (url === '/') url = '/index.html';

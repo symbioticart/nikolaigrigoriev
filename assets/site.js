@@ -12,6 +12,11 @@
       medium: 'Software, lived time written daily by an unchanging rule, screen. Dimensions variable — continuous since 2022.' },
     { id: '89', title: 'Variation 89', selected: true, ratio: 920 / 1350,
       medium: 'Software, lived time written daily by an unchanging rule, screen — in the format of a portrait. Dimensions variable — since 2025.' },
+    // Not a Variation. The Variations are the line of the daily record; this one
+    // is painted from a single night and from nothing else, so it carries its
+    // own name rather than the next number.
+    { id: 'archipelago', title: 'Archipelago', selected: true, ratio: 900 / 1200,
+      medium: 'Software, one night of a sleeping body written by an unchanging rule, screen. Dimensions variable — since 2026.' },
   ];
   const WORK_BY_ID = Object.fromEntries(WORKS.map((w) => [w.id, w]));
 
@@ -240,8 +245,14 @@
     const titleInner = opts.titleLink
       ? `<a href="/work.html?id=${id}">${work.title}</a>`
       : work.title;
+    // The museum line — what the work is made of. It belongs on the work's own
+    // page, where a reader has stopped in front of one thing; on the home page,
+    // where the works are passed through, it would only be furniture.
+    const mediumLine = (!opts.titleLink && work.medium)
+      ? `<p class="medium">${work.medium}</p>` : '';
     cap.innerHTML =
       `<h1 class="title">${titleInner}</h1>` +
+      mediumLine +
       `<div class="daynav">` +
         `<button class="prev" aria-label="Earlier day">←</button>` +
         `<span class="cur"></span>` +

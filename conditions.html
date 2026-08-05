@@ -192,5 +192,108 @@
       <a class="back" href="/" style="margin-top:0;">← Variations 87</a>
     </div>
   </div>
+
+<script>
+/* A second work, a second certificate.
+ *
+ * The document above is the certificate of Variations 87 and is left exactly as
+ * it was signed: a certificate is the work, and an existing one is not edited to
+ * make room for a later one. Archipelago's conditions are written out in full
+ * here and swapped in only when this page is asked for that work by name.
+ *
+ * Where the two works agree — definition, transfer, care, edition — the wording
+ * follows 87, because the architecture is the same. Where they differ, they
+ * differ because the material does: one night instead of one day, a ground that
+ * is itself the dark, and a silence whose first casualty is the pulse.
+ */
+(function () {
+  var id = new URLSearchParams(location.search).get('id');
+  if (id !== 'archipelago') return;
+
+  var S = [
+    ['The Work',
+     '“Archipelago” is a living work by Nikolai Grigoriev. It is made from the only hours of a day in which a person cannot pose. The rest of the time a life is presented; a pose is held with muscle, attention and will, and in sleep there is nothing left to hold it with. The instrument does not record a picture of the man — it records what is left of him when the pose cannot be held. Its subject is not sleep and not health: it is the part of a life that no one, including the one living it, is performing. A dated state is written “Archipelago, state of [date],” naming the night that made it. The work is one; its nightly states are states of one work. Medium: software, one night of a sleeping body written by an unchanging rule, screen.'],
+    ['Definition',
+     'The rule and this certificate constitute the work. Any image, screen, or print is an execution of the rule — evidence of the work, not the work itself. Whoever holds this certificate holds the work; without this certificate there is no work.'],
+    ['The Rule',
+     'Each night of one sleeping body is turned into one painting. Every five minutes of sleep is one charge: its weight is the depth of those minutes, its radius the body’s recovery in them. The painting is the level set of their sum — while the body keeps returning, neighbouring minutes merge into one mass; when it stops, the mass falls apart into islands. Nothing decides whether a night is one body or an archipelago except the night. The hours awake are not drawn: they only part. Falling asleep occupies its true place at the head and stays empty. The light along the edge is the pulse of those minutes, read against that night’s own floor, because the heart is the one thing the body never switches off. The seed of a night is drawn from that night alone; the date plays no part in it. The same night always makes the same painting, and a night already painted is never repainted. The instrument’s own verdict on the night — its score — is not used anywhere in the work.'],
+    ['The Signal',
+     'The work accepts the nightly signal of a sleeping body from any instrument able to provide the schema of Appendix A: the sequence of sleep stages, the movement, the recovery and the heart, at the resolution the schema states. It is bound to no maker and no device. The artist is the sole subject of the signal in this work, by his own consent. A day the instrument recorded without sleep is not a night this work can paint and does not enter its calendar; that is not a gap in the record but the absence of its material.'],
+    ['Silence',
+     'When no night arrives, the work does not pretend. The last painting is held. From the second silent day the edge goes out first — the pulse is the first thing to stop being visible, because it is the only thing that was never a state the body entered and left. The mass follows it, losing density until nothing is left but the ground. The ground of this work is the dark itself, present from its first night as material and not as metaphor; so its empty canvas is that dark, and the work ends as a night with nobody in it. The work is then empty, not finished. Any night that arrives restores it in full at once, and no silence is final. Silence is never declared from a stored record alone — only by the living programme — so an instrument that has stopped is never painted as a body that has. This work counts its own silence, from its own last night, and never from the daily record of the same body.'],
+    ['Withdrawal',
+     'The subject of the signal may end his participation at any time. A declared withdrawal — a signed, dated statement, recorded in the provenance log — is written as silence from its date. The work registers absence, not its cause, and never names an undeclared silence a death. Withdrawal acts forward only: the nights already written remain part of the work.'],
+    ['The Archive',
+     'The work keeps every night it has lived, written once and never rewritten; the future never repaints the past. Recorded gaps remain visible as gaps. The archive is the work’s memory and its full body.'],
+    ['Transfer',
+     'This certificate transfers the work; re-registration of this document is the transfer. The bond to the artist’s body survives any sale: this work is not re-bound to another body. If the certificate is lost, one reissue may be made by the artist in person, recorded in the provenance log; after the artist, no reissue exists.'],
+    ['Care',
+     'The artist maintains the performing programme and one working signal adapter for five years from the date of transfer. Thereafter the owner holds the complete rule, the code, the seed formula, and the schema of Appendix A — sufficient for any competent technician to perform any state of the work again.'],
+    ['The Machine', null],
+    ['Edition',
+     'Unique, 1/1. Nightly states are states of this one work; they are not numbered and are not sold separately.'],
+    ['Provenance',
+     'First recorded night {birth}. The full provenance log accompanies the signed certificate.'],
+  ];
+
+  var MACHINE = [
+    'rule — the night itself; no normalisation is applied between nights',
+    'painter.js · SHA-256 · 88bb9229cbbf4c970b975627c87a69d1d8fbfe2b66aa505eba2952c055145063',
+    'print-texture.js · SHA-256 · e41a0d2c517f46a5170785ceda7b0c1c074fac477f5181e8734ba07561d6daaf',
+    'silence.js · SHA-256 · 4f05976f4e8e374d79915ac3ec0a8bbdc16b1f1bafc965fa7f593460b9bf8cc8',
+    'p5.oil.js · SHA-256 · a8cdfb490bd1a1eefa538f7cde186e0a16f8dc03460671380319f31b1e80c50a',
+    'p5 · 2.2.0 · vendor/p5.min.js · SHA-256 · 994ad50423ab4190681ba0f7539fe3f65d22011d065fdba50a5150654747522c',
+  ];
+
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+  document.title = 'Conditions of the Work — Archipelago';
+  var back = document.querySelector('.back-top');
+  if (back) back.textContent = '← Archipelago';
+
+  var sheet = document.querySelector('.sheet');
+  var html =
+    '<div class="kicker">Nikolai Grigoriev</div>' +
+    '<h1>Conditions of the Work</h1>' +
+    '<div class="sub">Archipelago · <span id="c-years">2024</span>–TODAY · this document constitutes the work</div>';
+
+  S.forEach(function (s, i) {
+    html += '<h2><span class="n">' + (i + 1) + '</span>' + esc(s[0]) + '</h2>';
+    if (s[1] === null) {
+      html += MACHINE.map(function (line, k) {
+        return '<p class="mono' + (k ? ' hash' : '') + '">' + esc(line) + '</p>';
+      }).join('') +
+      '<p>Any change to the code is either a conservation treatment — authorised by the artist and recorded in the treatment log under a new mark — or a new state of the work. No third possibility exists.</p>';
+    } else {
+      html += '<p id="c-s' + i + '">' + s[1] + '</p>';
+    }
+  });
+
+  html +=
+    '<div style="margin-top:56px; display:flex; gap:26px; flex-wrap:wrap;">' +
+      '<a class="back" href="/rule.html?id=archipelago" style="margin-top:0;">The rule →</a>' +
+      '<a class="back" href="/about.html" style="margin-top:0;">About the artist →</a>' +
+      '<a class="back" href="/work.html?id=archipelago" style="margin-top:0;">← Archipelago</a>' +
+    '</div>';
+  sheet.innerHTML = html;
+
+  // The first recorded night is read off the record, never typed in: a document
+  // that states a date it does not verify will one day state it wrongly.
+  fetch('/state/meta.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (all) {
+      var m = all && all.archipelago;
+      if (!m || !m.birth) return;
+      var d = m.birth.split('-'), MON = ['January','February','March','April','May','June',
+        'July','August','September','October','November','December'];
+      var pretty = (+d[2]) + ' ' + MON[+d[1] - 1] + ' ' + d[0];
+      var last = document.getElementById('c-s' + (S.length - 1));
+      if (last) last.innerHTML = last.innerHTML.replace('{birth}', pretty);
+      var years = document.getElementById('c-years');
+      if (years) years.textContent = d[0];
+    })
+    .catch(function () {});
+})();
+</script>
 </body>
 </html>

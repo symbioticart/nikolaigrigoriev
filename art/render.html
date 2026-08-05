@@ -15,6 +15,7 @@
 <!-- shared engine (identical across works) -->
 <script src="lib/p5.min.js"></script>
 <script src="lib/p5.oil.js"></script>
+<script src="lib/print-texture.js"></script>
 <script src="silence.js"></script>
 <script>
 /* ─────────────────────────────────────────────────────────────────────────
@@ -69,6 +70,31 @@
       days: (D) => D.days,
       // OuraPainter has no silence arg — withering is applied as a filter below.
       paint: (p, day, D, w, h, sil) => window.OuraPainter.paintDay(p, day, D, w, h),
+    },
+    'archipelago': {
+      // LIVE: /archipelago/data.json returns { nights:[…the night itself…], meta }.
+      // A third work on this domain, and the first that is painted from ONE
+      // NIGHT rather than from the day it closed — so its record is the night
+      // series, not the daily one, and its calendar holds only nights the ring
+      // actually wrote a hypnogram for.
+      painter: 'archipelago/painter.js', dataUrl: '/archipelago/data.json', dateField: 'day',
+      baseW: 900, baseH: 1200, pd: 1,
+      // The sheet is composed in 2D — the level set is computed per pixel and
+      // the print fill, the ground grain and the rim are composite operations.
+      // Only the dry brush is WEBGL. So the host takes the finished canvas the
+      // painter returns instead of reading the GL buffer back.
+      readback: '2d',
+      birth: (D) => D.nights[0] && D.nights[0].day,
+      last:  (D) => D.nights[D.nights.length - 1] && D.nights[D.nights.length - 1].day,
+      today: (D) => D.meta && D.meta.serverDate,
+      live:  (D) => !D.meta || D.meta.live !== false,
+      days: (D) => D.nights,
+      // This work DOES take the silence: its rim is the pulse, and a heart that
+      // has stopped reporting must stop being visible before the mass does. The
+      // rest of the withering is applied to the finished image below, as for
+      // every other work, so the form itself never moves.
+      usesSilence: true,
+      paint: (p, day, D, w, h, sil) => window.ArchipelagoPainter.paintDay(p, day, D, w, h, sil),
     },
   };
   const cfg = CONFIG[WORK];
@@ -189,7 +215,7 @@
           if (jb.warmup) {
             // The oil engine's first paint after context creation comes out
             // cold. Render it, throw it away, and cache nothing.
-            cfg.paint(p, day, DATA, p.width * pd, p.height * pd);
+            cfg.paint(p, day, DATA, p.width * pd, p.height * pd, sil);
             painted = null;
             return;
           }
@@ -198,10 +224,24 @@
           // silence shows the SAME painting every day, only further faded: so
           // repaint only when the target day changes. Paging through a fortnight
           // of silence then costs one paint instead of fourteen.
-          if (painted !== r.target) {
-            cfg.paint(p, day, DATA, p.width * pd, p.height * pd);
-            grabFull();
-            painted = r.target;
+          // A work whose painter consumes the silence must repaint when the
+          // silence deepens, not only when the day changes — otherwise its rim
+          // would keep shining on a body that has stopped reporting.
+          const stamp = cfg.usesSilence ? r.target + '@' + r.gap : r.target;
+          if (painted !== stamp) {
+            const made = cfg.paint(p, day, DATA, p.width * pd, p.height * pd, sil);
+            if (cfg.readback === '2d') {
+              // The painter composed the sheet itself; take it as it is.
+              if (!made) throw new Error('painter returned nothing');
+              if (full.width !== made.width || full.height !== made.height) {
+                full.width = made.width; full.height = made.height;
+              }
+              fctx.clearRect(0, 0, full.width, full.height);
+              fctx.drawImage(made, 0, 0);
+            } else {
+              grabFull();
+            }
+            painted = stamp;
           }
           out.width = jb.ow; out.height = jb.oh;
           octx.clearRect(0, 0, jb.ow, jb.oh);

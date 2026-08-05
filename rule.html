@@ -76,6 +76,27 @@
       seed: 'The seed of a day is drawn from the day’s record alone; the date plays no part in it. Two days of the same body make the same painting, however far apart they fall.',
       foot: 'First recorded day 24 May 2022.',
     },
+    // This work is not made from a day but from a night, so the laws that name
+    // the unit are restated in its own terms. Nothing else about them changes:
+    // the same twelve laws, in the same order, applied to the hours in which the
+    // body was not being watched by its owner either.
+    'archipelago': {
+      overrides: {
+        0: 'Each night, one painting.',
+        1: 'The painting is made from one night of one sleeping body, and from nothing else.',
+        3: 'A night is painted only after the body has woken.',
+        4: 'A night is weighed against the nights of this body that came before it, never against the nights that follow.',
+        7: 'The same night always makes the same painting.',
+        8: 'A night that has been painted is never repainted.',
+        9: 'When no night arrives, the last painting is held. From the second day of silence the edge goes out first — the pulse is the first thing to stop being visible — and the mass follows it.',
+        10: 'When the nights resume, the painting returns.',
+        11: 'Every night the work has lived is kept.',
+      },
+      seed: 'The seed of a night is drawn from that night alone; the date plays no part in it. The same night makes the same painting whenever it is looked at.',
+      foot: 'First recorded night {birth}.<br>' +
+            'A day the ring recorded without sleep is not a night this work can paint, ' +
+            'and does not enter its calendar.',
+    },
   };
 
   const id = Site.WORK_BY_ID[new URLSearchParams(location.search).get('id')]
@@ -85,10 +106,20 @@
 
   document.title = `The Rule — ${work.title}`;
   document.getElementById('of').textContent = work.title;
+  const ov = spec.overrides || {};
   document.getElementById('list').innerHTML =
-    COMMON.map((line) => `<li>${line === null ? spec.seed : line}</li>`).join('');
+    COMMON.map((line, i) => `<li>${line === null ? spec.seed : (ov[i] || line)}</li>`).join('');
 
-  document.getElementById('foot').innerHTML = spec.foot;
+  const foot = document.getElementById('foot');
+  foot.innerHTML = spec.foot.replace('{birth}', '…');
+  // The first recorded day is a fact of the record, not a constant to be typed
+  // in: a work whose calendar begins where its material begins must read it off
+  // the record, or it will one day be wrong and no one will notice.
+  if (spec.foot.indexOf('{birth}') >= 0) {
+    Site.ready(id).then((meta) => {
+      foot.innerHTML = spec.foot.replace('{birth}', Site.fmtDate(meta.birth));
+    }).catch(() => {});
+  }
 </script>
 </body>
 </html>
