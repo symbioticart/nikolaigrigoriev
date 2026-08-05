@@ -821,11 +821,14 @@ function healthObj() {
 // NEVER declared from the record alone — silence must be confirmed by a live
 // sync, otherwise a sleeping host would show a false death.
 function loadRecord() {
-  if (STATE.days && STATE.live) return;
-  // The nights have no bundled snapshot to fall back on — they exist only where
-  // they were written. Before the first sync of a fresh disk, Archipelago has
-  // nothing to show, and says so rather than inventing a night.
+  // The nights are read back BEFORE the early return: a live record of days says
+  // nothing about the nights, and leaving them null here means the work is
+  // served empty on every restart until the next sync — while the site around it
+  // looks perfectly healthy. They have no bundled snapshot to fall back on, so
+  // if nothing was ever written, Archipelago has nothing to show and says so
+  // rather than inventing a night.
   if (!STATE.nights) STATE.nights = nightsRead();
+  if (STATE.days && STATE.live) return;
   const rawDays = mergeDays(archiveRead(), snapshotRead());
   if (!rawDays.length) { console.error('[record] empty'); return; }
   setDays(rawDays, false);
