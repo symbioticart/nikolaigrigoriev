@@ -15,8 +15,12 @@
     // Not a Variation. The Variations are the line of the daily record; this one
     // is painted from a single night and from nothing else, so it carries its
     // own name rather than the next number.
+    // The rule was written in 2026; the nights it reads begin in 2022, because
+    // the body had already been recording them. Both dates are true and the line
+    // states both — the work is not older than its rule, and its material is not
+    // younger than it is.
     { id: 'archipelago', title: 'Archipelago', selected: true, ratio: 900 / 1200,
-      medium: 'Software, one night of a sleeping body written by an unchanging rule, screen. Dimensions variable — since 2026.' },
+      medium: 'Software, one night of a sleeping body written by an unchanging rule, screen. Dimensions variable — the rule since 2026, the nights since 2022.' },
   ];
   const WORK_BY_ID = Object.fromEntries(WORKS.map((w) => [w.id, w]));
 
