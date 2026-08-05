@@ -247,6 +247,12 @@
 
   function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 
+  // This work is unlisted while it is being watched in its real conditions; its
+  // certificate is not indexed either.
+  var noidx = document.createElement('meta');
+  noidx.name = 'robots'; noidx.content = 'noindex, nofollow';
+  document.head.appendChild(noidx);
+
   document.title = 'Conditions of the Work — Archipelago';
   var back = document.querySelector('.back-top');
   if (back) back.textContent = '← Archipelago';

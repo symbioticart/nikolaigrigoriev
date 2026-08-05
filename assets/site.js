@@ -19,10 +19,25 @@
     // the body had already been recording them. Both dates are true and the line
     // states both — the work is not older than its rule, and its material is not
     // younger than it is.
-    { id: 'archipelago', title: 'Archipelago', selected: true, ratio: 900 / 1200,
+    // `unlisted`: the work is live and complete, but nothing on the site leads
+    // to it — not the home page, not the grid — and search engines are told to
+    // leave it alone. It is reachable only by knowing its address. This is how a
+    // work is watched running in its real conditions before it is shown.
+    { id: 'archipelago', title: 'Archipelago', unlisted: true, ratio: 900 / 1200,
       medium: 'Software, one night of a sleeping body written by an unchanging rule, screen. Dimensions variable — the rule since 2026, the nights since 2022.' },
   ];
   const WORK_BY_ID = Object.fromEntries(WORKS.map((w) => [w.id, w]));
+
+  // A page opened for an unlisted work asks not to be indexed. Done here rather
+  // than per page, so every surface that takes ?id= — the work, its archive, its
+  // rule — is covered by construction and none can be forgotten.
+  (function () {
+    const w = WORK_BY_ID[new URLSearchParams(location.search).get('id')];
+    if (!w || !w.unlisted) return;
+    const m = document.createElement('meta');
+    m.name = 'robots'; m.content = 'noindex, nofollow';
+    document.head.appendChild(m);
+  })();
 
   // ── Date helpers ─────────────────────────────────────────────────────────
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
