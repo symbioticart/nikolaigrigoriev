@@ -12,8 +12,32 @@
       medium: 'Software, lived time written daily by an unchanging rule, screen. Dimensions variable — continuous since 2022.' },
     { id: '89', title: 'Variation 89', selected: true, ratio: 920 / 1350,
       medium: 'Software, lived time written daily by an unchanging rule, screen — in the format of a portrait. Dimensions variable — since 2025.' },
+    // Not a Variation. The Variations are the line of the daily record; this one
+    // is painted from a single night and from nothing else, so it carries its
+    // own name rather than the next number.
+    // The rule was written in 2026; the nights it reads begin in 2022, because
+    // the body had already been recording them. Both dates are true and the line
+    // states both — the work is not older than its rule, and its material is not
+    // younger than it is.
+    // `unlisted`: the work is live and complete, but nothing on the site leads
+    // to it — not the home page, not the grid — and search engines are told to
+    // leave it alone. It is reachable only by knowing its address. This is how a
+    // work is watched running in its real conditions before it is shown.
+    { id: 'archipelago', title: 'Archipelago', unlisted: true, ratio: 900 / 1200,
+      medium: 'Software, one night of a sleeping body written by an unchanging rule, screen. Dimensions variable — the rule since 2026, the nights since 2022.' },
   ];
   const WORK_BY_ID = Object.fromEntries(WORKS.map((w) => [w.id, w]));
+
+  // A page opened for an unlisted work asks not to be indexed. Done here rather
+  // than per page, so every surface that takes ?id= — the work, its archive, its
+  // rule — is covered by construction and none can be forgotten.
+  (function () {
+    const w = WORK_BY_ID[new URLSearchParams(location.search).get('id')];
+    if (!w || !w.unlisted) return;
+    const m = document.createElement('meta');
+    m.name = 'robots'; m.content = 'noindex, nofollow';
+    document.head.appendChild(m);
+  })();
 
   // ── Date helpers ─────────────────────────────────────────────────────────
   const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -240,8 +264,14 @@
     const titleInner = opts.titleLink
       ? `<a href="/work.html?id=${id}">${work.title}</a>`
       : work.title;
+    // The museum line — what the work is made of. It belongs on the work's own
+    // page, where a reader has stopped in front of one thing; on the home page,
+    // where the works are passed through, it would only be furniture.
+    const mediumLine = (!opts.titleLink && work.medium)
+      ? `<p class="medium">${work.medium}</p>` : '';
     cap.innerHTML =
       `<h1 class="title">${titleInner}</h1>` +
+      mediumLine +
       `<div class="daynav">` +
         `<button class="prev" aria-label="Earlier day">←</button>` +
         `<span class="cur"></span>` +

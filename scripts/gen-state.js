@@ -6,7 +6,14 @@ const CHROME=process.env.CHROME||'/Applications/Google Chrome.app/Contents/MacOS
 const SITE=process.argv[2]||'https://nikolaigrigoriev.com';
 const OUT=process.argv[3]||'.';
 const KEEP=parseInt(process.argv[4]||'5',10);
-const SIZES={'87':[1400,1000],'89':[920,1350]};
+const SIZES={'87':[1400,1000],'89':[920,1350],'archipelago':[900,1200]};
+// Archipelago's ground is grain by construction, and grain is what a lossy
+// codec spends its bits on: at the shared 0.92 its states weigh twice the
+// others', and every one of them is committed every morning, for ever. Encoded
+// a little tighter, the grain survives and the record stops growing at twice
+// the rate. Anything not listed keeps the default.
+const QUALITY={'archipelago':0.86};
+const Q=w=>QUALITY[w]||0.92;
 const addDays=(iso,n)=>new Date(Date.parse(iso+'T00:00:00Z')+n*864e5).toISOString().slice(0,10);
 
 (async()=>{
@@ -32,9 +39,9 @@ const addDays=(iso,n)=>new Date(Date.parse(iso+'T00:00:00Z')+n*864e5).toISOStrin
         postMessage({__artcmd:true,type:'render',reqId,date,w,h},'*');
       }),id,date,w,h);
       if(!res||!res.ok){console.log(`  ${work} ${date}: пропуск (${res&&res.err})`);continue;}
-      const webp=await p.evaluate(async(url)=>{const im=new Image();im.src=url;await im.decode();
+      const webp=await p.evaluate(async(url,q)=>{const im=new Image();im.src=url;await im.decode();
         const c=document.createElement('canvas');c.width=im.width;c.height=im.height;
-        c.getContext('2d').drawImage(im,0,0);return c.toDataURL('image/webp',0.92);},res.url);
+        c.getContext('2d').drawImage(im,0,0);return c.toDataURL('image/webp',q);},res.url,Q(work));
       const buf=Buffer.from(webp.split(',')[1],'base64');
       fs.writeFileSync(path.join(OUT,`${work}-${date}.webp`),buf);
       if(date===ready.last) fs.writeFileSync(path.join(OUT,`${work}.webp`),buf);  // «сегодня»

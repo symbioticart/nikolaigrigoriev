@@ -51,8 +51,9 @@
     });
   }
 
-  // Build every tile up front; paints resolve independently.
-  Site.WORKS.forEach(mountTile);
+  // Build every tile up front; paints resolve independently. An unlisted work
+  // is not among them: nothing on the site leads to it.
+  Site.WORKS.filter((w) => !w.unlisted).forEach(mountTile);
 </script>
 </body>
 </html>
