@@ -306,6 +306,16 @@ function wit36Limited(ip) {
   wit36Hits[ip].push(now);
   return false;
 }
+// The map above is keyed by caller address and was never emptied: on a process
+// that runs for months, every address that ever knocked stayed in memory.
+// Sweep the spent ones hourly.
+setInterval(() => {
+  const now = Date.now();
+  for (const ip of Object.keys(wit36Hits)) {
+    const live = wit36Hits[ip].filter(t => now - t < 60000);
+    if (live.length) wit36Hits[ip] = live; else delete wit36Hits[ip];
+  }
+}, 3600000).unref?.();
 // Deliver each application in full via Telegram — the sole store (reuses the TG_* env).
 // Applications are never muted and never dropped: they go straight to the API.
 function notifyApplication(rec) {
@@ -795,8 +805,16 @@ async function sync() {
 function healthObj() {
   const m = currentMeta();
   const dayCount = (STATE.raw || []).length;
+  // `ok` used to be the literal true, so the watcher's first and broadest rule
+  // could never fire. It is now earned: the record must be reaching us, the
+  // authorisation must hold, nothing may be degraded, and the record must not
+  // have shrunk. A server serving a stored record because no token is set is
+  // honest but not ok — that is a misconfiguration, and it should say so.
+  const hasToken = !!ACCESS_TOKEN;
+  const shrunk = dayCount > 0 && dayCount < (STATE.lastKnownGoodCount || 0);
+  const ok = hasToken && !!m.live && !STATE.tokenError && !STATE.degraded && !shrunk && dayCount > 0;
   return {
-    ok: true,
+    ok,
     live: m.live,
     status: m.status,
     tokenError: !!STATE.tokenError,

@@ -18,7 +18,9 @@ on:
   workflow_dispatch: {}
 
 env:
-  SITE: https://nikolaigrigoriev.onrender.com
+  # The apex, as uptime.yml already watches: a DNS, certificate or CDN failure
+  # on the real address was invisible while this watched the origin directly.
+  SITE: https://nikolaigrigoriev.com
 
 jobs:
   check:
