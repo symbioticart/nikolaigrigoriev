@@ -39,7 +39,16 @@ jobs:
           now=$(date +%s)
           down_since=$(jq -r '.downSince // 0' .upstate/state.json 2>/dev/null || echo 0)
           last_sent=$(jq -r '.lastSent // 0'  .upstate/state.json 2>/dev/null || echo 0)
-          if curl -fsS -m 30 --retry 2 --retry-delay 5 "$SITE/health" > /dev/null; then
+          # The record now lives on a disk, and a service with a disk is stopped
+          # before its replacement starts — so an ordinary deploy costs a few
+          # seconds of silence. Give the site a second chance a minute later
+          # before waking anyone: a deploy is not an outage.
+          alive() {
+            curl -fsS -m 30 --retry 2 --retry-delay 5 "$SITE/health" > /dev/null && return 0
+            sleep 60
+            curl -fsS -m 30 --retry 2 --retry-delay 5 "$SITE/health" > /dev/null
+          }
+          if alive; then
             if [ "$down_since" -gt 0 ]; then
               mins=$(( (now - down_since) / 60 ))
               if send "🟢 Сайт снова работает. Лежал примерно ${mins} мин."; then
