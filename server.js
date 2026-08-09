@@ -102,8 +102,60 @@ const BASE_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer',
   'Strict-Transport-Security': 'max-age=31536000',
+  // The work needs no camera, no microphone, no location, no payment. Refusing
+  // them out loud is the same promise the CSP makes, in the other direction.
+  'Permissions-Policy':
+    'camera=(), microphone=(), geolocation=(), payment=(), usb=(), ' +
+    'accelerometer=(), gyroscope=(), magnetometer=(), midi=(), ' +
+    'display-capture=(), interest-cohort=()',
 };
 function head(extra) { return Object.assign({}, BASE_HEADERS, extra); }
+
+// One head for every page.
+//
+// A page carries its own title and its own description — those are its words.
+// Everything else that belongs in a head is the same on all of them, and was
+// therefore missing from most: no icon, no card when a link is shared. It is
+// written here once and put into the page as it is served, so a new page
+// inherits it by existing rather than by remembering to copy it.
+function sharedHead(html, host) {
+  const site = `https://${(host || 'nikolaigrigoriev.com').split(':')[0]}`;
+  const grab = (re) => { const m = html.match(re); return m ? m[1].trim() : ''; };
+  const title = grab(/<title>([^<]*)<\/title>/i) || 'Nikolai Grigoriev';
+  const desc = grab(/<meta\s+name="description"\s+content="([^"]*)"/i);
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const tag = (p, k, v) => (v ? `<meta ${p}="${k}" content="${esc(v)}">\n` : '');
+  return '\n<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n'
+    + '<meta name="theme-color" content="#eee9dd">\n'
+    + tag('property', 'og:type', 'website')
+    + tag('property', 'og:site_name', 'Nikolai Grigoriev')
+    + tag('property', 'og:title', title)
+    + tag('property', 'og:description', desc)
+    + tag('property', 'og:image', `${site}/og.jpg`)
+    + tag('name', 'twitter:card', 'summary_large_image')
+    + tag('name', 'twitter:title', title)
+    + tag('name', 'twitter:description', desc);
+}
+
+// A page is read, given its head, and sent with a validator over what was
+// actually sent — the head is written in code, so a stat-based tag would go on
+// claiming the old bytes after the code changed underneath it.
+function servePage(req, res, fp, cache, extra) {
+  fs.readFile(fp, 'utf8', (err, raw) => {
+    if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }
+    // After the charset, never before it: a browser reads the encoding from the
+    // first bytes of the head, and pushing it down is how a page starts
+    // guessing at its own letters.
+    const anchor = /<meta\s+charset=[^>]*>/i.test(raw) ? /<meta\s+charset=[^>]*>/i : /<head>/i;
+    const body = raw.replace(anchor, (m) => m + sharedHead(raw, req.headers.host));
+    const etag = 'W/"' + crypto.createHash('sha1').update(body).digest('base64').slice(0, 22) + '"';
+    const h = head(Object.assign({
+      'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': cache, 'ETag': etag,
+    }, extra || {}));
+    if (req.headers['if-none-match'] === etag) { res.writeHead(304, h); res.end(); return; }
+    res.writeHead(200, h); res.end(body);
+  });
+}
 
 // Serve a static file with a validator (ETag + Last-Modified) so a `no-cache`
 // asset revalidates to a tiny 304 instead of re-downloading its full body — the
@@ -1129,6 +1181,8 @@ http.createServer((req, res) => {
     '/painter.js', '/p5.oil.js', '/p5.oil.js.map',
     '/vendor/p5.min.js',
     '/fonts/manrope-latin.woff2', '/fonts/jetbrainsmono-latin.woff2',
+    // The picture a shared link shows. It existed and was unreachable.
+    '/og.jpg',
   ]);
   if (!SERVED.has(url)) {
     // A person who mistyped an address deserves a page, not the word "Not
@@ -1159,6 +1213,7 @@ http.createServer((req, res) => {
   // Legacy cache-buster kept only for the old certificate page. The portfolio
   // pages must NOT clear cache on every load — that would drop the 948 KB p5 lib.
   const extra = (url === '/conditions.html') ? { 'Clear-Site-Data': '"cache"' } : {};
+  if (ext === '.html') { servePage(req, res, filePath, cache, extra); return; }
   serveFile(req, res, filePath, mimeTypes[ext] || 'text/plain', cache, extra);
 }).listen(port, () => {
   console.log(`Variations 87 — http://localhost:${port}`);

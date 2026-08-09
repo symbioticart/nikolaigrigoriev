@@ -24,6 +24,9 @@
   .rule-foot a{color:var(--grey);border-bottom:1px solid var(--hair);padding-bottom:1px}
   .rule-foot a:hover{color:var(--ink)}
   .rule-other{margin-top:14px}
+  .rule-back{margin-top:30px;font-size:12px}
+  .rule-back a{color:var(--grey);text-decoration:none}
+  .rule-back a:hover{color:var(--ink)}
   @media (max-width:640px){
     .rule-sheet{padding:104px 0 72px}
     .rule-list li{padding-left:32px;font-size:13.5px}
@@ -38,6 +41,7 @@
       <div class="of" id="of"></div>
       <ol class="rule-list" id="list"></ol>
       <div class="rule-foot" id="foot"></div>
+      <div class="rule-back" id="back"></div>
     </div>
   </div>
 </main>
@@ -85,6 +89,12 @@
   const ov = spec.overrides || {};
   document.getElementById('list').innerHTML =
     COMMON.map((line, i) => `<li>${line === null ? spec.seed : (ov[i] || line)}</li>`).join('');
+
+  // The rule of a work is read next to the work, and the way back to it was
+  // missing: the page could only be left backwards. The certificates already
+  // carry this row; the rule pages now match them.
+  document.getElementById('back').innerHTML =
+    `<a href="/work.html?id=${encodeURIComponent(id)}">← ${work.title}</a>`;
 
   const foot = document.getElementById('foot');
   foot.innerHTML = spec.foot.replace('{birth}', '…');

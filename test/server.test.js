@@ -264,3 +264,44 @@ test('a rehearsal copy asks who is knocking, and hides from crawlers', async () 
     child.kill('SIGKILL');
   }
 });
+
+// ── One head, on every page ────────────────────────────────────────────────
+test('every page carries an icon, a description and a card', async () => {
+  for (const p of ['/', '/works.html', '/work.html?id=87', '/archive.html?id=87',
+    '/about.html', '/rule.html?id=87', '/conditions.html']) {
+    const html = await (await fetch(`${BASE}${p}`)).text();
+    assert.match(html, /rel="icon"/, `${p} has no icon`);
+    assert.match(html, /property="og:title" content="[^"]+"/, `${p} shares without a title`);
+    assert.match(html, /name="description" content="[^"]{20,}"/, `${p} has no description`);
+    assert.match(html, /property="og:image"/, `${p} shares without a picture`);
+    // The card must carry the page's own words, not a title glued to every page.
+    const og = html.match(/property="og:title" content="([^"]+)"/)[1];
+    const title = html.match(/<title>([^<]+)<\/title>/)[1];
+    assert.equal(og, title, `${p} says one thing in the tab and another when shared`);
+  }
+});
+
+test('the picture a shared link shows is reachable', async () => {
+  const r = await fetch(`${BASE}/og.jpg`);
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get('content-type') || '', /image\/jpeg/);
+});
+
+test('the site asks for no camera, no microphone, no place', async () => {
+  const r = await fetch(`${BASE}/`);
+  const p = r.headers.get('permissions-policy') || '';
+  for (const f of ['camera=()', 'microphone=()', 'geolocation=()', 'payment=()']) {
+    assert.ok(p.includes(f), `${f} is not refused`);
+  }
+});
+
+test('no page reaches for anyone else’s server', async () => {
+  // The conservation promise, checked in the markup rather than trusted: the
+  // /89 poster used to pull its faces from a font CDN.
+  for (const p of ['/', '/works.html', '/about.html', '/conditions.html', '/89/']) {
+    const html = await (await fetch(`${BASE}${p}`)).text();
+    const outside = (html.match(/(?:href|src)="https?:\/\/[^"]+"/g) || [])
+      .filter((u) => !/schema\.org|www\.w3\.org|instagram\.com|t\.me|nikolaigrigoriev\.com/.test(u));
+    assert.deepEqual(outside, [], `${p} loads from elsewhere`);
+  }
+});

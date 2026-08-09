@@ -4,12 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Variation 89 — daily story</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- non-blocking: if Google Fonts is slow/blocked, the page never hangs — system fonts fall back -->
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"></noscript>
+  <meta name="description" content="Variation 89 — the day's painting, drawn from the body alone.">
+  <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
   <style>
+    /* The work promises that reading it asks nothing of anyone else's server.
+       These faces are the site's own, served from it. */
+    @font-face {
+      font-family: 'Manrope';
+      font-style: normal;
+      font-weight: 200 800;
+      src: url('/fonts/manrope-latin.woff2') format('woff2');
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'JetBrains Mono';
+      font-style: normal;
+      font-weight: 100 800;
+      src: url('/fonts/jetbrainsmono-latin.woff2') format('woff2');
+      font-display: swap;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: #1a1a1a; display: flex; align-items: center; justify-content: center; }
     #story { height: 100vh; width: auto; max-width: 100vw; box-shadow: 0 0 80px rgba(0,0,0,.5); }
