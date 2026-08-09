@@ -34,8 +34,22 @@ async function json(path) {
 }
 
 (async () => {
-  const health = await json('/health');
+  let health = await json('/health');
   if (!health) { console.error('the site did not answer at all'); process.exit(1); }
+
+  // A server that has just started has not yet asked the ring anything, so for
+  // its first minutes it honestly reports that it is serving a stored record.
+  // That is waking, not breaking — wait for it rather than rolling back a
+  // deploy that was fine.
+  if (!REHEARSAL && !health.live && health.uptimeSec < 300) {
+    process.stdout.write('  just started, waiting for it to reach the ring');
+    for (let i = 0; i < 20 && !health.live; i++) {
+      await new Promise((r) => setTimeout(r, 10000));
+      process.stdout.write('.');
+      health = (await json('/health')) || health;
+    }
+    process.stdout.write('\n');
+  }
   note.push(`build ${health.buildSha}, ${health.dayCount} days, last written ${health.lastDataDay}`);
 
   if (REHEARSAL) {
@@ -95,8 +109,8 @@ async function json(path) {
     const [username, ...rest] = AUTH.split(':');
     await first.authenticate({ username, password: rest.join(':') });
   }
-  let p5 = 0;
-  first.on('request', (r) => { if (/p5\.min\.js/.test(r.url())) p5++; });
+
+
   const started = Date.now();
   await first.goto(`${SITE}/`, { waitUntil: 'domcontentloaded', timeout: 90000 });
   const shown = await first.waitForFunction(() => {
@@ -104,12 +118,19 @@ async function json(path) {
     return imgs.length >= 2 && imgs.every((i) => i.complete && i.naturalWidth > 0 && i.classList.contains('in'));
   }, { timeout: 60000 }).then(() => true).catch(() => false);
   const took = ((Date.now() - started) / 1000).toFixed(1);
-  const engineAtFirstSight = p5;
   if (!shown) fail('the home page did not show its paintings within a minute');
-  else note.push(`home showed both works in ${took}s${engineAtFirstSight ? '' : ', no engine loaded'}`);
-  // The engine may warm afterwards, once the page is idle — that is the point.
-  // It may not be needed to show the works in the first place.
-  if (engineAtFirstSight) fail('the home page needed a painting engine to show the works at all');
+  else note.push(`home showed both works in ${took}s`);
+
+  // Where the pictures came from is the honest question. Counting whether an
+  // engine loaded is not: it warms on a timer once the page is quiet, and on a
+  // slow machine that timer can fire while the pictures are still arriving —
+  // which is a good thing being reported as a fault.
+  const sources = await first.evaluate(() =>
+    [...document.querySelectorAll('.home-stage .plate img')].map((i) => i.src));
+  const painted = sources.filter((s) => s.startsWith('data:'));
+  if (shown && painted.length) {
+    fail(`the home page had to paint ${painted.length} of its works instead of showing what was ready`);
+  }
   await first.close();
 
   // Every page a reader can reach.
