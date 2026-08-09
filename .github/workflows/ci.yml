@@ -51,7 +51,7 @@ jobs:
       - name: Put it up
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-        run: ./scripts/deploy.sh "$REHEARSAL_SERVICE"
+        run: bash scripts/deploy.sh "$REHEARSAL_SERVICE"
       - name: Walk it as a reader
         env:
           SMOKE_AUTH: ${{ secrets.STAGING_AUTH }}
@@ -97,7 +97,7 @@ jobs:
       - name: Put it up
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-        run: ./scripts/deploy.sh "$PROD_SERVICE"
+        run: bash scripts/deploy.sh "$PROD_SERVICE"
 
       - name: Walk it as a reader
         id: smoke
