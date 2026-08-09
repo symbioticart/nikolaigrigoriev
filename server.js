@@ -12,6 +12,8 @@ const path   = require('path');
 const crypto = require('crypto');
 const rule   = require('./rule');
 const rule89 = require('./rule89');
+// Set only on the rehearsal copy: "name:password". Production leaves it unset.
+const STAGING_AUTH = process.env.STAGING_AUTH || '';
 
 const dir  = __dirname;
 const port = process.env.PORT || 3457;
@@ -858,6 +860,29 @@ function loadRecord() {
 
 // ---------- HTTP ----------
 http.createServer((req, res) => {
+  // A rehearsal copy of the site, for looking at a change before it reaches the
+  // work. Setting STAGING_AUTH turns any instance into one: it asks for a name
+  // and a password, and it tells every crawler to stay away. Production never
+  // sets it and is therefore never gated. The health report stays open so the
+  // watchers can still see it.
+  if (STAGING_AUTH) {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+    if (req.url.split('?')[0] !== '/health') {
+      const offered = String(req.headers.authorization || '');
+      const want = 'Basic ' + Buffer.from(STAGING_AUTH).toString('base64');
+      const a = Buffer.from(offered), b = Buffer.from(want);
+      const ok = a.length === b.length && crypto.timingSafeEqual(a, b);
+      if (!ok) {
+        res.writeHead(401, head({
+          'WWW-Authenticate': 'Basic realm="rehearsal", charset="UTF-8"',
+          'Content-Type': 'text/plain; charset=utf-8',
+        }));
+        res.end('This is the rehearsal copy of the work. It is not for reading.\n');
+        return;
+      }
+    }
+  }
+
   // Telegram webhook — the two-way bot. Guarded by the secret header Telegram
   // echoes back on every delivery; without the env secret the route is dead.
   if (req.method === 'POST' && req.url.split('?')[0] === '/tg/hook') {

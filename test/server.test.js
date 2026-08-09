@@ -182,3 +182,53 @@ test('a method the site does not use is refused', async () => {
   const r = await fetch(`${BASE}/`, { method: 'DELETE' });
   assert.equal(r.status, 405);
 });
+
+// ── The rehearsal copy ─────────────────────────────────────────────────────
+test('production is not gated', async () => {
+  // This server runs without STAGING_AUTH, as production does. If a gate ever
+  // appeared here it would be shutting the public out of the work.
+  const r = await fetch(`${BASE}/`);
+  assert.equal(r.status, 200);
+  assert.equal(r.headers.get('x-robots-tag'), null, 'production must stay readable to the world');
+});
+
+test('a rehearsal copy asks who is knocking, and hides from crawlers', async () => {
+  const { spawn } = require('node:child_process');
+  const port = 3601;
+  const child = spawn(process.execPath, [path.join(ROOT, 'server.js')], {
+    cwd: ROOT,
+    env: { ...process.env, PORT: String(port), OURA_TOKEN: '', ARCHIVE_DIR: scratch,
+           TG_BOT_TOKEN: '', TG_CHAT_ID: '', STAGING_AUTH: 'rehearsal:let-me-look' },
+    stdio: 'ignore',
+  });
+  const base = `http://127.0.0.1:${port}`;
+  try {
+    for (let i = 0; i < 60; i++) {
+      try { await fetch(`${base}/health`); break; } catch { await new Promise(r => setTimeout(r, 250)); }
+    }
+    const shut = await fetch(`${base}/`);
+    assert.equal(shut.status, 401, 'a rehearsal copy must not be readable without a password');
+    assert.match(shut.headers.get('www-authenticate') || '', /^Basic/);
+    assert.match(shut.headers.get('x-robots-tag') || '', /noindex/);
+
+    const wrong = await fetch(`${base}/`, {
+      headers: { Authorization: 'Basic ' + Buffer.from('rehearsal:wrong').toString('base64') },
+    });
+    assert.equal(wrong.status, 401, 'a wrong password must not open it');
+
+    const right = await fetch(`${base}/`, {
+      headers: { Authorization: 'Basic ' + Buffer.from('rehearsal:let-me-look').toString('base64') },
+    });
+    assert.equal(right.status, 200);
+    assert.match(right.headers.get('x-robots-tag') || '', /noindex/,
+      'even to its reader, a rehearsal must tell crawlers to stay away');
+
+    // The watchers must still be able to see it without a password.
+    const health = await fetch(`${base}/health`);
+    assert.equal(health.status, 200);
+    const h = await health.json();
+    assert.equal(h.live, false, 'a rehearsal copy is blind by design, and says so');
+  } finally {
+    child.kill('SIGKILL');
+  }
+});
