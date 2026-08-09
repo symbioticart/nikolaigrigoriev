@@ -1014,7 +1014,13 @@ http.createServer((req, res) => {
     // Vendored p5 and the woff2 fonts never change (a swap would carry a new
     // path) → cache them hard. Our own painters / css / render host stay
     // `no-cache` but now revalidate cheaply via the ETag serveFile adds.
-    const immutable = subExt === '.woff2' || /^\/art\/lib\/p5\.min\.js(\.map)?$/.test(url);
+    // A painted day under /state/archive/ can never change — the work forbids
+    // repainting a day that has ended — so it is cached for a year and served
+    // from the edge thereafter. The pointer file and the manifest DO change,
+    // daily, and stay on revalidation.
+    const immutable = subExt === '.woff2'
+      || /^\/art\/lib\/p5\.min\.js(\.map)?$/.test(url)
+      || /^\/state\/archive\//.test(url);
     const cache = immutable ? 'public, max-age=31536000, immutable' : 'no-cache';
     serveFile(req, res, fp, mimeTypes[subExt] || 'text/plain', cache);
     return;

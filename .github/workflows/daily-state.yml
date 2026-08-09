@@ -1,0 +1,120 @@
+name: daily-state
+
+# Paint the day the body has just written, and put it where the site can find
+# it before any engine loads.
+#
+# This used to be the fourth step of the morning-frame job, which meant a
+# failure while photographing /89 stopped the states from ever being repainted
+# — and the only alert said the frame had failed. The site then showed a
+# fortnight-old painting labelled "Today" and nothing anywhere noticed. It is
+# its own job now, with its own alert, and it says which surface broke.
+
+on:
+  schedule:
+    - cron: '20 7 * * *'   # after the morning frame, so the two never race
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+env:
+  SITE: https://nikolaigrigoriev.com
+  SERVICE: srv-d7ektha8qa3s73ddeqd0
+
+jobs:
+  paint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Paint what has not been painted
+        run: |
+          npm init -y > /dev/null && npm i --no-save puppeteer-core@23 > /dev/null 2>&1
+          CHROME=$(command -v google-chrome || command -v chromium-browser || command -v chromium)
+          CHROME="$CHROME" node scripts/gen-state.js "$SITE" state
+
+      - name: File the paintings
+        id: file
+        run: |
+          git config user.name  "state"
+          git config user.email "state@nikolaigrigoriev.com"
+          git add state
+          if git diff --cached --quiet; then
+            echo "changed=no" >> "$GITHUB_OUTPUT"
+            echo "nothing new to paint"
+          else
+            git commit -q -m "state: paint the days just written [skip ci]"
+            git pull --rebase --autostash origin main
+            git push origin main
+            echo "changed=yes" >> "$GITHUB_OUTPUT"
+          fi
+
+      # A commit is not a deployment. The auto-deploy webhook has been
+      # unreliable, and a painting that never reaches the server is a painting
+      # that does not exist — this is precisely how the site came to be stale.
+      - name: Carry them to the site
+        if: steps.file.outputs.changed == 'yes'
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          [ -z "$RENDER_API_KEY" ] && { echo "no Render key — the site will pick these up on the next deploy"; exit 0; }
+          dep=$(curl -fsS -X POST -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            "https://api.render.com/v1/services/$SERVICE/deploys" -d '{}' \
+            | grep -oE '"id":"dep-[a-z0-9]+"' | head -1 | cut -d'"' -f4)
+          echo "deploy $dep"
+          for i in $(seq 1 40); do
+            s=$(curl -fsS -H "Authorization: Bearer $RENDER_API_KEY" \
+              "https://api.render.com/v1/services/$SERVICE/deploys/$dep" \
+              | grep -oE '"status":"[a-z_]+"' | head -1 | cut -d'"' -f4)
+            case "$s" in live) echo "live"; exit 0;; build_failed|update_failed|canceled) echo "deploy $s"; exit 1;; esac
+            sleep 20
+          done
+          echo "deploy did not settle"; exit 1
+
+      # Prove it: the newest written day of every work must be on the site, and
+      # the manifest must reach as far as the record does. This is the check
+      # that was missing when Archipelago silently vanished from the manifest.
+      - name: Prove the site can show today
+        run: |
+          set -e
+          health=$(curl -fsS --max-time 60 "$SITE/health")
+          meta=$(curl -fsS --max-time 60 "$SITE/state/meta.json")
+          manifest=$(curl -fsS --max-time 60 "$SITE/state/index.json")
+          echo "$health" | head -c 200; echo
+          META="$meta" MANIFEST="$manifest" node - <<'JS'
+          const meta = JSON.parse(process.env.META);
+          const man = JSON.parse(process.env.MANIFEST);
+          const problems = [];
+          for (const [id, w] of Object.entries(meta)) {
+            const alive = w.alive || [];
+            if (!alive.length) continue;               // a work with no record yet
+            const m = man[id];
+            if (!m) { problems.push(`${id}: absent from the manifest entirely`); continue; }
+            const lastWritten = alive[alive.length - 1];
+            if (m.last !== lastWritten) {
+              problems.push(`${id}: the site shows ${m.last}, the body wrote to ${lastWritten}`);
+            }
+          }
+          if (problems.length) { console.error(problems.join('\n')); process.exit(1); }
+          console.log('every work shows the last day its body wrote');
+          JS
+
+      - name: Fetch one of them, as a reader would
+        run: |
+          for id in $(curl -fsS "$SITE/state/index.json" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(Object.keys(JSON.parse(s)).join(" ")))'); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$SITE/state/$id.webp")
+            echo "$id → HTTP $code"
+            [ "$code" = "200" ] || exit 1
+          done
+
+      - name: Say what broke
+        if: failure()
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          [ -z "$TG_BOT_TOKEN" ] && exit 0
+          curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TG_CHAT_ID}" -d disable_web_page_preview=true \
+            --data-urlencode "text=🟡 Сегодняшний день не дошёл до сайта: свежие состояния не нарисованы, не выложены или не отдаются. Картины на сайте могут показывать вчерашнее. Лог: github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" || true

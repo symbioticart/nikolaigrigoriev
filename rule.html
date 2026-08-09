@@ -102,7 +102,12 @@
   const id = Site.WORK_BY_ID[new URLSearchParams(location.search).get('id')]
     ? new URLSearchParams(location.search).get('id') : '87';
   const work = Site.WORK_BY_ID[id];
-  const spec = RULES[id];
+  // A work can exist before its rule has been written down. Say so plainly
+  // rather than leaving a blank page: the page used to throw here.
+  const spec = RULES[id] || {
+    seed: 'The seed of a day is fixed by the record of that day.',
+    foot: 'The rule of this work has not been set down yet.',
+  };
 
   document.title = `The Rule — ${work.title}`;
   document.getElementById('of').textContent = work.title;

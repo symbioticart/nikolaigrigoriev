@@ -30,7 +30,9 @@
   Site.mountHeader('works');
   const id = new URLSearchParams(location.search).get('id') || Site.WORKS[0].id;
   const work = Site.WORK_BY_ID[id];
-  if (!work) location.href = '/works.html';
+  // Leaving is not instant: without stopping here the lines below run against
+  // a work that does not exist and throw before the browser has gone anywhere.
+  if (!work) { location.href = '/works.html'; throw new Error('unknown work'); }
   document.getElementById('back').href = `/work.html?id=${id}`;
   document.getElementById('rulelink').href = `/rule.html?id=${id}`;   // each work keeps its own rule
   document.getElementById('atitle').textContent = `${work.title} — Archive`;

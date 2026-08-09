@@ -8,9 +8,11 @@
     // `ratio` is the work's aspect, known without asking the engine — it lets the
     // plate take its place, and the ready-made state image show, before any
     // painting machinery has loaded.
-    { id: '87', title: 'Variation 87', selected: true, ratio: 980 / 700,
+    // `ground` is the colour a work dissolves into when the body falls silent —
+    // its own canvas, sampled from the painting, not a shared ivory.
+    { id: '87', title: 'Variation 87', selected: true, ratio: 980 / 700, ground: '#eee9dd',
       medium: 'Software, lived time written daily by an unchanging rule, screen. Dimensions variable — continuous since 2022.' },
-    { id: '89', title: 'Variation 89', selected: true, ratio: 920 / 1350,
+    { id: '89', title: 'Variation 89', selected: true, ratio: 920 / 1350, ground: '#eee9dd',
       medium: 'Software, lived time written daily by an unchanging rule, screen — in the format of a portrait. Dimensions variable — since 2025.' },
     // Not a Variation. The Variations are the line of the daily record; this one
     // is painted from a single night and from nothing else, so it carries its
@@ -63,11 +65,61 @@
   // Stepping back through them costs a download, not a repaint — so the days a
   // reader actually looks at arrive at once, and the engine is only woken for
   // the deeper past, where waiting is understood.
-  const PRE = Object.create(null);
-  const preReady = fetch('/state/index.json', { cache: 'no-store' })
+  // Every day the body wrote, painted once and kept as a small file. A day that
+  // has ended is never repainted, so its picture can be final: reading one
+  // costs a download, not a repaint, and the engine is woken only when a file
+  // is missing.
+  const PRE = Object.create(null);      // id -> { last, shown, bakedSilence }
+  const pointerUrl = (id) => `/state/${id}.webp`;
+  const preReady = fetch('/state/index.json', { cache: 'no-cache' })
     .then((r) => (r.ok ? r.json() : null))
-    .then((j) => { if (j) for (const k of Object.keys(j)) PRE[k] = new Set(j[k]); })
+    .then((j) => {
+      if (!j) return;
+      for (const k of Object.keys(j)) {
+        const v = j[k];
+        // Tolerate older manifests, which listed every painted date.
+        PRE[k] = Array.isArray(v)
+          ? { last: v[v.length - 1] || null, shown: v[v.length - 1] || null, bakedSilence: false }
+          : { last: v.last || null, shown: v.shown || v.last || null, bakedSilence: !!v.bakedSilence };
+      }
+    })
     .catch(() => {});
+
+  // The one curve of silence, loaded from the one file that states it, rather
+  // than restated here — two copies of a law are two laws.
+  let silenceP = null;
+  function silenceParams(gap) {
+    if (window.SILENCE) return Promise.resolve(window.SILENCE.params(gap));
+    if (!silenceP) {
+      silenceP = new Promise((resolve) => {
+        const s = document.createElement('script');
+        s.src = '/art/silence.js';
+        s.onload = () => resolve();
+        s.onerror = () => resolve();
+        document.head.appendChild(s);
+      });
+    }
+    return silenceP.then(() => (window.SILENCE
+      ? window.SILENCE.params(gap)
+      : { gray: 0, fade: 0 }));
+  }
+
+  // Can this day be shown from the one ready-made picture? Only if that picture
+  // already holds it: the day itself, or — for a work whose silence is laid on
+  // live — the written day a silence is still showing.
+  function pointerFor(id, date, target) {
+    const pre = PRE[id];
+    if (!pre || !pre.shown) return null;
+    if (pre.bakedSilence) return date === pre.shown ? pointerUrl(id) : null;
+    return target === pre.last ? pointerUrl(id) : null;
+  }
+
+  // The engine is a megabyte of code and takes several seconds to come up on a
+  // phone, but once it is up a day costs about half a second. So it is started
+  // quietly as soon as a page that can page days is opened — by the time a
+  // reader reaches for an arrow it is usually waiting. The home page, which
+  // shows each work as it stands and nothing else, never starts one.
+  function warm(id) { getClient(id); }
 
   function getClient(id) {
     if (clients.has(id)) return clients.get(id);
@@ -144,17 +196,17 @@
     });
   }
 
-  // Wait for the list of painted-ahead days before deciding. Without this the
-  // first request of a page can outrun the manifest and wake the engine for a
-  // day that was already waiting on disk — which is what made the works grid
-  // slow while the home page, priming from a known filename, stayed fast.
+  // Wait to hear how each work stands before deciding. Without this the first
+  // request of a page can outrun the manifest and start an engine for a day the
+  // ready-made picture already holds.
   function render(id, date, w, h) {
     return preReady.then(() => renderNow(id, date, w, h));
   }
 
-  function renderNow(id, date, w, h) {
-    // Already painted and waiting on disk — hand it over without the engine.
-    if (PRE[id] && PRE[id].has(date)) return `/state/${id}-${date}.webp`;
+  async function renderNow(id, date, w, h) {
+    // The day the ready-made picture holds — no engine needed.
+    const ready = pointerFor(id, date, date);
+    if (ready) return ready;
     const state = getClient(id);
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
@@ -224,7 +276,11 @@
     const plate = document.createElement('div');
     plate.className = 'plate loading';
     const img = document.createElement('img');
-    plate.appendChild(img);
+    // The ground, held above the painting and brought up as silence deepens.
+    const wash = document.createElement('div');
+    wash.className = 'wash';
+    wash.setAttribute('aria-hidden', 'true');
+    plate.append(img, wash);
     // Pointer-only paging overlays — hidden from AT/keyboard (the visible ← →
     // buttons are the accessible control) and removed entirely on touch.
     const zPrev = document.createElement('button');
@@ -233,6 +289,16 @@
     zNext.className = 'nav-zone nav-next'; zNext.setAttribute('aria-hidden', 'true'); zNext.tabIndex = -1;
     plate.append(zPrev, zNext);
     inner.appendChild(plate);
+    // The rail belongs to the work, not to the mood of the visit: a reader who
+    // arrived on one day of it should still be able to reach the whole archive
+    // and the rule. Only the way out is added on top, when one is needed.
+    rail = document.createElement('div');
+    rail.className = 'archive-rail';
+    rail.innerHTML =
+      `<a href="/archive.html?id=${id}">Archive</a>` +
+      `<a href="/rule.html?id=${id}">The rule</a>`;
+    (container.closest('main') || document.body).appendChild(rail);
+
     if (opts.rail === 'close') {
       // Single-state view: the close × stands on the page's own right margin,
       // level with the top of the painting — the same margin the rail and the
@@ -244,19 +310,6 @@
       closeBtn.setAttribute('aria-label', 'Close');
       closeBtn.textContent = '×';
       (container.closest('main') || document.body).appendChild(closeBtn);
-    } else {
-      // Living view: the vertical rail riding the plate's right edge — the
-      // archive of every state, and the rule that writes them. The rule is
-      // reachable from the work itself, the way a wall drawing is shown with
-      // its instruction; it states the law and never the meaning.
-      rail = document.createElement('div');
-      rail.className = 'archive-rail';
-      rail.innerHTML =
-        `<a href="/archive.html?id=${id}">Archive</a>` +
-        `<a href="/rule.html?id=${id}">The rule</a>`;
-      // Hung on <main>, not on the plate: the labels ride the window's right
-      // edge, while measure() keeps them level with this painting's middle.
-      (container.closest('main') || document.body).appendChild(rail);
     }
 
     const cap = document.createElement('div');
@@ -295,17 +348,16 @@
     // paint anything before the page can be looked at. The engine — a megabyte
     // of code and thousands of strokes, seconds of work on a phone — wakes in
     // the background and takes the plate over the moment a day is paged.
-    // A dated view (opened from the archive) asks for that day by name; if it
-    // falls inside the painted-ahead window it arrives just as fast, and if it
-    // does not, the miss costs one quick 404 and the engine takes over.
-    const wanted = opts.startDate
-      ? `/state/${id}-${opts.startDate}.webp`
-      : `/state/${id}.webp`;
-    let primed = await new Promise((res) => {
-      img.onload = () => res(true);
-      img.onerror = () => res(false);
-      img.src = wanted;
-    });
+    // A view opened on a particular past day cannot use it — that day is drawn
+    // live — so it waits for the engine instead, with the waiting mark showing.
+    let primed = false;
+    if (!opts.startDate) {
+      primed = await new Promise((res) => {
+        img.onload = () => res(true);
+        img.onerror = () => res(false);
+        img.src = pointerUrl(id);
+      });
+    }
     if (primed) {
       plate.classList.remove('loading');
       requestAnimationFrame(() => img.classList.add('in'));
@@ -327,6 +379,20 @@
       let g = 0;
       for (let j = i; j >= 0 && !meta.alive.has(cal[j]); j--) g++;
       return g;
+    }
+    // Which painting a silent day is still showing: the last one written.
+    function targetAt(i) {
+      for (let j = i; j >= 0; j--) if (meta.alive.has(cal[j])) return cal[j];
+      return null;
+    }
+    // Silence, laid over the painting rather than baked into it: colour drains,
+    // then the ground comes up through the image. Because it is applied here,
+    // from the live gap, a stored picture can never carry a stale fade —
+    // which is how a fortnight-old state came to be labelled "Today".
+    function wither(sil) {
+      img.style.filter = sil && sil.gray > 0 ? `grayscale(${sil.gray.toFixed(3)})` : '';
+      wash.style.background = work.ground || '#eee9dd';
+      wash.style.opacity = sil && sil.fade > 0 ? sil.fade.toFixed(3) : '0';
     }
     function measure() {
       const pad = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pad')) || 26;
@@ -391,13 +457,25 @@
       // reads as a fault.
       if (!img.src || animate) plate.classList.add('loading');
       const d = measure();
-      const url = await render(id, date, d.w, d.h);
+
+      // A silent day is the last written painting, withering. When that painting
+      // is the one the ready-made picture holds — which is the case for every
+      // day of the silence the work is standing in now — it is shown at once
+      // and the silence is laid over it here: one download, no engine, and a
+      // fade that is always of today rather than of the day the file was made.
+      const gap = gapAt(idx);
+      const target = gap > 0 ? targetAt(idx) : date;
+      const ready = pointerFor(id, date, target);
+      let url = null, sil = null;
+      if (ready) {
+        url = ready;
+        if (gap > 0) sil = await silenceParams(gap);
+      } else {
+        url = await render(id, date, d.w, d.h);
+      }
+      wither(sil);
       if (url) { img.src = url; requestAnimationFrame(() => img.classList.add('in')); }
       plate.classList.remove('loading');
-      // Prefetch neighbours (both directions) so the next step is a cache hit.
-      for (const j of [idx + 1, idx - 1, idx + 2, idx - 2]) {
-        if (j >= 0 && j < cal.length) render(id, cal[j], d.w, d.h);
-      }
     }
 
     const step = (n) => show(idx + n, true);
@@ -414,9 +492,18 @@
     }
 
     measure();
-    // Already holding today from the state image: only put the words in place.
-    // Nothing is painted until a day is actually paged.
+    // Already holding today from the ready-made picture: only put the words in
+    // place. Nothing is painted until a day is actually paged.
     if (primed) label(idx); else await show(idx, false);
+
+    // Then, once the page is quiet, start the engine. It takes several seconds
+    // to come up on a phone and about half a second per day afterwards, so it
+    // is started here rather than on the first press of an arrow — by the time
+    // a reader reaches for one it is usually already waiting. Deliberately
+    // after the first paint: a picture the visitor can see comes first.
+    const startEngine = () => warm(id);
+    if (window.requestIdleCallback) requestIdleCallback(startEngine, { timeout: 4000 });
+    else setTimeout(startEngine, 1200);
 
     // Re-render only when the viewport WIDTH really changed. On a phone the
     // address bar collapses as you scroll, the window loses ~100px of height,
@@ -442,6 +529,7 @@
   // ── Public API ──────────────────────────────────────────────────────────
   window.Site = {
     mountArtBlock,
+    warm,
     WORKS, WORK_BY_ID,
     ready: (id) => metaOf(id),
     render,

@@ -87,6 +87,10 @@ main{padding:0 var(--pad);position:relative}
   opacity:0;transition:opacity .5s var(--ease);
 }
 .plate img.in{opacity:1}
+/* the work's own ground, held above the painting and brought up as a silence
+   deepens — the dissolution, applied live rather than baked into the file */
+.wash{position:absolute;inset:0;opacity:0;pointer-events:none;
+  transition:opacity .5s var(--ease)}
 /* The wait is the work forming, not a technical delay. While a day is being made
    into paint, the plate states the event — never "loading/rendering" (council
    C-12, 2026-07-27). Two lines: the event, then its duration, in the language of
