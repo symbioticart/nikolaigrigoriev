@@ -104,10 +104,14 @@ const BASE_HEADERS = {
   'Strict-Transport-Security': 'max-age=31536000',
   // The work needs no camera, no microphone, no location, no payment. Refusing
   // them out loud is the same promise the CSP makes, in the other direction.
+  //
+  // The motion sensors are deliberately NOT refused: p5 attaches a device-motion
+  // listener of its own accord, and a refusal it never asked for showed up as a
+  // policy violation in the console of every page that paints. Nothing can leave
+  // this origin anyway — connect-src is 'self'.
   'Permissions-Policy':
     'camera=(), microphone=(), geolocation=(), payment=(), usb=(), ' +
-    'accelerometer=(), gyroscope=(), magnetometer=(), midi=(), ' +
-    'display-capture=(), interest-cohort=()',
+    'midi=(), display-capture=(), interest-cohort=()',
 };
 function head(extra) { return Object.assign({}, BASE_HEADERS, extra); }
 
@@ -1032,17 +1036,24 @@ http.createServer((req, res) => {
     const alive87 = (STATE.days || []).map(d => d.d);
     const alive89 = (STATE.days89 || []).map(d => d.day);
     const common = { birth: m.birth, last: m.calendarEnd, lastData: m.lastDataDay };
+    // The shape of a work is its canvas, and the canvas is described once, in
+    // works.json. Repeating the numbers here is how a work ends up a different
+    // shape depending on which file you ask.
+    const ratio = (id) => {
+      const c = (WORKS_REGISTRY[id] || {}).canvas;
+      return c ? c.w / c.h : 1;
+    };
     // Archipelago is alive only on the nights it actually has — a day the ring
     // recorded without a hypnogram is not a night this work can paint, and must
     // not appear in its calendar as though it were.
     const nights = STATE.nights || [];
     const nm = nightMeta();
     serveJSON(req, res, {
-      '87': Object.assign({}, common, { ratio: 980 / 700, alive: alive87,
+      '87': Object.assign({}, common, { ratio: ratio('87'), alive: alive87,
         incomplete: (STATE.days || []).filter(d => d.i === 1).map(d => d.d) }),
-      '89': Object.assign({}, common, { ratio: 920 / 1350, alive: alive89, incomplete: [] }),
+      '89': Object.assign({}, common, { ratio: ratio('89'), alive: alive89, incomplete: [] }),
       'archipelago': Object.assign({}, common, {
-        ratio: 900 / 1200,
+        ratio: ratio('archipelago'),
         birth: nm.birth,
         last: nm.calendarEnd, lastData: nm.lastDataDay,
         alive: nights.map(n => n.day),

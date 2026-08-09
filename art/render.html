@@ -39,12 +39,15 @@
   const params = new URLSearchParams(location.search);
   const WORK = params.get('work') || '87';
 
+  /* What follows is what each work DOES: where its days sit inside its record,
+     and which painter is called. Who each work IS — the painter's path, its
+     canvas, the shape of its record — is said once in /works.json and read
+     from there at boot. The two used to be written out here together, so a
+     canvas changed in the registry left this host still painting the old size. */
   const CONFIG = {
     '87': {
-      // LIVE: the same record that feeds nikolaigrigoriev.com, so the work
-      // keeps living. Server returns { days:[{d,s,c,i}], meta:{birth,lastDataDay,…} }.
-      painter: '87/painter.js', dataUrl: '/data/days.json', dateField: 'd',
-      baseW: 980, baseH: 700, pd: 2,
+      // The same record that feeds nikolaigrigoriev.com, so the work keeps
+      // living. Server returns { days:[{d,s,c,i}], meta:{birth,lastDataDay,…} }.
       birth: (D) => (D.meta && D.meta.birth) || (D.days[0] && D.days[0].d),
       last:  (D) => (D.meta && (D.meta.lastDataDay || D.meta.last)) || (D.days[D.days.length - 1] && D.days[D.days.length - 1].d),
       today: (D) => D.meta && D.meta.serverDate,
@@ -60,9 +63,7 @@
       paint: (p, day, D, w, h, sil) => window.Painter.paintDay(p, day, D, w, h),
     },
     '89': {
-      // LIVE: /89/data.json returns { days:[raw Oura metrics], meta }.
-      painter: '89/painter.js', dataUrl: '/89/data.json', dateField: 'day',
-      baseW: 920, baseH: 1350, pd: 1,
+      // /89/data.json returns { days:[raw Oura metrics], meta }.
       birth: (D) => D.days[0] && D.days[0].day,
       last:  (D) => D.days[D.days.length - 1] && D.days[D.days.length - 1].day,
       today: (D) => D.meta && D.meta.serverDate,
@@ -77,13 +78,10 @@
       // NIGHT rather than from the day it closed — so its record is the night
       // series, not the daily one, and its calendar holds only nights the ring
       // actually wrote a hypnogram for.
-      painter: 'archipelago/painter.js', dataUrl: '/archipelago/data.json', dateField: 'day',
-      baseW: 900, baseH: 1200, pd: 1,
       // The sheet is composed in 2D — the level set is computed per pixel and
       // the print fill, the ground grain and the rim are composite operations.
       // Only the dry brush is WEBGL. So the host takes the finished canvas the
       // painter returns instead of reading the GL buffer back.
-      readback: '2d',
       birth: (D) => D.nights[0] && D.nights[0].day,
       last:  (D) => D.nights[D.nights.length - 1] && D.nights[D.nights.length - 1].day,
       today: (D) => D.meta && D.meta.serverDate,
@@ -97,8 +95,20 @@
       paint: (p, day, D, w, h, sil) => window.ArchipelagoPainter.paintDay(p, day, D, w, h, sil),
     },
   };
-  const cfg = CONFIG[WORK];
-  const RATIO = cfg.baseW / cfg.baseH;
+  let cfg = null, RATIO = 0;
+  async function identity() {
+    const all = await fetch('/works.json', { cache: 'no-cache' }).then((r) => r.json());
+    const w = all[WORK];
+    if (!w) throw new Error(`no such work: ${WORK}`);
+    cfg = Object.assign({
+      painter: w.engine.painter,
+      dataUrl: w.engine.data,
+      dateField: w.engine.dateField,
+      baseW: w.canvas.w, baseH: w.canvas.h, pd: w.canvas.density,
+      readback: w.engine.readback,
+    }, CONFIG[WORK]);
+    RATIO = cfg.baseW / cfg.baseH;
+  }
 
   let DATA = null, p5i = null, glCanvas = null, ready = false;
   let painted = null;      // target day currently held in the readback buffer
@@ -140,6 +150,7 @@
   }
 
   async function boot() {
+    await identity();
     await loadScript(cfg.painter);
     // 'no-cache' (not 'no-store'): still always revalidated against the server,
     // but an unchanged record comes back as a tiny 304 instead of re-downloading

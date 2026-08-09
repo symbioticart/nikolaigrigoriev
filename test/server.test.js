@@ -305,3 +305,13 @@ test('no page reaches for anyone else’s server', async () => {
     assert.deepEqual(outside, [], `${p} loads from elsewhere`);
   }
 });
+
+test('a work is one shape, whichever file is asked', async () => {
+  const reg = JSON.parse(fs.readFileSync(path.join(ROOT, 'works.json'), 'utf8'));
+  const m = await (await fetch(`${BASE}/state/meta.json`)).json();
+  for (const [id, w] of Object.entries(m)) {
+    const c = reg[id].canvas;
+    assert.ok(Math.abs(w.ratio - c.w / c.h) < 1e-9,
+      `${id} is ${w.ratio} to the server and ${c.w / c.h} in the registry`);
+  }
+});
