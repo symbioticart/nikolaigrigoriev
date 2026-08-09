@@ -1,0 +1,191 @@
+// Walk the site as a reader does, and say plainly what is wrong.
+//
+// Not a unit test: this opens the real pages of a running site in a real
+// browser and asserts what a visitor would notice — that every page answers,
+// that the paintings appear, that the console is quiet, that the caption agrees
+// with what the server says about the record, that the links lead somewhere.
+//
+//   node scripts/smoke.js <site> [--rehearsal] [--auth user:pass]
+//
+// A rehearsal copy is blind by design, so its record is expected to be stored
+// rather than live; production is held to the stricter promise.
+
+const puppeteer = require('puppeteer-core');
+
+const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const argv = process.argv.slice(2);
+const val = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : d; };
+const SITE = (argv.find((a) => !a.startsWith('--') && argv[argv.indexOf(a) - 1] !== '--auth')
+  || 'https://nikolaigrigoriev.com').replace(/\/$/, '');
+const REHEARSAL = argv.includes('--rehearsal');
+const AUTH = val('--auth', process.env.SMOKE_AUTH || '');
+
+const problems = [];
+const note = [];
+const fail = (m) => problems.push(m);
+
+// A rehearsal copy asks for a password on everything but its health report, so
+// every request this script makes carries one when it has one.
+const headers = AUTH ? { Authorization: 'Basic ' + Buffer.from(AUTH).toString('base64') } : {};
+async function json(path) {
+  const r = await fetch(`${SITE}${path}`, { headers });
+  if (!r.ok) { fail(`${path} answered ${r.status}`); return null; }
+  try { return await r.json(); } catch { fail(`${path} did not answer with JSON`); return null; }
+}
+
+(async () => {
+  const health = await json('/health');
+  if (!health) { console.error('the site did not answer at all'); process.exit(1); }
+  note.push(`build ${health.buildSha}, ${health.dayCount} days, last written ${health.lastDataDay}`);
+
+  if (REHEARSAL) {
+    if (health.live) fail('the rehearsal is reading the live record — it must be blind');
+  } else {
+    if (!health.ok) fail(`the site reports itself unwell: ${(health.degradedReasons || []).join('; ') || 'ok=false'}`);
+    if (!health.live) fail('the site is serving a stored record instead of the living one');
+    if (health.tokenError) fail('the ring authorisation has lapsed');
+    if (health.gapDays > 2) note.push(`the body has been silent ${health.gapDays} days`);
+  }
+
+  const browser = await puppeteer.launch({
+    executablePath: CHROME, headless: 'new',
+    args: ['--no-sandbox', '--enable-unsafe-swiftshader', '--hide-scrollbars'],
+  });
+  const page = await browser.newPage();
+  await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true });
+  if (AUTH) {
+    const [username, ...rest] = AUTH.split(':');
+    await page.authenticate({ username, password: rest.join(':') });
+  }
+
+  // What the browser complains about. Console messages about a resource that
+  // did not load carry no address, so those are watched on the responses
+  // instead, where the address is known and the optional ones can be excused.
+  const optional = /favicon|cv\.pdf|portrait/;
+  const noise = [];
+  page.on('console', (m) => {
+    const t = m.text();
+    if (m.type() === 'error' && !/Failed to load resource/.test(t)) noise.push(t.slice(0, 160));
+  });
+  page.on('pageerror', (e) => noise.push(String(e.message).slice(0, 160)));
+  page.on('response', (r) => {
+    if (r.status() >= 400 && !optional.test(r.url())) {
+      noise.push(`${r.status()} on ${r.url().replace(SITE, '').slice(0, 100)}`);
+    }
+  });
+  page.on('requestfailed', (r) => {
+    // Leaving a page cancels whatever it had in flight — an engine that was
+    // still warming when the reader moved on has not failed, it was let go.
+    const why = (r.failure() && r.failure().errorText) || '';
+    if (/ABORTED/i.test(why)) return;
+    if (!optional.test(r.url())) noise.push(`request failed (${why}): ${r.url().slice(0, 100)}`);
+  });
+
+  const open = async (path) => {
+    const r = await page.goto(`${SITE}${path}`, { waitUntil: 'domcontentloaded', timeout: 90000 });
+    if (!r || r.status() >= 400) fail(`${path} answered ${r && r.status()}`);
+    return r;
+  };
+
+  // The home page, met by someone who has never been here — on its own tab, so
+  // that engines legitimately started elsewhere are not counted against it.
+  const first = await browser.newPage();
+  await first.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true });
+  if (AUTH) {
+    const [username, ...rest] = AUTH.split(':');
+    await first.authenticate({ username, password: rest.join(':') });
+  }
+  let p5 = 0;
+  first.on('request', (r) => { if (/p5\.min\.js/.test(r.url())) p5++; });
+  const started = Date.now();
+  await first.goto(`${SITE}/`, { waitUntil: 'domcontentloaded', timeout: 90000 });
+  const shown = await first.waitForFunction(() => {
+    const imgs = [...document.querySelectorAll('.home-stage .plate img')];
+    return imgs.length >= 2 && imgs.every((i) => i.complete && i.naturalWidth > 0 && i.classList.contains('in'));
+  }, { timeout: 60000 }).then(() => true).catch(() => false);
+  const took = ((Date.now() - started) / 1000).toFixed(1);
+  const engineAtFirstSight = p5;
+  if (!shown) fail('the home page did not show its paintings within a minute');
+  else note.push(`home showed both works in ${took}s${engineAtFirstSight ? '' : ', no engine loaded'}`);
+  // The engine may warm afterwards, once the page is idle — that is the point.
+  // It may not be needed to show the works in the first place.
+  if (engineAtFirstSight) fail('the home page needed a painting engine to show the works at all');
+  await first.close();
+
+  // Every page a reader can reach.
+  for (const p of ['/', '/works.html', '/work.html?id=87', '/archive.html?id=87',
+    '/about.html', '/rule.html?id=87', '/conditions.html']) {
+    await open(p);
+  }
+  await open('/');
+
+  // The dates arrive a moment after the picture — the picture is what matters
+  // first — so wait for them rather than catching the page mid-breath.
+  await page.waitForFunction(() => {
+    const cur = document.querySelector('.caption .cur');
+    return cur && cur.textContent.trim().length > 0;
+  }, { timeout: 30000 }).catch(() => fail('the painting never got its dates'));
+
+  // The caption must agree with the record.
+  const caption = await page.evaluate(() => {
+    const cur = document.querySelector('.caption .cur');
+    const state = document.querySelector('.caption .state');
+    return { cur: cur && cur.textContent.trim(), state: state && state.textContent.trim() };
+  });
+  if (!caption.cur) fail('the painting carries no dates');
+  else if (!/Today$/.test(caption.cur)) fail(`the home page is not showing today: "${caption.cur}"`);
+  // Only the living site can be held to this. A rehearsal reads a stored
+  // record, so it deliberately shows no silence at all — a stopped instrument
+  // must never be painted as a stopped body — and its gap count means nothing.
+  if (!REHEARSAL) {
+    if (health.gapDays > 1 && !/Silence/.test(caption.state || '')) {
+      fail(`the body has been silent ${health.gapDays} days and the work does not say so`);
+    }
+    if (health.gapDays === 0 && caption.state) {
+      fail(`the record is current but the work claims: "${caption.state}"`);
+    }
+  }
+
+  // What the works show must be the last day the body wrote.
+  const manifest = (await json('/state/index.json')) || {};
+  const meta = (await json('/state/meta.json')) || {};
+  for (const [id, w] of Object.entries(meta)) {
+    const alive = w.alive || [];
+    if (!alive.length) continue;
+    const m = manifest[id];
+    if (!m) { fail(`${id} is missing from the list of what the site can show`); continue; }
+    // The pictures travel with the code, so on a rehearsal they are newer than
+    // its bundled record. Only the living site must agree with itself.
+    if (!REHEARSAL && m.last !== alive[alive.length - 1]) {
+      fail(`${id} shows ${m.last} while the body wrote to ${alive[alive.length - 1]}`);
+    }
+    const img = await fetch(`${SITE}/state/${id}.webp`, { headers });
+    if (!img.ok) fail(`${id} has no picture on the site (HTTP ${img.status})`);
+  }
+
+  // The intake must still accept an application. The hidden field is filled, so
+  // the server answers normally and files nothing.
+  const intake = await fetch(`${SITE}/wit36/apply`, {
+    method: 'POST',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+    body: JSON.stringify({
+      name: 'Smoke', email: 'smoke@example.com', practice: 'a check',
+      statement: 'a synthetic application that leaves no trace',
+      consent: true, website: 'https://a-bot-was-here.example',
+    }),
+  });
+  if (!intake.ok) fail(`the application form is refusing applications (HTTP ${intake.status})`);
+
+  // Nothing may be broken in the console.
+  if (noise.length) fail(`the browser complained: ${[...new Set(noise)].slice(0, 3).join(' | ')}`);
+
+  await browser.close();
+
+  for (const n of note) console.log(`  ${n}`);
+  if (problems.length) {
+    console.error('\nwrong:');
+    for (const p of problems) console.error(`  - ${p}`);
+    process.exit(1);
+  }
+  console.log('\nthe site is as it should be');
+})().catch((e) => { console.error(e); process.exit(1); });

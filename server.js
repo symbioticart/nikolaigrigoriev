@@ -1050,6 +1050,15 @@ http.createServer((req, res) => {
     serveFile(req, res, fp, mimeTypes[subExt] || 'text/plain', cache);
     return;
   }
+  // A mark for the browser tab: the same ink dot the certificate carries.
+  if (url === '/favicon.ico' || url === '/favicon.svg') {
+    fs.readFile(path.join(dir, 'favicon.svg'), (err, data) => {
+      if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }
+      res.writeHead(200, head({ 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=604800' }));
+      res.end(data);
+    });
+    return;
+  }
   if (url === '/og.jpg') {
     fs.readFile(path.join(dir, 'og.jpg'), (err, data) => {
       if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }

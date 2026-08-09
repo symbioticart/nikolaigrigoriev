@@ -1,33 +1,156 @@
 name: ci
 
-# The laws of the work, checked before anything reaches it.
+# Nothing reaches the work without first passing through here.
 #
-# These tests assert what the certificate promises: that a finished day is
-# never repainted, that a day is weighed only against the days before it, that
-# silence begins on the second day and never touches the form, that no
-# measurement can be read back out, and that the record itself stays sealed.
-# A red run here means the work has changed — not merely the code.
+#   push to staging → laws → deploy the rehearsal → walk it as a reader
+#   push to main    → laws → deploy the site → walk it → roll back if it is wrong
+#
+# The laws are what the certificate promises: a finished day is never repainted,
+# a day is weighed only against the days before it, silence begins on the second
+# day and never touches the form, no measurement can be read back out, the
+# record stays sealed. A red run here means the work has changed, not the code.
 
 on:
   push:
     branches: [main, staging]
   pull_request:
   workflow_dispatch: {}
+  schedule:
+    - cron: '0 9,19 * * *'   # walk the living site twice a day
+
+permissions:
+  contents: read
+
+env:
+  PROD: https://nikolaigrigoriev.com
+  REHEARSAL: https://nikolaigrigoriev-staging.onrender.com
+  PROD_SERVICE: srv-d7ektha8qa3s73ddeqd0
+  REHEARSAL_SERVICE: srv-d9s459ifngtc73ehh750
 
 jobs:
   laws:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 22
+        with: { node-version: 22 }
       # No install step: the site has no dependencies, and that is a condition
       # of the work rather than an oversight.
-      - name: Assert the laws
-        run: npm test
+      - run: npm test
 
-      - name: Say so if a law broke
+  # ── The rehearsal ────────────────────────────────────────────────────────
+  rehearsal:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    needs: laws
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Put it up
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: ./scripts/deploy.sh "$REHEARSAL_SERVICE"
+      - name: Walk it as a reader
+        env:
+          SMOKE_AUTH: ${{ secrets.STAGING_AUTH }}
+        run: |
+          npm i --no-save puppeteer-core@23 > /dev/null 2>&1
+          CHROME=$(command -v google-chrome || command -v chromium-browser || command -v chromium) \
+            node scripts/smoke.js "$REHEARSAL" --rehearsal
+      - name: Say it is ready to be looked at
+        if: success()
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          [ -z "$TG_BOT_TOKEN" ] && exit 0
+          msg=$(git log -1 --pretty=%s)
+          curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TG_CHAT_ID}" -d disable_web_page_preview=true -d disable_notification=true \
+            --data-urlencode "text=🧪 Репетиция обновлена и проверена: ${msg}. Посмотреть: ${REHEARSAL}" || true
+
+  # ── The work itself ──────────────────────────────────────────────────────
+  live:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: laws
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Remember what is standing now
+        id: before
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          [ -z "$RENDER_API_KEY" ] && { echo "id=" >> "$GITHUB_OUTPUT"; exit 0; }
+          id=$(curl -fsS -H "Authorization: Bearer $RENDER_API_KEY" \
+            "https://api.render.com/v1/services/$PROD_SERVICE/deploys?limit=20" \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+                const live=JSON.parse(s).map(x=>x.deploy).find(d=>d.status==="live");
+                console.log(live?live.id:"")})')
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          echo "standing: ${id:-unknown}"
+
+      - name: Put it up
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: ./scripts/deploy.sh "$PROD_SERVICE"
+
+      - name: Walk it as a reader
+        id: smoke
+        run: |
+          npm i --no-save puppeteer-core@23 > /dev/null 2>&1
+          CHROME=$(command -v google-chrome || command -v chromium-browser || command -v chromium) \
+            node scripts/smoke.js "$PROD"
+
+      # If the site is wrong after a deploy, put back what was standing before
+      # it. A rollback reuses the old build, so it is quick.
+      - name: Put back what was standing
+        if: failure() && steps.before.outputs.id != ''
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          curl -fsS -X POST -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            "https://api.render.com/v1/services/$PROD_SERVICE/rollback" \
+            -d '{"deployId":"${{ steps.before.outputs.id }}"}' | head -c 200
+          echo "rolled back to ${{ steps.before.outputs.id }}"
+
+      - name: Say what happened
+        if: always()
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          [ -z "$TG_BOT_TOKEN" ] && exit 0
+          msg=$(git log -1 --pretty=%s)
+          if [ "${{ job.status }}" = "success" ]; then
+            text="🚀 На сайте новая версия: ${msg}. Проверено как зритель — всё на месте."
+            quiet=true
+          else
+            text="🔴 Обновление сайта не прошло проверку и откачено: ${msg}. Сайт показывает предыдущую версию. Лог: github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            quiet=false
+          fi
+          curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+            -d chat_id="${TG_CHAT_ID}" -d disable_web_page_preview=true -d disable_notification=$quiet \
+            --data-urlencode "text=$text" || true
+
+  # ── Twice a day, walk the living site whether or not anything changed ────
+  watch:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: |
+          npm i --no-save puppeteer-core@23 > /dev/null 2>&1
+          CHROME=$(command -v google-chrome || command -v chromium-browser || command -v chromium) \
+            node scripts/smoke.js "$PROD"
+      - name: Say what a reader would have found
         if: failure()
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
@@ -36,4 +159,4 @@ jobs:
           [ -z "$TG_BOT_TOKEN" ] && exit 0
           curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
             -d chat_id="${TG_CHAT_ID}" -d disable_web_page_preview=true \
-            --data-urlencode "text=🔴 Проверка законов работы не прошла на ветке ${GITHUB_REF_NAME}. Изменилось что-то, что меняться не должно: заморозка прошлого, кривая тишины, семя дня или герметичность записи. Смотреть: github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" || true
+            --data-urlencode "text=🔴 Сайт сейчас показывает не то, что должен — проверка глазами зрителя не прошла. Лог: github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" || true
