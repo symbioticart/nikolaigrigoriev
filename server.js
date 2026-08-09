@@ -948,10 +948,23 @@ http.createServer((req, res) => {
   if (STAGING_AUTH) {
     res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
     if (req.url.split('?')[0] !== '/health') {
+      // A password is enough. Set STAGING_AUTH to a bare password and any name
+      // opens it; set it as `name:password` and the name is checked too. The
+      // browser asks for both either way — that is its dialog, not our demand.
       const offered = String(req.headers.authorization || '');
-      const want = 'Basic ' + Buffer.from(STAGING_AUTH).toString('base64');
-      const a = Buffer.from(offered), b = Buffer.from(want);
-      const ok = a.length === b.length && crypto.timingSafeEqual(a, b);
+      const given = /^Basic /i.test(offered)
+        ? Buffer.from(offered.slice(6), 'base64').toString('utf8') : '';
+      const cut = STAGING_AUTH.indexOf(':');
+      const wantName = cut === -1 ? null : STAGING_AUTH.slice(0, cut);
+      const wantPass = cut === -1 ? STAGING_AUTH : STAGING_AUTH.slice(cut + 1);
+      const gcut = given.indexOf(':');
+      const gaveName = gcut === -1 ? '' : given.slice(0, gcut);
+      const gavePass = gcut === -1 ? given : given.slice(gcut + 1);
+      const same = (x, y) => {
+        const a = Buffer.from(x), b = Buffer.from(y);
+        return a.length === b.length && crypto.timingSafeEqual(a, b);
+      };
+      const ok = same(gavePass, wantPass) && (wantName === null || same(gaveName, wantName));
       if (!ok) {
         res.writeHead(401, head({
           'WWW-Authenticate': 'Basic realm="rehearsal", charset="UTF-8"',

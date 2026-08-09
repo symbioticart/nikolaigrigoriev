@@ -265,6 +265,34 @@ test('a rehearsal copy asks who is knocking, and hides from crawlers', async () 
   }
 });
 
+test('a bare password is enough, and it is still a password', async () => {
+  const { spawn } = require('node:child_process');
+  const port = 3602;
+  const child = spawn(process.execPath, [path.join(ROOT, 'server.js')], {
+    cwd: ROOT,
+    env: { ...process.env, PORT: String(port), OURA_TOKEN: '', ARCHIVE_DIR: scratch,
+           TG_BOT_TOKEN: '', TG_CHAT_ID: '', STAGING_AUTH: '112358' },
+    stdio: 'ignore',
+  });
+  const base = `http://127.0.0.1:${port}`;
+  const knock = (creds) => fetch(`${base}/`, creds
+    ? { headers: { Authorization: 'Basic ' + Buffer.from(creds).toString('base64') } } : undefined);
+  try {
+    for (let i = 0; i < 60; i++) {
+      try { await fetch(`${base}/health`); break; } catch { await new Promise(r => setTimeout(r, 250)); }
+    }
+    assert.equal((await knock()).status, 401);
+    // Whatever name the browser dialog insists on, the password decides.
+    assert.equal((await knock(':112358')).status, 200, 'a bare password must open it');
+    assert.equal((await knock('anyone:112358')).status, 200, 'the name is not asked of anyone');
+    assert.equal((await knock(':112357')).status, 401, 'a near miss is still a miss');
+    assert.equal((await knock('112358')).status, 200, 'a client that sends no colon at all');
+    assert.equal((await knock(':')).status, 401);
+  } finally {
+    child.kill('SIGKILL');
+  }
+});
+
 // ── One head, on every page ────────────────────────────────────────────────
 test('every page carries an icon, a description and a card', async () => {
   for (const p of ['/', '/works.html', '/work.html?id=87', '/archive.html?id=87',
