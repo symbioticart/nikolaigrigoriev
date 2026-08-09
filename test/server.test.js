@@ -133,6 +133,38 @@ test('a path cannot climb out of the site', async () => {
 test('an unknown address is refused, not guessed at', async () => {
   const r = await fetch(`${BASE}/there-is-no-such-page`);
   assert.equal(r.status, 404);
+  // A person who mistyped deserves a page and a way onward, not a bare word.
+  const body = await r.text();
+  assert.match(body, /<html/i, 'a mistyped address answered with no page at all');
+  assert.match(body, /href="\//, 'the page offers no way back into the work');
+});
+
+test('what is plainly not a page keeps the bare answer', async () => {
+  const r = await fetch(`${BASE}/nothing.png`);
+  assert.equal(r.status, 404);
+  assert.doesNotMatch(await r.text(), /<html/i, 'a missing image should not cost a whole page');
+});
+
+test('a crawler is told where to look and where not to', async () => {
+  const robots = await fetch(`${BASE}/robots.txt`);
+  assert.equal(robots.status, 200);
+  const text = await robots.text();
+  assert.match(text, /Sitemap:/, 'the map is not announced');
+  assert.match(text, /Disallow: \/wit36\/apply/, 'the intake should not be crawled');
+
+  const map = await fetch(`${BASE}/sitemap.xml`);
+  assert.equal(map.status, 200);
+  const xml = await map.text();
+  assert.match(xml, /sitemaps\.org\/schemas\/sitemap/, 'the map is not a sitemap');
+  for (const page of ['works.html', 'about.html', 'conditions.html']) {
+    assert.ok(xml.includes(page), `${page} is missing from the map`);
+  }
+});
+
+test('the tab carries a mark', async () => {
+  const r = await fetch(`${BASE}/favicon.ico`);
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get('content-type') || '', /svg/);
 });
 
 // ── How it is dressed ──────────────────────────────────────────────────────

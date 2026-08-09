@@ -224,8 +224,6 @@
   }
 
   // ── Header ────────────────────────────────────────────────────────────────
-  // opts.minimal — name only, no nav (used on the focused single-state view so
-  // the close × owns the top-right corner).
   function mountHeader(active, opts) {
     opts = opts || {};
     const nav = [
@@ -237,7 +235,7 @@
     el.className = 'site-head';
     el.innerHTML =
       `<a class="site-name" href="/">Nikolai Grigoriev</a>` +
-      (opts.minimal ? '' :
+      (
         `<nav class="site-nav" aria-label="Primary">` +
         nav.map((n) => n.external
           ? `<a href="${n.href}" target="_blank" rel="noopener" aria-label="${n.label} (opens in a new tab)">${n.label}<svg class="ext" viewBox="0 0 12 12" aria-hidden="true"><path d="M3.4 8.6 L8.6 3.4 M4.9 3.4 H8.6 V7.1" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></a>`
@@ -444,6 +442,13 @@
       nextBtn.disabled = zNext.disabled = isLast;
       img.alt = `${work.title} — ${isLast ? 'today' : fmtDate(date)}` +
         (meta.alive.has(date) ? '' : ' — silence, no data recorded this day');
+      // Keep the address on the day being looked at, so a particular day can be
+      // sent to someone, kept, or returned to with the back button. Paging is
+      // not navigation, so it replaces rather than piles up history.
+      if (opts.syncUrl && window.history && history.replaceState) {
+        const url = isLast ? `?id=${id}` : `?id=${id}&date=${date}`;
+        history.replaceState(null, '', url);
+      }
       return date;
     }
 

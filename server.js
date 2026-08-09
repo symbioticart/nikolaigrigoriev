@@ -1050,6 +1050,13 @@ http.createServer((req, res) => {
     serveFile(req, res, fp, mimeTypes[subExt] || 'text/plain', cache);
     return;
   }
+  // Plain-text surfaces a crawler expects to find at the root.
+  if (url === '/robots.txt' || url === '/sitemap.xml') {
+    const f = url.slice(1);
+    const mime = f.endsWith('.xml') ? 'application/xml' : 'text/plain; charset=utf-8';
+    serveFile(req, res, path.join(dir, f), mime, 'public, max-age=3600');
+    return;
+  }
   // A mark for the browser tab: the same ink dot the certificate carries.
   if (url === '/favicon.ico' || url === '/favicon.svg') {
     fs.readFile(path.join(dir, 'favicon.svg'), (err, data) => {
@@ -1076,7 +1083,19 @@ http.createServer((req, res) => {
     '/vendor/p5.min.js',
     '/fonts/manrope-latin.woff2', '/fonts/jetbrainsmono-latin.woff2',
   ]);
-  if (!SERVED.has(url)) { res.writeHead(404, head({})); res.end('Not found'); return; }
+  if (!SERVED.has(url)) {
+    // A person who mistyped an address deserves a page, not the word "Not
+    // found"; anything that is plainly not a page keeps the bare answer.
+    if (!path.extname(url) || url.endsWith('.html')) {
+      fs.readFile(path.join(dir, '404.html'), (err, page) => {
+        if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }
+        res.writeHead(404, head({ 'Content-Type': 'text/html', 'Cache-Control': 'no-cache' }));
+        res.end(page);
+      });
+      return;
+    }
+    res.writeHead(404, head({})); res.end('Not found'); return;
+  }
   const filePath = path.join(dir, decodeURIComponent(url));
   if (!filePath.startsWith(dir)) { res.writeHead(404, head({})); res.end('Not found'); return; }
   const ext = path.extname(filePath);

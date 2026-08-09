@@ -1,0 +1,6 @@
+# The work is public. Its record is not, and is not reachable from here.
+User-agent: *
+Allow: /
+Disallow: /wit36/apply
+
+Sitemap: https://nikolaigrigoriev.com/sitemap.xml
