@@ -4,7 +4,24 @@
 
   // ── Work registry ───────────────────────────────────────────────────────
   // Order defines Selected Works + Works grid ordering.
-  const WORKS = [
+  // Who the works are — one description, in works.json, put here by the server
+  // as it serves this file. The fallback below is only what a bare file system
+  // would show if that ever failed; the file is the source.
+  const REGISTRY = window.__WORKS || null;
+  const WORKS = REGISTRY ? Object.keys(REGISTRY).filter((k) => k !== '_').map((id) => {
+    const w = REGISTRY[id];
+    return {
+      id,
+      title: w.title,
+      medium: w.medium,
+      selected: !!w.selected,
+      unlisted: w.listed === false,
+      // The shape of a work is its canvas, not a number kept beside it.
+      ratio: w.canvas.w / w.canvas.h,
+      ground: w.ground,
+      silence: w.silence,
+    };
+  }) : [
     // `ratio` is the work's aspect, known without asking the engine — it lets the
     // plate take its place, and the ready-made state image show, before any
     // painting machinery has loaded.

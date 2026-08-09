@@ -160,6 +160,41 @@ test('89 serves channels, never the raw body', () => {
   }
 });
 
+// ── Who the works are ──────────────────────────────────────────────────────
+test('every work is described completely, in one place', () => {
+  const all = JSON.parse(fs.readFileSync(path.join(ROOT, 'works.json'), 'utf8'));
+  delete all._;
+  assert.ok(Object.keys(all).length >= 2, 'the registry has lost its works');
+
+  for (const [id, w] of Object.entries(all)) {
+    assert.ok(w.title, `${id} has no title`);
+    assert.ok(w.medium, `${id} has no medium — the caption a museum would print`);
+    assert.ok(w.canvas && w.canvas.w > 0 && w.canvas.h > 0, `${id} has no canvas`);
+    assert.match(w.ground, /^#[0-9a-f]{6}$/i, `${id} has no ground to dissolve into`);
+    assert.ok(['over', 'within'].includes(w.silence), `${id} does not say how it falls silent`);
+
+    // A painter that is named must exist, or the work is a promise the site
+    // cannot keep — this is the class of fault that let a work be listed while
+    // nothing could paint it.
+    const painter = path.join(ROOT, 'art', w.engine.painter);
+    assert.ok(fs.existsSync(painter), `${id} names a painter that is not there: ${w.engine.painter}`);
+    assert.ok(w.engine.data && w.engine.dateField, `${id} does not say where its record is`);
+
+    assert.ok(w.state && w.state.w > 0 && w.state.h > 0, `${id} has no size to be shown at`);
+    assert.ok(w.rule && w.rule.seed, `${id} has no rule — its page of laws would be blank`);
+  }
+});
+
+test('a work shown to everyone is a work that is listed', () => {
+  const all = JSON.parse(fs.readFileSync(path.join(ROOT, 'works.json'), 'utf8'));
+  delete all._;
+  for (const [id, w] of Object.entries(all)) {
+    if (w.selected) {
+      assert.equal(w.listed, true, `${id} is on the home page but is meant to be unlisted`);
+    }
+  }
+});
+
 // ── The percentile itself ──────────────────────────────────────────────────
 test('a short history reads quietly rather than hysterically', () => {
   const loud = rule.causalPercentile([1, 2, 3, 4, 5, 6, 7, 8, 9, 10,

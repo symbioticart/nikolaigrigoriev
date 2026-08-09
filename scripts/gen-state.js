@@ -33,13 +33,17 @@ const SITE = positional[0] || 'https://nikolaigrigoriev.com';
 const OUT = positional[1] || 'state';
 const ONLY = value('--work', null);
 
-// Painted large enough for a desktop plate on a retina screen, and squeezed
-// hard enough that the whole set stays a rounding error on any connection.
-const SIZES = { '87': [1400, 1000], '89': [920, 1350], archipelago: [900, 1200] };
-const QUALITY = { archipelago: 0.86 };
-const Q = (w) => QUALITY[w] || 0.88;
+// Who the works are, and how each is painted — from the one description.
+const REGISTRY = (() => {
+  const all = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'works.json'), 'utf8'));
+  delete all._;
+  return all;
+})();
+const SIZES = Object.fromEntries(Object.entries(REGISTRY)
+  .map(([id, w]) => [id, [w.state.w, w.state.h]]));
+const Q = (id) => (REGISTRY[id].state.quality || 0.88);
 // Works whose silence is painted from the inside and cannot be filtered over.
-const BAKED_SILENCE = new Set(['archipelago']);
+const BAKED_SILENCE = new Set(Object.keys(REGISTRY).filter((id) => REGISTRY[id].silence === 'within'));
 
 (async () => {
   const browser = await puppeteer.launch({

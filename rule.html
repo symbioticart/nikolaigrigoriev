@@ -64,40 +64,11 @@
     'Every day the work has lived is kept.',
   ];
 
-  const RULES = {
-    '87': {
-      seed: 'The seed of a day is drawn from the artist’s name, the date, and the day’s record together; no two days can coincide.',
-      foot: 'First recorded day 24 May 2022.<br>' +
-            'The full conditions of this work — its definition, its silence, its transfer — ' +
-            'are set out in the document that constitutes it: ' +
-            '<a href="/conditions.html">Conditions of the Work</a>.',
-    },
-    '89': {
-      seed: 'The seed of a day is drawn from the day’s record alone; the date plays no part in it. Two days of the same body make the same painting, however far apart they fall.',
-      foot: 'First recorded day 24 May 2022.',
-    },
-    // This work is not made from a day but from a night, so the laws that name
-    // the unit are restated in its own terms. Nothing else about them changes:
-    // the same twelve laws, in the same order, applied to the hours in which the
-    // body was not being watched by its owner either.
-    'archipelago': {
-      overrides: {
-        0: 'Each night, one painting.',
-        1: 'The painting is made from one night of one sleeping body, and from nothing else.',
-        3: 'A night is painted only after the body has woken.',
-        4: 'A night is weighed against the nights of this body that came before it, never against the nights that follow.',
-        7: 'The same night always makes the same painting.',
-        8: 'A night that has been painted is never repainted.',
-        9: 'When no night arrives, the last painting is held. From the second day of silence the edge goes out first — the pulse is the first thing to stop being visible — and the mass follows it.',
-        10: 'When the nights resume, the painting returns.',
-        11: 'Every night the work has lived is kept.',
-      },
-      seed: 'The seed of a night is drawn from that night alone; the date plays no part in it. The same night makes the same painting whenever it is looked at.',
-      foot: 'First recorded night {birth}.<br>' +
-            'A day the ring recorded without sleep is not a night this work can paint, ' +
-            'and does not enter its calendar.',
-    },
-  };
+  // What each work's rule says — from the one description of the works
+  // (works.json), put on the page by the server as it serves the shared script.
+  const RULES = Object.fromEntries(Object.entries(window.__WORKS || {})
+    .filter(([, w]) => w && w.rule)
+    .map(([id, w]) => [id, w.rule]));
 
   const id = Site.WORK_BY_ID[new URLSearchParams(location.search).get('id')]
     ? new URLSearchParams(location.search).get('id') : '87';

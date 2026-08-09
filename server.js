@@ -15,8 +15,32 @@ const rule89 = require('./rule89');
 // Set only on the rehearsal copy: "name:password". Production leaves it unset.
 const STAGING_AUTH = process.env.STAGING_AUTH || '';
 
+
+
 const dir  = __dirname;
 const port = process.env.PORT || 3457;
+
+// Who the works are. One description, read once at boot and handed to everyone
+// who needs it: the site (injected into assets/site.js as it is served), the
+// painting host, the meta endpoint, the morning painter. Adding a work is then
+// an act of description rather than an archaeology through eight files.
+let WORKS_REGISTRY = {};
+let WORKS_JSON = '{}';
+let WORKS_STAMP = '0';
+function loadWorks() {
+  try {
+    const f = path.join(dir, 'works.json');
+    const raw = fs.readFileSync(f, 'utf8');
+    const all = JSON.parse(raw);
+    delete all._;                                   // the note to the reader
+    WORKS_REGISTRY = all;
+    WORKS_JSON = JSON.stringify(all);
+    WORKS_STAMP = Math.round(fs.statSync(f).mtimeMs).toString(36);
+  } catch (e) {
+    console.error('[works] could not read works.json —', e.message);
+  }
+}
+loadWorks();
 
 // === THE WORK — fixed constants (mirrored in the certificate) ===
 const WORK_BIRTH_DATE = '2022-05-24';   // first recorded day of the body
@@ -1030,6 +1054,29 @@ http.createServer((req, res) => {
   //    The live paintings still read /data/days.json and /89/data.json above. ──
   // `state/` holds one small ready-made image per work — how it stands today —
   // so a visitor sees the paintings before any engine has loaded.
+  // The registry itself, for the painting host and anyone else who asks.
+  if (url === '/works.json') {
+    serveJSON(req, res, WORKS_REGISTRY);
+    return;
+  }
+  // The shared script carries the registry inside it, so no page has to wait a
+  // round trip to learn which works exist. The validator covers both files:
+  // change the registry and the script is re-fetched.
+  if (url === '/assets/site.js') {
+    const fp = path.join(dir, 'assets/site.js');
+    fs.stat(fp, (e, st) => {
+      if (e) { res.writeHead(404, head({})); res.end('Not found'); return; }
+      const etag = 'W/"' + st.size.toString(36) + '-' + Math.round(st.mtimeMs).toString(36) + '-' + WORKS_STAMP + '"';
+      const h = head({ 'Content-Type': 'text/javascript', 'Cache-Control': 'no-cache', 'ETag': etag });
+      if (req.headers['if-none-match'] === etag) { res.writeHead(304, h); res.end(); return; }
+      fs.readFile(fp, 'utf8', (err, body) => {
+        if (err) { res.writeHead(404, head({})); res.end('Not found'); return; }
+        res.writeHead(200, h);
+        res.end('window.__WORKS=' + WORKS_JSON + ';\n' + body);
+      });
+    });
+    return;
+  }
   if (/^\/(assets|art|state)\//.test(url)) {
     const subExt = path.extname(url).toLowerCase();
     const SUB_OK = new Set(['.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.svg', '.woff2', '.json', '.map', '.webp']);

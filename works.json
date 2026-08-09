@@ -1,0 +1,73 @@
+{
+  "_": [
+    "Who the works are. One place, so that adding one is an act of description",
+    "rather than an archaeology through eight files.",
+    "",
+    "Everything here is read by the site (assets/site.js, injected when served),",
+    "the painting host (art/render.html), the server (/state/meta.json) and the",
+    "morning painter (scripts/gen-state.js). A work that is described here and",
+    "has a painter is a work the whole site knows about.",
+    "",
+    "  canvas      the size the painter composes for. The shape of the work is",
+    "              this, not a number repeated elsewhere: ratio = w / h.",
+    "  ground      the colour the work dissolves into when the body falls",
+    "              silent — its own canvas, sampled from the painting.",
+    "  silence     'over'   the fade is laid over the finished picture, live,",
+    "                       from today's gap — so it can never be stale;",
+    "              'within' the work dims from the inside (a pulse inside the",
+    "                       mark) and only its engine can paint it.",
+    "  listed      false: live and complete, but nothing leads to it and search",
+    "              engines are told to leave it alone. How a work is watched in",
+    "              its real conditions before it is shown.",
+    "  rule        what the page of laws says for this work. `seed` replaces the",
+    "              seventh law — the one place the works genuinely part."
+  ],
+
+  "87": {
+    "title": "Variation 87",
+    "listed": true,
+    "selected": true,
+    "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — continuous since 2022.",
+    "canvas": { "w": 980, "h": 700, "density": 2 },
+    "ground": "#eee9dd",
+    "silence": "over",
+    "engine": { "painter": "87/painter.js", "data": "/data/days.json", "dateField": "d" },
+    "state": { "w": 1400, "h": 1000, "quality": 0.88 },
+    "rule": {
+      "seed": "The seed of a day is drawn from the artist’s name, the date, and the day’s record together; no two days can coincide.",
+      "foot": "First recorded day 24 May 2022.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html\">Conditions of the Work</a>."
+    }
+  },
+
+  "89": {
+    "title": "Variation 89",
+    "listed": true,
+    "selected": true,
+    "medium": "Software, lived time written daily by an unchanging rule, screen — in the format of a portrait. Dimensions variable — since 2025.",
+    "canvas": { "w": 920, "h": 1350, "density": 1 },
+    "ground": "#eee9dd",
+    "silence": "over",
+    "engine": { "painter": "89/painter.js", "data": "/89/data.json", "dateField": "day" },
+    "state": { "w": 920, "h": 1350, "quality": 0.88 },
+    "rule": {
+      "seed": "The seed of a day is drawn from the day’s record alone; the date plays no part in it. Two days of the same body make the same painting, however far apart they fall.",
+      "foot": "First recorded day 24 May 2022."
+    }
+  },
+
+  "archipelago": {
+    "title": "Archipelago",
+    "listed": false,
+    "selected": false,
+    "medium": "Software, one night of a sleeping body written by an unchanging rule, screen. Dimensions variable — the rule since 2026, the nights since 2022.",
+    "canvas": { "w": 900, "h": 1200, "density": 1 },
+    "ground": "#090909",
+    "silence": "within",
+    "engine": { "painter": "archipelago/painter.js", "data": "/archipelago/data.json", "dateField": "day", "readback": "2d" },
+    "state": { "w": 900, "h": 1200, "quality": 0.86 },
+    "rule": {
+      "seed": "The seed of a night is drawn from that night’s record alone.",
+      "foot": "First recorded night {birth}.<br>The rule was written in 2026; the nights it reads begin in 2022, because the body had already been recording them."
+    }
+  }
+}
