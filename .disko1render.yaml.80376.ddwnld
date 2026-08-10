@@ -1,0 +1,72 @@
+# The shape of the service that carries the work, written down.
+#
+# This file is DOCUMENTATION, not a live Blueprint. The production service was
+# created by hand and is edited through the API; pointing a Blueprint at it
+# risks Render creating a second service beside it. Attach it deliberately or
+# not at all — but if the service is ever lost, this is how to rebuild it.
+#
+# Break-glass, with RENDER_TOKEN in the environment and
+# SRV=srv-d7ektha8qa3s73ddeqd0:
+#
+#   deploy   curl -sX POST -H "Authorization: Bearer $RENDER_TOKEN" \
+#              https://api.render.com/v1/services/$SRV/deploys -d '{}'
+#   roll back  curl -sX POST -H "Authorization: Bearer $RENDER_TOKEN" \
+#              https://api.render.com/v1/services/$SRV/deploys/<deployId>/rollback
+#   auto-deploy back on
+#            curl -sX PATCH -H "Authorization: Bearer $RENDER_TOKEN" \
+#              -H "Content-Type: application/json" \
+#              https://api.render.com/v1/services/$SRV -d '{"autoDeploy":"yes"}'
+
+services:
+  # ── production ───────────────────────────────────────────────────────────
+  - type: web
+    name: nikolaigrigoriev
+    runtime: node
+    region: oregon
+    plan: starter
+    branch: main
+    # Deploys are made explicitly by CI after the laws are checked and the site
+    # has been walked as a reader, so that a red build can never reach the work.
+    # Turned off on the service itself once the pipeline had run green twice.
+    autoDeploy: false
+    buildCommand: echo ok          # no build step: zero dependencies by design
+    startCommand: node server.js
+    healthCheckPath: /health
+    disk:
+      # The record of one body, write-once, one file per day. It must outlive
+      # any deploy: a day that has been written is never rewritten, and a
+      # process that forgets it would have to ask Oura to remember for us.
+      name: record
+      mountPath: /var/record
+      sizeGB: 1
+    envVars:
+      - key: ARCHIVE_DIR
+        value: /var/record/archive
+      - key: OURA_TOKEN
+        sync: false                # secret — set in the dashboard
+      - key: TG_BOT_TOKEN
+        sync: false
+      - key: TG_CHAT_ID
+        sync: false
+      - key: TG_WEBHOOK_SECRET
+        sync: false
+
+  # ── staging ──────────────────────────────────────────────────────────────
+  # Deliberately blind and deliberately mute: it carries NO Oura credentials
+  # (the refresh token rotates — two servers holding it would revoke each
+  # other, and production would lose its authorisation) and NO Telegram
+  # credentials (or every alert would arrive twice). It serves the bundled
+  # snapshot with live=false, which is the correct state for it.
+  - type: web
+    name: nikolaigrigoriev-staging
+    runtime: node
+    region: oregon
+    plan: free
+    branch: staging
+    autoDeploy: true
+    buildCommand: echo ok
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: STAGING_AUTH
+        sync: false                # user:password — gates every response

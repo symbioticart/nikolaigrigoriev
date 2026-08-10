@@ -159,6 +159,18 @@ test('a crawler is told where to look and where not to', async () => {
   for (const page of ['works.html', 'about.html', 'conditions.html']) {
     assert.ok(xml.includes(page), `${page} is missing from the map`);
   }
+
+  // The map is drawn from the registry, so a listed work is on it by existing
+  // and an unlisted one cannot leak onto it. This used to be a hand-kept file,
+  // and a work added to the site was simply absent from the map.
+  const all = JSON.parse(fs.readFileSync(path.join(ROOT, 'works.json'), 'utf8'));
+  delete all._;
+  for (const [id, w] of Object.entries(all)) {
+    const on = xml.includes(`work.html?id=${encodeURIComponent(id)}`);
+    assert.equal(on, !!w.listed,
+      w.listed ? `${id} is shown on the site but missing from the map`
+               : `${id} is unlisted but is on the map`);
+  }
 });
 
 test('the tab carries a mark', async () => {

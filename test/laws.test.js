@@ -185,6 +185,52 @@ test('every work is described completely, in one place', () => {
   }
 });
 
+test('a work that writes its own laws writes a whole rule, not a fragment', () => {
+  // The variations share one list and part on the seed alone. A work that is
+  // not a variation may write its own — but then it must say everything the
+  // shared list says, or the rule of that work is quietly shorter than the
+  // rule of the others.
+  const all = JSON.parse(fs.readFileSync(path.join(ROOT, 'works.json'), 'utf8'));
+  delete all._;
+  const MUST = [
+    /one painting/i,                       // one unit of time, one canvas
+    /nothing is arranged by hand/i,        // no composition
+    /never against/i,                      // the past is not rewritten
+    /read back out/i,                      // no measurement is recoverable
+    /never repainted/i,                    // a finished day is finished
+    /silence/i,                            // what happens when the body stops
+    /is kept/i,                            // nothing is discarded
+  ];
+  for (const [id, w] of Object.entries(all)) {
+    const laws = w.rule && w.rule.laws;
+    if (!laws) continue;
+    assert.ok(laws.length >= 12, `${id} states only ${laws.length} laws`);
+    for (const line of laws) {
+      assert.match(line, /\.$/, `${id} has a law that is not a sentence: "${line}"`);
+    }
+    const joined = laws.join(' ');
+    for (const must of MUST) {
+      assert.match(joined, must, `${id} writes its own rule but drops ${must}`);
+    }
+  }
+});
+
+test('no work says anything in the register of a product', () => {
+  // The words the work does not use, in any public text it carries: an
+  // explanation of the machinery, a promise about speed, a judgement of
+  // itself. They have crept in once already, through a loading message.
+  const all = JSON.parse(fs.readFileSync(path.join(ROOT, 'works.json'), 'utf8'));
+  delete all._;
+  const BANNED = /\b(loading|rendering|real[- ]time|realtime|beautiful|stunning|powered by|seamless)\b/i;
+  for (const [id, w] of Object.entries(all)) {
+    const texts = [w.title, w.medium, w.rule && w.rule.seed, w.rule && w.rule.foot]
+      .concat((w.rule && w.rule.laws) || []).filter(Boolean);
+    for (const t of texts) {
+      assert.doesNotMatch(t, BANNED, `${id} speaks out of register: "${t}"`);
+    }
+  }
+});
+
 test('a work shown to everyone is a work that is listed', () => {
   const all = JSON.parse(fs.readFileSync(path.join(ROOT, 'works.json'), 'utf8'));
   delete all._;

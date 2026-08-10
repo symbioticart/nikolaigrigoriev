@@ -1184,7 +1184,32 @@ http.createServer((req, res) => {
     res.end('User-agent: *\nDisallow: /\n');
     return;
   }
-  if (url === '/robots.txt' || url === '/sitemap.xml') {
+  // The map of the site is drawn from the registry, not kept by hand. A work
+  // that is listed is on the map the moment it is listed — this was the last
+  // place a work's existence had to be typed out a second time.
+  if (url === '/sitemap.xml') {
+    const home = 'https://nikolaigrigoriev.com';
+    const u = (loc, freq) => `  <url><loc>${home}${loc}</loc><changefreq>${freq}</changefreq></url>`;
+    const lines = [
+      `  <url><loc>${home}/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>`,
+      u('/works.html', 'monthly'),
+    ];
+    for (const [id, w] of Object.entries(WORKS_REGISTRY)) {
+      if (!w.listed) continue;
+      const q = encodeURIComponent(id);
+      lines.push(u(`/work.html?id=${q}`, 'daily'));
+      lines.push(u(`/archive.html?id=${q}`, 'daily'));
+      lines.push(u(`/rule.html?id=${q}`, 'yearly'));
+    }
+    lines.push(u('/conditions.html', 'yearly'), u('/about.html', 'monthly'));
+    const xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+      + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+      + lines.join('\n') + '\n</urlset>\n';
+    res.writeHead(200, head({ 'Content-Type': 'application/xml', 'Cache-Control': 'no-cache' }));
+    res.end(xml);
+    return;
+  }
+  if (url === '/robots.txt') {
     const f = url.slice(1);
     const mime = f.endsWith('.xml') ? 'application/xml' : 'text/plain; charset=utf-8';
     serveFile(req, res, path.join(dir, f), mime, 'public, max-age=3600');

@@ -86,9 +86,17 @@
 
   document.title = `The Rule — ${work.title}`;
   document.getElementById('of').textContent = work.title;
+  // The variations share one list and part on the seed alone. A work that is
+  // not a variation writes its own: Archipelago parts on the night, on the
+  // moment of writing, on how its silence falls, and on two refusals of its
+  // own. Pretending the list is common would hide that for the sake of
+  // symmetry — so a work may set `laws` and the shared list steps aside.
   const ov = spec.overrides || {};
+  const lines = Array.isArray(spec.laws) && spec.laws.length
+    ? spec.laws
+    : COMMON.map((line, i) => (line === null ? spec.seed : (ov[i] || line)));
   document.getElementById('list').innerHTML =
-    COMMON.map((line, i) => `<li>${line === null ? spec.seed : (ov[i] || line)}</li>`).join('');
+    lines.map((line) => `<li>${line}</li>`).join('');
 
   // The rule of a work is read next to the work, and the way back to it was
   // missing: the page could only be left backwards. The certificates already

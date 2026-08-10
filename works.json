@@ -78,9 +78,9 @@
   },
   "archipelago": {
     "title": "Archipelago",
-    "listed": false,
-    "selected": false,
-    "medium": "Software, one night of a sleeping body written by an unchanging rule, screen. Dimensions variable — the rule since 2026, the nights since 2022.",
+    "listed": true,
+    "selected": true,
+    "medium": "Software, a sleeping body written nightly by an unchanging rule, screen. Dimensions variable — the rule since 2026, the nights since 2022.",
     "canvas": {
       "w": 900,
       "h": 1200,
@@ -90,7 +90,7 @@
     "silence": "within",
     "engine": {
       "painter": "archipelago/painter.js",
-      "data": "/archipelago/data.json",
+      "data": "/archipelago/data.json?all=1",
       "dateField": "day",
       "readback": "2d"
     },
@@ -100,7 +100,23 @@
       "quality": 0.86
     },
     "rule": {
-      "seed": "The seed of a night is drawn from that night’s record alone.",
+      "laws": [
+        "Each night, one painting.",
+        "The painting is made from that night’s record of one sleeping body, and from nothing else.",
+        "Nothing is arranged by hand.",
+        "A night is painted only after the body has woken.",
+        "A night is weighed against the nights of this body that came before it, never against the nights that follow.",
+        "Several signals drive every visible feature, so that no single one can be read back out.",
+        "The hours awake are not drawn. They only part what is drawn.",
+        "The instrument’s own verdict on a night is used nowhere in the work.",
+        "The seed of a night is drawn from that night’s record alone; the date plays no part in it.",
+        "The same night always makes the same painting.",
+        "A night that has been painted is never repainted.",
+        "When no night arrives, the last painting is held. From the second night of silence it goes out from within.",
+        "When the nights resume, the painting returns.",
+        "Every night the work has lived is kept."
+      ],
+      "seed": "The seed of a night is drawn from that night’s record alone; the date plays no part in it.",
       "foot": "First recorded night {birth}.<br>The rule was written in 2026; the nights it reads begin in 2022, because the body had already been recording them.<br>The full conditions of this work are set out in the document that constitutes it: <a href=\"/conditions.html?id=archipelago\">Conditions of the Work</a>."
     }
   }
