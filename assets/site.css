@@ -70,7 +70,7 @@ main{padding:0 var(--pad);position:relative}
    OF THE NEXT PAINTING (not empty padding) peeks above the fold — a wordless
    "there is more below" cue. The next stage is top-aligned so what shows in the
    gap is the painting itself. */
-.home-stage:first-child{min-height:calc(100vh - 132px);padding-top:104px;padding-bottom:0}
+.home-stage:first-child{min-height:calc(100vh - 132px);padding-top:104px;padding-bottom:96px;justify-content:flex-end}
 .home-stage:first-child{min-height:calc(100svh - 132px)}
 /* every work but the last leaves the same hand's-breadth of the next one
    showing below the fold. Only the first stage used to be shortened, so with a
@@ -199,7 +199,7 @@ main{padding:0 var(--pad);position:relative}
 .grid-head .sub{font-size:13px;color:var(--faint);margin-top:6px}
 .works-grid{
   display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:64px 56px;padding-bottom:120px;
+  column-gap:56px;grid-auto-rows:4px;align-items:start;padding-bottom:120px;
 }
 .tile{display:block;cursor:pointer}
 .tile-frame{position:relative;width:100%;aspect-ratio:var(--r,1.4);
@@ -279,7 +279,7 @@ main{padding:0 var(--pad);position:relative}
 @media (max-width:900px){
   .about{grid-template-columns:1fr;gap:36px;padding-top:120px}
   .about .portrait{max-width:300px}
-  .works-grid{gap:48px 40px}
+  .works-grid{column-gap:40px}
 }
 @media (max-width:640px){
   :root{--pad:16px}
@@ -291,12 +291,12 @@ main{padding:0 var(--pad);position:relative}
   .site-nav{gap:18px}
   .site-nav a{font-size:12px;padding:6px 0}         /* taller tap target */
   .work-stage{padding:100px 0 72px;min-height:84vh} /* each work sits alone */
-  .home-stage:first-child{min-height:calc(100vh - 104px);padding-top:100px;padding-bottom:0}
+  .home-stage:first-child{min-height:calc(100vh - 104px);padding-top:100px;padding-bottom:64px;justify-content:flex-end}
   .home-stage:first-child{min-height:calc(100svh - 104px)} /* next painting peeks */
   .home-stage:not(:first-child){padding-top:14px;padding-bottom:64px;min-height:auto}
   .home-stage:not(:first-child):last-child{min-height:auto;padding-bottom:48px}
   .grid-head,.arch-head{padding-top:104px}
-  .works-grid{grid-template-columns:1fr;gap:40px}
+  .works-grid{grid-template-columns:1fr}
 
   /* primary paging arrows → 44px hit area */
   .daynav{gap:22px;margin-top:12px}

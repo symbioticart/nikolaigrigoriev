@@ -133,6 +133,24 @@ async function json(path) {
   }
   await first.close();
 
+  // One day, one record, one painting — including the size it is asked at.
+  // The paint is simulated and the simulation is sized, so a page that painted
+  // its own copy at its own width showed a different picture of the same day
+  // than the page beside it.
+  const sameDay = await page.evaluate(async () => {
+    const out = {};
+    for (const w of (window.Site ? Site.WORKS : [])) {
+      const day = '2026-05-10';
+      const a = await Site.render(w.id, day, 300, 200);
+      const b = await Site.render(w.id, day, 1400, 1000);
+      out[w.id] = a === b;
+    }
+    return out;
+  }).catch(() => ({}));
+  for (const [id, same] of Object.entries(sameDay)) {
+    if (!same) fail(`${id} paints a different picture of the same day depending on how big it is shown`);
+  }
+
   // Every page a reader can reach.
   for (const p of ['/', '/works.html', '/work.html?id=87', '/archive.html?id=87',
     '/about.html', '/rule.html?id=87', '/conditions.html']) {

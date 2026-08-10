@@ -21,35 +21,50 @@
   Site.mountHeader('works');
   const grid = document.getElementById('grid');
 
+  // Each tile is as tall as its own work, and the next one starts where the
+  // column above it ended rather than where the tallest work in its row did —
+  // otherwise a portrait work leaves a hole beside it and the work below is
+  // pushed a screen down. Spans are counted in a fine row unit.
+  const ROW = 4, GAP = 64;
+  function span(a) {
+    const h = a.getBoundingClientRect().height;
+    if (h) a.style.gridRowEnd = `span ${Math.ceil((h + GAP) / ROW)}`;
+  }
+  const tiles = [];
+  addEventListener('resize', () => tiles.forEach(span));
+
   async function mountTile(w) {
     const a = document.createElement('a');
     a.className = 'tile';
     a.href = `/work.html?id=${w.id}`;
     a.innerHTML =
-      `<div class="tile-frame"><img alt="${w.title}"></div>` +
+      `<div class="tile-frame"><img alt="${w.title}"><div class="wash"></div></div>` +
       `<div class="tile-cap"><span class="t">${w.title}</span> <span class="s"></span></div>`;
     grid.appendChild(a);
+    tiles.push(a);
 
     // Shape + caption as soon as metadata is known — never blocked on a paint.
     const meta = await Site.ready(w.id);
     const frame = a.querySelector('.tile-frame');
     frame.style.setProperty('--r', meta.ratio);
     a.querySelector('.s').textContent = `${Site.fmtYear(meta.birth)} – Today`;
+    span(a);
 
-    // Fire the render without blocking; fill the tile when it arrives.
-    const wpx = Math.round(frame.getBoundingClientRect().width) || 540;
-    const hpx = Math.round(wpx / meta.ratio);
-    // The work as it stands today — the end of its calendar, not the last day
-    // the body wrote. A silence is part of the work, so the tile should show it
-    // faded exactly as the home page does; and today is painted ahead, so the
-    // tile arrives as a download instead of a repaint.
-    const latest = meta.last;
-    Site.render(w.id, latest, wpx, hpx).then((url) => {
-      if (!url) return;
-      const img = a.querySelector('img');
-      img.onload = () => img.classList.add('in');
-      img.src = url;
-    });
+    // The work as it stands, taken from the same ready picture the home page
+    // shows. It must be the same picture: a tile that painted its own copy at
+    // its own size showed a different picture of the same day.
+    const now = await Site.standing(w.id);
+    if (!now) return;
+    const img = a.querySelector('img');
+    img.onload = () => { img.classList.add('in'); span(a); };
+    img.src = now.url;
+    if (now.gap > 0) {
+      const sil = await Site.silenceParams(now.gap);
+      if (sil.gray > 0) img.style.filter = `grayscale(${sil.gray.toFixed(3)})`;
+      const wash = a.querySelector('.wash');
+      wash.style.background = w.ground || '#eee9dd';
+      wash.style.opacity = sil.fade.toFixed(3);
+    }
   }
 
   // Build every tile up front; paints resolve independently. An unlisted work

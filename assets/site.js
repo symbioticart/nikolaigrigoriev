@@ -20,6 +20,10 @@
       ratio: w.canvas.w / w.canvas.h,
       ground: w.ground,
       silence: w.silence,
+      // The one size at which a day of this work is ever painted — the same
+      // size the site's own painter uses, so a picture made in a browser and
+      // the picture kept on the site are the same picture.
+      state: w.state ? { w: w.state.w, h: w.state.h } : null,
     };
   }) : [
     // `ratio` is the work's aspect, known without asking the engine — it lets the
@@ -213,6 +217,26 @@
     });
   }
 
+  // How the work stands right now, answered from the one picture the site
+  // keeps ready — never by painting a fresh copy.
+  //
+  // One day, one record, one painting: a page that paints its own copy at its
+  // own size gets a DIFFERENT picture of the same day, because the paint is
+  // simulated and the simulation is sized. That is how the catalogue came to
+  // show a work that did not match the same work on the home page.
+  //
+  // What comes back is the ready picture, plus how many days the body has been
+  // silent, so a page can lay that silence on exactly as the home page does.
+  async function standing(id) {
+    const meta = await metaOf(id);
+    const pre = PRE[id];
+    if (!pre || !pre.shown) return null;
+    // Works whose silence is painted from within already carry it in the file.
+    const gap = pre.bakedSilence || !pre.last || !meta.last
+      ? 0 : Math.max(0, daysBetween(pre.last, meta.last));
+    return { url: pointerUrl(id), day: pre.shown, gap, ratio: meta.ratio, meta };
+  }
+
   // Wait to hear how each work stands before deciding. Without this the first
   // request of a page can outrun the manifest and start an engine for a day the
   // ready-made picture already holds.
@@ -225,8 +249,16 @@
     const ready = pointerFor(id, date, date);
     if (ready) return ready;
     const state = getClient(id);
+    // Every painting of a day is made at the work's own size, whatever size it
+    // will be shown at, and the browser scales it down afterwards. The paint is
+    // simulated, and the simulation is sized: asking for a day at the width of
+    // a catalogue tile returned a different picture of the same day than the
+    // home page showed. One day, one record, one painting — including when the
+    // browser has to make it rather than take it ready-made.
+    const size = (WORK_BY_ID[id] && WORK_BY_ID[id].state) || null;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+    const pw = size ? size.w : Math.round(w * dpr);
+    const ph = size ? size.h : Math.round(h * dpr);
     const key = `${date}@${pw}x${ph}`;
     if (state.cache.has(key)) return Promise.resolve(state.cache.get(key));
 
@@ -559,6 +591,7 @@
     warm,
     WORKS, WORK_BY_ID,
     ready: (id) => metaOf(id),
+    standing, silenceParams,
     render,
     mountHeader,
     fmtDate, fmtYear, fmtDateLong: (iso) => { const { y, m, d } = parseISO(iso); return `${MONTHS_LONG[m - 1]} ${d}, ${y}`; },

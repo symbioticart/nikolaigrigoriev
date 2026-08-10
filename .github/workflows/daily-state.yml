@@ -11,7 +11,12 @@ name: daily-state
 
 on:
   schedule:
-    - cron: '20 7 * * *'   # after the morning frame, so the two never race
+    # Every three hours, not once a day. The ring hands over a day when it
+    # hands it over, and a day written after the morning run used to wait until
+    # the next morning — meanwhile every page fell back to the engine, painted
+    # the day again at its own size, and showed a different picture of the same
+    # day. The job paints nothing when there is nothing new, so this is cheap.
+    - cron: '20 */3 * * *'
   workflow_dispatch: {}
 
 permissions:
