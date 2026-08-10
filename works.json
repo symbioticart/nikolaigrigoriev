@@ -73,7 +73,7 @@
     },
     "rule": {
       "seed": "The seed of a day is drawn from the day’s record alone; the date plays no part in it. Two days of the same body make the same painting, however far apart they fall.",
-      "foot": "First recorded day {birth}."
+      "foot": "First recorded day {birth}.<br>The rule was written in 2025; the record it reads begins in 2022, because the body had already been keeping it.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html?id=89\">Conditions of the Work</a>."
     }
   },
   "archipelago": {
