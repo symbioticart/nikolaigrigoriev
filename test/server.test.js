@@ -88,16 +88,16 @@ test('the works announce themselves before any engine loads', async () => {
   }
 });
 
-test('a work whose record lives only on the disk is empty without it — knowingly', async () => {
-  // Archipelago is painted from nights, and nights are not bundled: on a cold
-  // machine with no disk it has no days at all. That is honest rather than
-  // wrong — but it means the disk is not optional for that work, and the
-  // fallback that saves the other two does not exist here. Asserted so the
-  // day this changes, it changes on purpose.
+test('every work can still be shown on a machine with no written record', async () => {
+  // This server runs as a cold one does: no ring, no disk. The days always had
+  // a bundled snapshot to fall back on and the nights had none, so the work
+  // painted from nights was served empty — and a work with nothing written
+  // reads as a work that never began. The rehearsal, which is exactly such a
+  // machine, could not rehearse it.
   const m = await (await fetch(`${BASE}/state/meta.json`)).json();
-  if (m.archipelago) {
-    assert.equal(m.archipelago.alive.length, 0,
-      'archipelago found nights without a disk — the bundle now carries them');
+  for (const [id, w] of Object.entries(m)) {
+    assert.ok(w.alive && w.alive.length > 0,
+      `${id} has nothing to show on a machine with no record of its own`);
   }
 });
 

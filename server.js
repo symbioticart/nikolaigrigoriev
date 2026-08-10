@@ -621,13 +621,24 @@ function nightsWrite(nights) {
 }
 
 function nightsRead() {
+  let written = [];
   try {
-    if (!fs.existsSync(NIGHTS_DIR)) return [];
-    return fs.readdirSync(NIGHTS_DIR)
-      .filter(f => /^\d{4}-\d{2}-\d{2}\.json$/.test(f))
-      .map(f => JSON.parse(fs.readFileSync(path.join(NIGHTS_DIR, f), 'utf8')))
-      .sort((a, b) => a.day < b.day ? -1 : 1);
-  } catch (e) { console.warn('[nights] read failed:', e.message); return []; }
+    if (fs.existsSync(NIGHTS_DIR)) {
+      written = fs.readdirSync(NIGHTS_DIR)
+        .filter(f => /^\d{4}-\d{2}-\d{2}\.json$/.test(f))
+        .map(f => JSON.parse(fs.readFileSync(path.join(NIGHTS_DIR, f), 'utf8')))
+        .sort((a, b) => a.day < b.day ? -1 : 1);
+    }
+  } catch (e) { console.warn('[nights] read failed:', e.message); }
+  if (written.length) return written;
+  // The days had a bundled snapshot to start from and the nights had none, so
+  // any instance without the written record — a rehearsal above all — served
+  // the work empty and it read as a work that had never begun. A rehearsal
+  // that cannot show a work cannot rehearse it.
+  try {
+    const raw = JSON.parse(fs.readFileSync(path.join(dir, 'data', 'nights.json'), 'utf8'));
+    return raw.nights || [];
+  } catch (e) { return []; }
 }
 
 // Confirmed silence enters the record as DORMANCY, not death (canon, ratified

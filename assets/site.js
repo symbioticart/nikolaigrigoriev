@@ -390,7 +390,12 @@
 
     // How many days of silence the viewed day stands in: 0 if the body wrote
     // that day, otherwise the count since the last day it did.
+    // How many days the body has been silent, counting back to the last day it
+    // wrote. A work with nothing written at all is not silent — it has not
+    // begun, and counting back to the start of its calendar would have it
+    // claim years of a silence that never happened.
     function gapAt(i) {
+      if (!meta.alive.size) return 0;
       let g = 0;
       for (let j = i; j >= 0 && !meta.alive.has(cal[j]); j--) g++;
       return g;
