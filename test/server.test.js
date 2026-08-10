@@ -265,29 +265,32 @@ test('a rehearsal copy asks who is knocking, and hides from crawlers', async () 
   }
 });
 
-test('a bare password is enough, and it is still a password', async () => {
+test('a rehearsal without a password is open, and still hidden from search', async () => {
+  // The password was removed as needless ceremony for a copy only the artist
+  // opens. What must not go with it is the hiding: an unfinished state of the
+  // work turning up in a search is the fault that mattered.
   const { spawn } = require('node:child_process');
   const port = 3602;
   const child = spawn(process.execPath, [path.join(ROOT, 'server.js')], {
     cwd: ROOT,
     env: { ...process.env, PORT: String(port), OURA_TOKEN: '', ARCHIVE_DIR: scratch,
-           TG_BOT_TOKEN: '', TG_CHAT_ID: '', STAGING_AUTH: '112358' },
+           TG_BOT_TOKEN: '', TG_CHAT_ID: '', STAGING_AUTH: '', REHEARSAL: '1' },
     stdio: 'ignore',
   });
   const base = `http://127.0.0.1:${port}`;
-  const knock = (creds) => fetch(`${base}/`, creds
-    ? { headers: { Authorization: 'Basic ' + Buffer.from(creds).toString('base64') } } : undefined);
   try {
     for (let i = 0; i < 60; i++) {
       try { await fetch(`${base}/health`); break; } catch { await new Promise(r => setTimeout(r, 250)); }
     }
-    assert.equal((await knock()).status, 401);
-    // Whatever name the browser dialog insists on, the password decides.
-    assert.equal((await knock(':112358')).status, 200, 'a bare password must open it');
-    assert.equal((await knock('anyone:112358')).status, 200, 'the name is not asked of anyone');
-    assert.equal((await knock(':112357')).status, 401, 'a near miss is still a miss');
-    assert.equal((await knock('112358')).status, 200, 'a client that sends no colon at all');
-    assert.equal((await knock(':')).status, 401);
+    const open = await fetch(`${base}/`);
+    assert.equal(open.status, 200, 'no password is asked for');
+    assert.match(open.headers.get('x-robots-tag') || '', /noindex/,
+      'a rehearsal must still tell crawlers to stay away');
+
+    // The two ways a crawler asks must give the same answer.
+    const robots = await fetch(`${base}/robots.txt`);
+    assert.match(await robots.text(), /Disallow: \/\s*$/,
+      'the rehearsal invites crawlers in through its robots file');
   } finally {
     child.kill('SIGKILL');
   }

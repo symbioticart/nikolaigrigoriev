@@ -14,6 +14,8 @@ const rule   = require('./rule');
 const rule89 = require('./rule89');
 // Set only on the rehearsal copy: "name:password". Production leaves it unset.
 const STAGING_AUTH = process.env.STAGING_AUTH || '';
+// A rehearsal copy: kept out of search, whether or not it also asks a password.
+const REHEARSAL = process.env.REHEARSAL === '1' || !!STAGING_AUTH;
 
 
 
@@ -941,16 +943,17 @@ function loadRecord() {
 // ---------- HTTP ----------
 http.createServer((req, res) => {
   // A rehearsal copy of the site, for looking at a change before it reaches the
-  // work. Setting STAGING_AUTH turns any instance into one: it asks for a name
-  // and a password, and it tells every crawler to stay away. Production never
-  // sets it and is therefore never gated. The health report stays open so the
-  // watchers can still see it.
+  // work. REHEARSAL marks one: it tells every crawler to stay away, so an
+  // unfinished state of the work never turns up in a search. Production sets
+  // neither and is therefore neither hidden nor gated.
+  if (REHEARSAL) res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+
+  // A password on top of that is optional — set STAGING_AUTH to ask for one.
+  // The health report stays open either way, so the watchers can still see it.
   if (STAGING_AUTH) {
-    res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
     if (req.url.split('?')[0] !== '/health') {
-      // A password is enough. Set STAGING_AUTH to a bare password and any name
-      // opens it; set it as `name:password` and the name is checked too. The
-      // browser asks for both either way — that is its dialog, not our demand.
+      // The password decides. Set STAGING_AUTH to a bare password and any name
+      // opens it; set it as `name:password` and the name is checked too.
       const offered = String(req.headers.authorization || '');
       const given = /^Basic /i.test(offered)
         ? Buffer.from(offered.slice(6), 'base64').toString('utf8') : '';
@@ -1173,7 +1176,14 @@ http.createServer((req, res) => {
     serveFile(req, res, fp, mimeTypes[subExt] || 'text/plain', cache);
     return;
   }
-  // Plain-text surfaces a crawler expects to find at the root.
+  // Plain-text surfaces a crawler expects to find at the root. A rehearsal
+  // turns them away at the door as well as in the header — the two ways a
+  // crawler asks, answered the same.
+  if (REHEARSAL && url === '/robots.txt') {
+    res.writeHead(200, head({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' }));
+    res.end('User-agent: *\nDisallow: /\n');
+    return;
+  }
   if (url === '/robots.txt' || url === '/sitemap.xml') {
     const f = url.slice(1);
     const mime = f.endsWith('.xml') ? 'application/xml' : 'text/plain; charset=utf-8';
