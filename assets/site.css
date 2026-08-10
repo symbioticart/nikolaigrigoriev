@@ -76,8 +76,7 @@ main{padding:0 var(--pad);position:relative}
    showing below the fold. Only the first stage used to be shortened, so with a
    third work the middle one took a whole screen and the slack inside it read
    as a hole in the rhythm. */
-.home-stage:not(:first-child){justify-content:flex-start;padding-top:22px;min-height:calc(100vh - 132px)}
-.home-stage:not(:first-child){min-height:calc(100svh - 132px)}
+.home-stage:not(:first-child){justify-content:flex-start;padding-top:22px;padding-bottom:96px;min-height:auto}
 /* the last work ends where it ends: top-aligned stages kept a screenful of
    min-height, and all of it fell as empty ground beneath the final painting */
 .home-stage:not(:first-child):last-child{min-height:auto;padding-bottom:72px}
@@ -294,8 +293,7 @@ main{padding:0 var(--pad);position:relative}
   .work-stage{padding:100px 0 72px;min-height:84vh} /* each work sits alone */
   .home-stage:first-child{min-height:calc(100vh - 104px);padding-top:100px;padding-bottom:0}
   .home-stage:first-child{min-height:calc(100svh - 104px)} /* next painting peeks */
-  .home-stage:not(:first-child){padding-top:14px;min-height:calc(100vh - 104px)}
-  .home-stage:not(:first-child){min-height:calc(100svh - 104px)}
+  .home-stage:not(:first-child){padding-top:14px;padding-bottom:64px;min-height:auto}
   .home-stage:not(:first-child):last-child{min-height:auto;padding-bottom:48px}
   .grid-head,.arch-head{padding-top:104px}
   .works-grid{grid-template-columns:1fr;gap:40px}
