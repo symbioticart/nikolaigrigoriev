@@ -215,6 +215,56 @@ test('a work that writes its own laws writes a whole rule, not a fragment', () =
   }
 });
 
+test('every work is captioned in the same grammar', () => {
+  // The line a museum would print. Three works had three grammars: one named
+  // its material differently, one broke the sentence in half to mention its
+  // format, and each dated itself its own way — including one that contradicted
+  // its own calendar.
+  const all = JSON.parse(fs.readFileSync(path.join(ROOT, 'works.json'), 'utf8'));
+  delete all._;
+  for (const [id, w] of Object.entries(all)) {
+    assert.match(w.medium,
+      /^Software, .+ written (daily|nightly) by an unchanging rule, screen\. Dimensions variable — .+\.$/,
+      `${id} is captioned out of the common grammar: "${w.medium}"`);
+    // A year in the caption must be a year the work can stand behind.
+    for (const year of w.medium.match(/\b(19|20)\d\d\b/g) || []) {
+      assert.ok(Number(year) >= 2022 && Number(year) <= 2030, `${id} claims the year ${year}`);
+    }
+  }
+});
+
+test('no work has its first day typed in by hand', () => {
+  // The first recorded day is a fact of the record. Typed into the text it goes
+  // quietly wrong the day the record changes, and no one notices.
+  const all = JSON.parse(fs.readFileSync(path.join(ROOT, 'works.json'), 'utf8'));
+  delete all._;
+  for (const [id, w] of Object.entries(all)) {
+    const foot = (w.rule && w.rule.foot) || '';
+    assert.doesNotMatch(foot, /\b\d{1,2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w* \d{4}\b/,
+      `${id} has a date written into its foot instead of reading one`);
+    if (/First recorded/.test(foot)) {
+      assert.match(foot, /\{birth\}/, `${id} names a first day without reading it`);
+    }
+  }
+});
+
+test('the certificate calls the work what the site calls it', () => {
+  // The document that constitutes the work called it "Variations 87" while
+  // every other surface called it "Variation 87" — one work under two names, in
+  // the one text where the name is the point.
+  const all = JSON.parse(fs.readFileSync(path.join(ROOT, 'works.json'), 'utf8'));
+  delete all._;
+  const cert = fs.readFileSync(path.join(ROOT, 'conditions.html'), 'utf8');
+  for (const [id, w] of Object.entries(all)) {
+    if (!cert.includes(`id=${id}`) && id !== '87') continue;
+    assert.ok(cert.includes(w.title), `the certificate never names ${id} as "${w.title}"`);
+    const plural = w.title.replace(/^Variation /, 'Variations ');
+    if (plural !== w.title) {
+      assert.ok(!cert.includes(plural), `the certificate also calls ${id} "${plural}"`);
+    }
+  }
+});
+
 test('no work says anything in the register of a product', () => {
   // The words the work does not use, in any public text it carries: an
   // explanation of the machinery, a promise about speed, a judgement of

@@ -58,7 +58,7 @@
     const last = meta.last;                       // calendar runs to TODAY — the silent days are days of the work too
     const written = meta.alive.size;
     document.getElementById('asub').textContent =
-      `${Site.fmtDate(birth)} — today · ${written.toLocaleString('en-US')} days written`;
+      `${Site.fmtDate(birth)} – Today · ${written.toLocaleString('en-US')} days written`;
 
     const b = Site.parseISO(birth), e = Site.parseISO(last);
     let y = b.y, m = b.m, lastAlive = birth;

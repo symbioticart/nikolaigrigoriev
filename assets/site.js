@@ -26,28 +26,13 @@
       state: w.state ? { w: w.state.w, h: w.state.h } : null,
     };
   }) : [
-    // `ratio` is the work's aspect, known without asking the engine — it lets the
-    // plate take its place, and the ready-made state image show, before any
-    // painting machinery has loaded.
-    // `ground` is the colour a work dissolves into when the body falls silent —
-    // its own canvas, sampled from the painting, not a shared ivory.
-    { id: '87', title: 'Variation 87', selected: true, ratio: 980 / 700, ground: '#eee9dd',
-      medium: 'Software, lived time written daily by an unchanging rule, screen. Dimensions variable — continuous since 2022.' },
-    { id: '89', title: 'Variation 89', selected: true, ratio: 920 / 1350, ground: '#eee9dd',
-      medium: 'Software, lived time written daily by an unchanging rule, screen — in the format of a portrait. Dimensions variable — since 2025.' },
-    // Not a Variation. The Variations are the line of the daily record; this one
-    // is painted from a single night and from nothing else, so it carries its
-    // own name rather than the next number.
-    // The rule was written in 2026; the nights it reads begin in 2022, because
-    // the body had already been recording them. Both dates are true and the line
-    // states both — the work is not older than its rule, and its material is not
-    // younger than it is.
-    // `unlisted`: the work is live and complete, but nothing on the site leads
-    // to it — not the home page, not the grid — and search engines are told to
-    // leave it alone. It is reachable only by knowing its address. This is how a
-    // work is watched running in its real conditions before it is shown.
-    { id: 'archipelago', title: 'Archipelago', unlisted: true, ratio: 900 / 1200,
-      medium: 'Software, one night of a sleeping body written by an unchanging rule, screen. Dimensions variable — the rule since 2026, the nights since 2022.' },
+    // Only enough to keep the plates the right shape if works.json never
+    // arrived. No captions here: a caption written in two places is two
+    // captions, and this copy had already drifted a whole council's revision
+    // behind the one in the registry.
+    { id: '87', title: 'Variation 87', selected: true, ratio: 980 / 700, ground: '#eee9dd' },
+    { id: '89', title: 'Variation 89', selected: true, ratio: 920 / 1350, ground: '#eee9dd' },
+    { id: 'archipelago', title: 'Archipelago', selected: true, ratio: 900 / 1200, ground: '#090909' },
   ];
   const WORK_BY_ID = Object.fromEntries(WORKS.map((w) => [w.id, w]));
 
@@ -70,6 +55,8 @@
   function parseISO(s) { const [y, m, d] = s.split('-').map(Number); return { y, m, d }; }
   function fmtDate(iso) { const { y, m, d } = parseISO(iso); return `${d} ${MONTHS[m - 1]} ${y}`; }
   function fmtYear(iso) { return iso.slice(0, 4); }
+  // The long form, for the one line that says which day "Today" is.
+  function fmtDateLong(iso) { const { y, m, d } = parseISO(iso); return `${d} ${MONTHS_LONG[m - 1]} ${y}`; }
   function addDaysISO(iso, n) {
     const t = Date.parse(iso + 'T00:00:00Z') + n * 86400000;
     return new Date(t).toISOString().slice(0, 10);
@@ -379,6 +366,17 @@
     // where the works are passed through, it would only be furniture.
     const mediumLine = (!opts.titleLink && work.medium)
       ? `<p class="medium">${work.medium}</p>` : '';
+    // Between the arrows stands the day being looked at — nothing else. What
+    // used to stand there was the work's whole span, so the eye tied its left
+    // end to the left arrow, and the day itself was never named.
+    //
+    // Under it, one quiet line: the date behind the word "Today", or where the
+    // day falls in the record, or — when the body has stopped — the count of
+    // the silence, which is the same subject and so takes the same line.
+    //
+    // Under that, the record drawn as a line, with the day marked on it. It can
+    // be taken hold of: a work of nine hundred days is not walked one arrow at
+    // a time.
     cap.innerHTML =
       `<h1 class="title">${titleInner}</h1>` +
       mediumLine +
@@ -387,13 +385,22 @@
         `<span class="cur"></span>` +
         `<button class="next" aria-label="Later day">→</button>` +
       `</div>` +
-      `<div class="state" role="status"></div>`;
+      `<div class="state" role="status"></div>` +
+      `<div class="thread" role="slider" tabindex="0" aria-label="Day within the record"` +
+        ` aria-valuemin="1" aria-valuenow="1" aria-valuemax="1">` +
+        `<div class="thread-line"><span class="thread-mark"></span></div>` +
+        `<div class="thread-ends"><span class="from"></span><span class="to">Today</span></div>` +
+      `</div>`;
     container.append(inner, cap);
 
     const curEl = cap.querySelector('.cur');
     const stateEl = cap.querySelector('.state');
     const prevBtn = cap.querySelector('.prev');
     const nextBtn = cap.querySelector('.next');
+    const thread = cap.querySelector('.thread');
+    const threadLine = cap.querySelector('.thread-line');
+    const threadMark = cap.querySelector('.thread-mark');
+    const threadFrom = cap.querySelector('.thread .from');
 
     const ratio = opts.ratio || work.ratio || 1.4;
     let dims = { w: 0, h: 0 };
@@ -497,11 +504,22 @@
     function label(i) {
       const date = cal[i];
       const isLast = i === cal.length - 1;
-      curEl.textContent = `${fmtDate(meta.birth)} – ${isLast ? 'Today' : fmtDate(date)}`;
-      // On a silent day, the count and nothing else. The number does the work;
-      // that the painting returns when the days do is stated in the rule.
+      // The day, and only the day, between the arrows.
+      curEl.textContent = isLast ? 'Today' : fmtDate(date);
+      // One line beneath, carrying whichever of three things the reader needs
+      // most here. A silence outranks the rest: it is the state of the work.
+      // Then the date the word "Today" stands for. Then, on any other day,
+      // where that day falls in the record.
       const gap = gapAt(i);
-      stateEl.textContent = gap > 0 ? `Silence, day ${gap}.` : '';
+      stateEl.textContent = gap > 0 ? `Silence, day ${gap}.`
+        : isLast ? fmtDateLong(date)
+        : `Day ${i + 1} of ${cal.length}`;
+      threadMark.style.left = (cal.length > 1 ? (i / (cal.length - 1)) * 100 : 100) + '%';
+      threadFrom.textContent = fmtYear(meta.birth);
+      thread.setAttribute('aria-valuemin', '1');
+      thread.setAttribute('aria-valuemax', String(cal.length));
+      thread.setAttribute('aria-valuenow', String(i + 1));
+      thread.setAttribute('aria-valuetext', isLast ? 'Today' : fmtDateLong(date));
       prevBtn.disabled = zPrev.disabled = i === 0;
       nextBtn.disabled = zNext.disabled = isLast;
       img.alt = `${work.title} — ${isLast ? 'today' : fmtDate(date)}` +
@@ -548,6 +566,50 @@
     }
 
     const step = (n) => show(idx + n, true);
+    // The record as a line: put a finger anywhere on it and the work goes to
+    // that day. Nine hundred days is not a distance to cross one arrow at a
+    // time. While the finger is down the day is only labelled, never painted —
+    // dragging across a year would otherwise ask for a year of paintings; the
+    // painting is fetched once, when the finger lifts.
+    let dragging = false;
+    function dayAt(clientX) {
+      const r = threadLine.getBoundingClientRect();
+      if (!r.width) return idx;
+      const t = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+      return Math.round(t * (cal.length - 1));
+    }
+    function scrub(e, settle) {
+      const i = dayAt(e.touches ? e.touches[0].clientX : e.clientX);
+      if (settle) { show(i, false); return; }
+      if (i === idx) return;
+      idx = i;
+      label(idx);
+    }
+    thread.addEventListener('pointerdown', (e) => {
+      dragging = true;
+      thread.setPointerCapture && thread.setPointerCapture(e.pointerId);
+      thread.classList.add('held');
+      scrub(e, false);
+      e.preventDefault();
+    });
+    thread.addEventListener('pointermove', (e) => { if (dragging) scrub(e, false); });
+    for (const end of ['pointerup', 'pointercancel']) {
+      thread.addEventListener(end, (e) => {
+        if (!dragging) return;
+        dragging = false;
+        thread.classList.remove('held');
+        scrub(e, true);
+      });
+    }
+    // Reachable without a pointer at all.
+    thread.addEventListener('keydown', (e) => {
+      const jump = { ArrowLeft: -1, ArrowRight: 1, PageUp: 30, PageDown: -30,
+                     Home: -cal.length, End: cal.length }[e.key];
+      if (jump === undefined) return;
+      e.preventDefault();
+      show(idx + jump, false);
+    });
+
     prevBtn.addEventListener('click', (e) => { e.preventDefault(); step(-1); });
     nextBtn.addEventListener('click', (e) => { e.preventDefault(); step(1); });
     zPrev.addEventListener('click', (e) => { e.preventDefault(); step(-1); });
@@ -604,7 +666,7 @@
     standing, silenceParams,
     render,
     mountHeader,
-    fmtDate, fmtYear, fmtDateLong: (iso) => { const { y, m, d } = parseISO(iso); return `${MONTHS_LONG[m - 1]} ${d}, ${y}`; },
+    fmtDate, fmtYear, fmtDateLong,
     addDaysISO, daysBetween, parseISO, MONTHS, MONTHS_LONG,
   };
 })();

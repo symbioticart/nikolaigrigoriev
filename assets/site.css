@@ -164,6 +164,25 @@ main{padding:0 var(--pad);position:relative}
 /* the state of the work on the viewed day — a count, never a diagnosis */
 .caption .state{margin-top:9px;font-size:10px;letter-spacing:.05em;color:var(--grey);
   min-height:1em}
+
+/* The record drawn as a line, with the viewed day marked on it. Its job is to
+   say how much work there is and where in it you stand — the arrows say only
+   "one more". It can be taken hold of: the hit area is a finger's height, the
+   line itself a hair. */
+.thread{margin:16px auto 0;max-width:260px;padding:10px 2px 0;
+  cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent}
+.thread-line{position:relative;height:1px;background:var(--hair)}
+.thread:hover .thread-line,.thread.held .thread-line{background:var(--silence)}
+.thread-mark{position:absolute;top:-2px;width:5px;height:5px;border-radius:50%;
+  background:var(--ink);transform:translateX(-50%);
+  transition:left .25s var(--ease)}
+.thread.held .thread-mark{transition:none;transform:translateX(-50%) scale(1.4)}
+.thread-ends{display:flex;justify-content:space-between;margin-top:7px;
+  font-size:10px;letter-spacing:.05em;color:var(--grey)}
+.thread:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
+@media (prefers-reduced-motion: reduce){
+  .thread-mark{transition:none}
+}
 /* close × — just OUTSIDE the painting, in the margin beside its top-right
    corner (the header stays). A gutter is reserved so it never clips. */
 /* on the page's right margin, level with the top of the painting — the same
@@ -300,6 +319,10 @@ main{padding:0 var(--pad);position:relative}
 
   /* primary paging arrows → 44px hit area */
   .daynav{gap:22px;margin-top:12px}
+  /* a finger, not a cursor: the line keeps its hair's width, the hold on it
+     grows to the height a thumb actually lands in */
+  .thread{max-width:220px;padding:16px 2px 0;margin-top:14px}
+  .thread-mark{width:6px;height:6px;top:-2.5px}
   .daynav button{min-width:44px;min-height:44px;padding:12px;font-size:18px}
 
   /* archive link: drop the vertical rail, place it under the painting so the
