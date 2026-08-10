@@ -128,11 +128,21 @@
   // Can this day be shown from the one ready-made picture? Only if that picture
   // already holds it: the day itself, or — for a work whose silence is laid on
   // live — the written day a silence is still showing.
+  //
+  // With one exception, and it is the rhythm of the work rather than a
+  // concession. The painter runs once a morning; the ring hands a day over when
+  // it hands it over. A day that arrives after the morning is unpainted until
+  // the next one, and for those hours the newest day of the work is the one
+  // painted this morning. The site shows that painting instead of quietly
+  // making a second copy of a day in the reader's browser. One day behind is
+  // the rhythm; two would be a stall, and the walk fails the site for it.
   function pointerFor(id, date, target) {
     const pre = PRE[id];
     if (!pre || !pre.shown) return null;
     if (pre.bakedSilence) return date === pre.shown ? pointerUrl(id) : null;
-    return target === pre.last ? pointerUrl(id) : null;
+    if (target === pre.last) return pointerUrl(id);
+    const behind = (Date.parse(target) - Date.parse(pre.last)) / 86400000;
+    return behind === 1 ? pointerUrl(id) : null;
   }
 
   // The engine is a megabyte of code and takes several seconds to come up on a

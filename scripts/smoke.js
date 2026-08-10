@@ -195,8 +195,16 @@ async function json(path) {
     if (!m) { fail(`${id} is missing from the list of what the site can show`); continue; }
     // The pictures travel with the code, so on a rehearsal they are newer than
     // its bundled record. Only the living site must agree with itself.
-    if (!REHEARSAL && m.last !== alive[alive.length - 1]) {
-      fail(`${id} shows ${m.last} while the body wrote to ${alive[alive.length - 1]}`);
+    //
+    // The painter runs once a morning, by the artist's decision, so a day the
+    // ring hands over later in the day is legitimately unpainted until the next
+    // one — the site shows the morning's painting and says which day it is.
+    // Two days behind is not a rhythm, it is a stall.
+    const wrote = alive[alive.length - 1];
+    const behind = m.last === wrote ? 0
+      : Math.round((Date.parse(wrote) - Date.parse(m.last)) / 86400000);
+    if (!REHEARSAL && !(behind >= 0 && behind <= 1)) {
+      fail(`${id} shows ${m.last} while the body wrote to ${wrote}`);
     }
     const img = await fetch(`${SITE}/state/${id}.webp`, { headers });
     if (!img.ok) fail(`${id} has no picture on the site (HTTP ${img.status})`);

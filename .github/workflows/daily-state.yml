@@ -11,12 +11,11 @@ name: daily-state
 
 on:
   schedule:
-    # Every three hours, not once a day. The ring hands over a day when it
-    # hands it over, and a day written after the morning run used to wait until
-    # the next morning — meanwhile every page fell back to the engine, painted
-    # the day again at its own size, and showed a different picture of the same
-    # day. The job paints nothing when there is nothing new, so this is cheap.
-    - cron: '20 */3 * * *'
+    # Once a day, in the morning, by the artist's decision. A day the ring hands
+    # over later waits for the next morning; until then the site shows the
+    # morning's painting rather than making its own copy of that day on the
+    # spot. What must not happen is the site quietly painting a second version.
+    - cron: '20 7 * * *'
   workflow_dispatch: {}
 
 permissions:
