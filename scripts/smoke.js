@@ -180,7 +180,12 @@ async function json(path) {
     if (health.gapDays > 1 && !/Silence/.test(caption.state || '')) {
       fail(`the body has been silent ${health.gapDays} days and the work does not say so`);
     }
-    if (health.gapDays === 0 && caption.state) {
+    // The line under the day used to be empty unless the body had stopped, so
+    // any words in it meant a silence. It now always says something — the date
+    // behind "Today", or where the day falls in the record — and a silence is
+    // only one of the things it can say. What must hold is that it never claims
+    // one that is not happening.
+    if (health.gapDays === 0 && /Silence/.test(caption.state || '')) {
       fail(`the record is current but the work claims: "${caption.state}"`);
     }
   }
