@@ -225,7 +225,11 @@
   // What comes back is the ready picture, plus how many days the body has been
   // silent, so a page can lay that silence on exactly as the home page does.
   async function standing(id) {
-    const meta = await metaOf(id);
+    // Wait for the list of ready pictures, not only for the work's metadata.
+    // Reading the list before it arrived returned nothing, and the catalogue
+    // showed empty frames — on some loads and not others, depending on which
+    // of the two requests came back first.
+    const [meta] = await Promise.all([metaOf(id), preReady]);
     const pre = PRE[id];
     if (!pre || !pre.shown) return null;
     // Works whose silence is painted from within already carry it in the file.

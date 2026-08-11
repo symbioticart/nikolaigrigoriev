@@ -156,12 +156,18 @@
     // Months are drawn as they come into view. A work of four years is fifteen
     // hundred cells, and building them all at once is a second of stalled
     // phone before the page can be touched.
+    // Newest first. A record that only grows is read from where it has got to,
+    // not from where it began: the top of the archive is this month, and the
+    // first month is at the bottom, where it will stay however long the work
+    // runs. Days keep their order inside a month — a month counted backwards
+    // is not a month anyone can read.
     const months = [];
     let y = b.y, m = b.m;
     while (y < e.y || (y === e.y && m <= e.m)) {
       months.push([y, m]);
       m++; if (m > 12) { m = 1; y++; }
     }
+    months.reverse();
 
     const seen = new Map();       // date -> the last day the body wrote before it
     let lastAlive = birth;
@@ -227,23 +233,45 @@
       }
     }
 
-    // A day under the cursor shows itself, small, without leaving the archive.
-    let pvFor = null;
+    // ── a day under the cursor shows itself, without leaving the archive ──
+    // Held back by a moment: a cursor crossing four years of cells would
+    // otherwise ask for a hundred paintings on its way past.
+    const PVW = 150;
+    const PVH = Math.round(PVW / (meta.ratio || 1.4));
+    pvImg.style.width = PVW + 'px';
+    pvImg.style.height = PVH + 'px';
+    let hoverCell = null, showT = null;
+
+    function position(cell) {
+      const r = cell.getBoundingClientRect();
+      const w = PVW + 12, h = PVH + 26;
+      let x = r.right + 12, yy = r.top + r.height / 2 - h / 2;
+      if (x + w > window.innerWidth - 8) x = r.left - w - 12;
+      yy = Math.max(8, Math.min(window.innerHeight - h - 8, yy));
+      preview.style.left = x + 'px';
+      preview.style.top = yy + 'px';
+    }
+
     cal.addEventListener('mouseover', (ev) => {
       const cell = ev.target.closest('.cell');
-      if (!cell || cell.dataset.date === pvFor) return;
-      pvFor = cell.dataset.date;
-      const r = cell.getBoundingClientRect();
-      preview.style.left = Math.round(r.left + r.width / 2) + 'px';
-      preview.style.top = Math.round(r.top) + 'px';
-      pvDate.textContent = Site.fmtDate(pvFor);
-      preview.classList.add('on');
-      const want = pvFor;
-      Site.render(id, want, 180, Math.round(180 / (meta.ratio || 1.4))).then((url) => {
-        if (url && pvFor === want) pvImg.src = url;
-      }).catch(() => {});
+      if (!cell || cell === hoverCell) return;
+      hoverCell = cell;
+      const date = cell.dataset.date;
+      const alive = cell.classList.contains('alive');
+      clearTimeout(showT);
+      showT = setTimeout(async () => {
+        if (hoverCell !== cell) return;
+        position(cell);
+        pvDate.textContent = Site.fmtDate(date) +
+          (cell.classList.contains('incomplete') ? ' · partial' : (alive ? '' : ' · silence'));
+        const url = await Site.render(id, date, PVW, PVH);
+        if (url && hoverCell === cell) { pvImg.src = url; preview.classList.add('show'); }
+      }, 180);
     });
-    cal.addEventListener('mouseleave', () => { preview.classList.remove('on'); pvFor = null; });
+    cal.addEventListener('mouseout', (ev) => {
+      const to = ev.relatedTarget && ev.relatedTarget.closest && ev.relatedTarget.closest('.cell');
+      if (!to) { hoverCell = null; clearTimeout(showT); preview.classList.remove('show'); }
+    });
   })();
 </script>
 </body>
