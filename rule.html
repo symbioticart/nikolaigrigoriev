@@ -102,7 +102,7 @@
   // missing: the page could only be left backwards. The certificates already
   // carry this row; the rule pages now match them.
   document.getElementById('back').innerHTML =
-    `<a href="/work.html?id=${encodeURIComponent(id)}">← ${work.title}</a>`;
+    `<a href="/archive.html?id=${encodeURIComponent(id)}">← ${work.title}</a>`;
 
   const foot = document.getElementById('foot');
   foot.innerHTML = spec.foot.replace('{birth}', '…');

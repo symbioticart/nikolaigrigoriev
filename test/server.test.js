@@ -166,7 +166,7 @@ test('a crawler is told where to look and where not to', async () => {
   const all = JSON.parse(fs.readFileSync(path.join(ROOT, 'works.json'), 'utf8'));
   delete all._;
   for (const [id, w] of Object.entries(all)) {
-    const on = xml.includes(`work.html?id=${encodeURIComponent(id)}`);
+    const on = xml.includes(`archive.html?id=${encodeURIComponent(id)}`);
     assert.equal(on, !!w.listed,
       w.listed ? `${id} is shown on the site but missing from the map`
                : `${id} is unlisted but is on the map`);
@@ -310,7 +310,7 @@ test('a rehearsal without a password is open, and still hidden from search', asy
 
 // ── One head, on every page ────────────────────────────────────────────────
 test('every page carries an icon, a description and a card', async () => {
-  for (const p of ['/', '/works.html', '/work.html?id=87', '/archive.html?id=87',
+  for (const p of ['/', '/works.html', '/archive.html?id=87',
     '/about.html', '/rule.html?id=87', '/conditions.html']) {
     const html = await (await fetch(`${BASE}${p}`)).text();
     assert.match(html, /rel="icon"/, `${p} has no icon`);
