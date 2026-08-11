@@ -33,8 +33,27 @@ async function json(path) {
   try { return await r.json(); } catch { fail(`${path} did not answer with JSON`); return null; }
 }
 
+// Knock until someone answers. A site deployed onto a persistent disk is
+// replaced by stopping the old instance and starting a new one, so for a few
+// seconds around a release there is nothing behind the address at all. Asking
+// once and calling it dead failed a good release and put the previous version
+// back — twice.
+async function reach(path, tries = 12, waitMs = 15000) {
+  for (let i = 0; i < tries; i++) {
+    try {
+      const r = await fetch(`${SITE}${path}`, { headers });
+      if (r.ok) return await r.json();
+    } catch { /* nothing there yet */ }
+    if (i === 0) process.stdout.write('  waiting for the site to answer');
+    process.stdout.write('.');
+    await new Promise((r) => setTimeout(r, waitMs));
+  }
+  process.stdout.write('\n');
+  return null;
+}
+
 (async () => {
-  let health = await json('/health');
+  let health = await reach('/health');
   if (!health) { console.error('the site did not answer at all'); process.exit(1); }
 
   // A server that has just started has not yet asked the ring anything, so for
