@@ -16,6 +16,12 @@ const rule89 = require('./rule89');
 const STAGING_AUTH = process.env.STAGING_AUTH || '';
 // A rehearsal copy: kept out of search, whether or not it also asks a password.
 const REHEARSAL = process.env.REHEARSAL === '1' || !!STAGING_AUTH;
+// The studio exists only where the artist is. Set on his own machine, never on
+// a public host: the works he has not shown, and the ones he set aside, are not
+// the site's business. Its private record lives one level ABOVE the repository,
+// so no `git add` can carry it into a public history.
+const STUDIO = process.env.STUDIO === '1';
+const STUDIO_FILE = process.env.STUDIO_FILE || path.join(__dirname, '..', 'studio.json');
 
 
 
@@ -959,6 +965,17 @@ http.createServer((req, res) => {
   // neither and is therefore neither hidden nor gated.
   if (REHEARSAL) res.setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
 
+  // The studio — the artist's own record of every work he has begun, including
+  // the ones nobody is meant to see yet and the ones he set aside. It exists
+  // only where STUDIO is set, which is his own machine at home. Not behind a
+  // password: a door that can be knocked on is a door. Here there is none.
+  if (STUDIO && req.url.split('?')[0] === '/studio') { req.url = '/studio.html'; }
+  if (/^\/studio(\.html|\.json|\/|$)/.test(req.url.split('?')[0]) && !STUDIO) {
+    res.writeHead(404, head({ 'Content-Type': 'text/plain; charset=utf-8' }));
+    res.end('Not found');
+    return;
+  }
+
   // A password on top of that is optional — set STAGING_AUTH to ask for one.
   // The health report stays open either way, so the watchers can still see it.
   if (STAGING_AUTH) {
@@ -1149,6 +1166,35 @@ http.createServer((req, res) => {
     serveJSON(req, res, WORKS_REGISTRY);
     return;
   }
+  // What the studio knows: who the works are, and where each one stands in the
+  // artist's own work. The second half is read fresh on every request, because
+  // he edits it by hand while the page is open — and it is never written to,
+  // because a record of one's own work is written by the one whose work it is.
+  if (url === '/studio.json') {
+    let studio = {};
+    try { studio = JSON.parse(fs.readFileSync(STUDIO_FILE, 'utf8')); delete studio._; }
+    catch (e) { /* no private record yet — the registry alone still says plenty */ }
+    const out = {};
+    const ids = new Set([...Object.keys(WORKS_REGISTRY), ...Object.keys(studio)]);
+    for (const id of ids) {
+      const w = WORKS_REGISTRY[id] || {};
+      const s = studio[id] || {};
+      out[id] = {
+        title: w.title || id,
+        medium: w.medium || '',
+        // A work with no entry in the registry is one that has only just been
+        // begun; it stands where the artist says it stands.
+        standing: s.standing || (w.selected ? 'selected' : w.listed ? 'shown' : w.title ? 'watched' : 'begun'),
+        branch: s.branch || 'main',
+        begun: s.begun || '',
+        note: s.note || '',
+        hasPainter: !!(w.engine && w.engine.painter),
+        hasRule: !!(w.rule && (w.rule.seed || w.rule.laws)),
+      };
+    }
+    serveJSON(req, res, out);
+    return;
+  }
   // The documents that constitute the works. Read by the page that prints them
   // and by each work's own page, which takes its description from the first
   // section rather than keeping a second copy of it.
@@ -1256,6 +1302,9 @@ http.createServer((req, res) => {
   const SERVED = new Set([
     '/index.html', '/works.html', '/work.html', '/about.html', '/archive.html',
     '/rule.html', '/conditions.html',
+    // Only reachable at all where STUDIO is set — the guard at the top of the
+    // router refuses it everywhere else, before this list is ever consulted.
+    ...(STUDIO ? ['/studio.html'] : []),
     '/painter.js', '/p5.oil.js', '/p5.oil.js.map',
     '/vendor/p5.min.js',
     '/fonts/manrope-latin.woff2', '/fonts/jetbrainsmono-latin.woff2',

@@ -277,6 +277,20 @@ test('a rehearsal copy asks who is knocking, and hides from crawlers', async () 
   }
 });
 
+test('the studio does not exist on a site that is not the artist’s own', async () => {
+  // The works he has not shown, and the ones he set aside, are not the site's
+  // business. This is not a password: a door that can be knocked on is a door.
+  // Every surface of it — the page, its data, anything under the name — must be
+  // as absent as a page that was never written.
+  for (const p of ['/studio', '/studio.html', '/studio.json', '/studio/anything']) {
+    const r = await fetch(`${BASE}${p}`);
+    assert.equal(r.status, 404, `${p} exists on a server with no studio key`);
+    const body = await r.text();
+    assert.doesNotMatch(body, /set aside|standing|branch/i,
+      `${p} says something about the studio while refusing it`);
+  }
+});
+
 test('a rehearsal without a password is open, and still hidden from search', async () => {
   // The password was removed as needless ceremony for a copy only the artist
   // opens. What must not go with it is the hiding: an unfinished state of the
