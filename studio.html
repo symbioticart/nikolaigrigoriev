@@ -47,15 +47,20 @@
     document.getElementById('ssub').textContent =
       `every rule ever written · ${ids.length} work${ids.length === 1 ? '' : 's'} · not on the public site`;
 
-    // How each work stands in the record — asked of the site itself, so the
-    // studio never keeps a second copy of a count it can read.
+    // How each work stands in the record, read in one request from the site's
+    // own account of itself. Asked work by work through the painting machinery,
+    // a work with no brush yet — which is exactly what a studio is full of —
+    // waits for an engine that will never start, and the page waits with it.
+    // One work not begun kept every other one off the screen.
+    const meta = await fetch('/state/meta.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
     const facts = {};
-    await Promise.all(ids.map(async (id) => {
-      try {
-        const m = await Site.ready(id);
-        facts[id] = { birth: m.birth, written: m.alive.size, last: m.lastData || m.last };
-      } catch (e) { facts[id] = null; }
-    }));
+    for (const id of ids) {
+      const m = meta[id];
+      facts[id] = m && m.birth
+        ? { birth: m.birth, written: (m.alive || []).length, last: m.lastData || m.last }
+        : null;
+    }
 
     const out = [];
     for (const [standing, heading] of ORDER) {
