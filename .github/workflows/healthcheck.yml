@@ -65,7 +65,11 @@ jobs:
               const out = [];
               const booting = (h.uptimeSec ?? 1e9) < 300;   // fresh deploy: sync has not had a chance yet
               const ru = (n,w1,w2,w5)=> n%10===1&&n%100!==11?w1 : (n%10>=2&&n%10<=4&&(n%100<10||n%100>=20)?w2:w5);
-              if (!h.ok) out.push("ok|🔴 Сайт отвечает, но сообщает о внутренней ошибке (ok=false).");
+              // Пока сервер не связался с кольцом, он честно говорит ok=false.
+              // С постоянным диском выкладка идёт с остановкой, и в эти секунды
+              // ok=false означает «просыпается», а не «сломан». Та же выдержка,
+              // что и у прогулки зрителем.
+              if (!h.ok && !booting) out.push("ok|🔴 Сайт отвечает, но сообщает о внутренней ошибке (ok=false).");
               if (!h.live && !booting) out.push("notlive|🟡 Сайт показывает сохранённую запись вместо живых данных — живой синк с Oura не поднялся.");
               if (h.tokenError) out.push("token|🔴 Авторизация Oura слетела — данные не обновляются. Что делать: обновить OURA_TOKEN в Render → Environment.");
               const gap = h.gapDays ?? 99;
