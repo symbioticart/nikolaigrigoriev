@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Studio</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<main id="main">
+  <div class="wrap">
+    <div class="studio">
+      <h1>Studio</h1>
+      <div class="sub" id="ssub"></div>
+      <div id="rows"></div>
+      <p class="studio-foot">
+        A work is never edited. A changed rule is a new work under its own name;
+        the one it came from keeps every day exactly as it painted them. Nothing
+        here is deleted — a work set aside keeps its date, as a silent day keeps
+        its place in the archive.
+      </p>
+    </div>
+  </div>
+</main>
+<script src="/assets/site.js"></script>
+<script>
+  Site.mountHeader(null);
+
+  // The order is the order of a work's life, not a sort. A work rises through
+  // it and may stop anywhere; the last group is the one nobody sees.
+  const ORDER = [
+    ['selected',  'On the home page'],
+    ['shown',     'Shown · in the catalogue'],
+    ['watched',   'Being watched · runs live, nothing leads to it'],
+    ['begun',     'Begun · a rule that paints, nothing written about it yet'],
+    ['set aside', 'Set aside · kept, not continued'],
+  ];
+
+  (async () => {
+    const all = await fetch('/studio.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+    if (!all) { document.getElementById('rows').textContent = 'The studio has no record here.'; return; }
+
+    const ids = Object.keys(all);
+    document.getElementById('ssub').textContent =
+      `every rule ever written · ${ids.length} work${ids.length === 1 ? '' : 's'} · not on the public site`;
+
+    // How each work stands in the record — asked of the site itself, so the
+    // studio never keeps a second copy of a count it can read.
+    const facts = {};
+    await Promise.all(ids.map(async (id) => {
+      try {
+        const m = await Site.ready(id);
+        facts[id] = { birth: m.birth, written: m.alive.size, last: m.lastData || m.last };
+      } catch (e) { facts[id] = null; }
+    }));
+
+    const out = [];
+    for (const [standing, heading] of ORDER) {
+      const group = ids.filter((id) => all[id].standing === standing);
+      if (!group.length) continue;
+      out.push(`<div class="studio-group">${heading}</div>`);
+      for (const id of group) {
+        const w = all[id];
+        const f = facts[id];
+        const line = f
+          ? `${w.begun ? 'rule ' + w.begun.slice(0, 4) + ' · ' : ''}${f.written.toLocaleString('en-US')} days · last written ${f.last}`
+          : `${w.begun ? 'begun ' + w.begun : 'not begun'} · no record yet`;
+        const missing = [!w.hasPainter && 'no brush', !w.hasRule && 'no rule'].filter(Boolean).join(' · ');
+        out.push(
+          `<a class="studio-row" href="/archive.html?id=${encodeURIComponent(id)}">` +
+            `<span class="t">${w.title}</span>` +
+            `<span class="f">${line}${missing ? ' · ' + missing : ''}</span>` +
+            `<span class="b">${w.branch}</span>` +
+          `</a>` +
+          (w.note ? `<div class="studio-note">${w.note}</div>` : ''));
+      }
+    }
+    document.getElementById('rows').innerHTML = out.join('');
+  })();
+</script>
+</body>
+</html>

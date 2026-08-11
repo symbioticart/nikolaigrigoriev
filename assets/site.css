@@ -408,3 +408,22 @@ main{padding:0 var(--pad);position:relative}
   .tomb dd{margin-bottom:12px}
 }
 .prof-note{font-size:12px;color:var(--grey);margin-top:6px;max-width:62ch;line-height:1.6}
+
+/* ── The studio ────────────────────────────────────────────────────────────
+   The artist's own record of every work he has begun. Served only where
+   STUDIO is set — his own machine — and never on a public host. Rows, not
+   tiles: this is a list to be read down, and a tile would make a shop of it. */
+.studio{padding:130px 0 140px;max-width:62ch;margin:0 auto}
+.studio h1{font-size:15px;font-weight:400;letter-spacing:.2px}
+.studio .sub{font-size:12px;color:var(--faint);margin-top:6px}
+.studio-group{font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--grey);margin:38px 0 10px;padding-top:12px;border-top:1px solid var(--hair)}
+.studio-row{display:grid;grid-template-columns:minmax(0,1fr) max-content;
+  gap:2px 18px;padding:9px 0;align-items:baseline}
+.studio-row .t{font-size:14px;color:var(--ink)}
+.studio-row .b{font-size:11px;color:var(--grey);font-variant-numeric:tabular-nums}
+.studio-row .f{grid-column:1/-1;font-size:12px;color:var(--faint)}
+.studio-row:hover .t{text-decoration:underline;text-underline-offset:3px}
+.studio-note{font-size:12px;color:var(--grey);padding:0 0 12px;max-width:52ch}
+.studio-foot{margin-top:56px;padding-top:20px;border-top:1px solid var(--hair);
+  font-size:12px;line-height:1.7;color:var(--grey)}
