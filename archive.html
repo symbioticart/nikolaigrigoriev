@@ -3,24 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Archive — Nikolai Grigoriev</title>
-<meta name="description" content="Every day the work was painted, and every day the body was silent.">
+<title>Work — Nikolai Grigoriev</title>
+<meta name="description" content="A work drawn day by day from one body's record: how it stands now, every day it has lived, and the documents that constitute it.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/site.css">
 </head>
 <body>
 <main id="main">
   <div class="wrap">
-    <div class="arch-head">
-      <a class="back" id="back">← Back to the work</a>
-      <a class="back rule-link" id="rulelink">The rule →</a>
-      <h1 id="atitle">Archive</h1>
+
+    <!-- 1 · the work as it stands, and every day it has stood -->
+    <section class="work-stage prof-stage" id="stage"></section>
+
+    <!-- 2 · the caption a museum would print -->
+    <section class="prof-block">
+      <dl class="tomb" id="tomb"></dl>
+    </section>
+
+    <!-- 3 · what the work is, in the words of the document that constitutes it -->
+    <section class="prof-block prof-text">
+      <h2 class="prof-h">The work</h2>
+      <p id="about"></p>
+    </section>
+
+    <!-- 4 · the body of the work: every day it has lived -->
+    <section class="prof-block" id="archive">
+      <h2 class="prof-h">Archive</h2>
       <div class="sub" id="asub"></div>
       <div class="arch-legend">
         <span><i class="i-alive"></i>a day was written</span>
         <span><i class="i-dead"></i>silence — no data</span>
       </div>
-    </div>
-    <div class="arch-scroll" id="cal"></div>
+      <div class="arch-scroll" id="cal" role="region"
+           aria-label="Calendar of days — select a day to open it"></div>
+    </section>
+
+    <!-- 5 · the documents -->
+    <section class="prof-block prof-text">
+      <h2 class="prof-h">The rule</h2>
+      <ul class="prof-laws" id="laws"></ul>
+      <p class="prof-note">The last of these is the law the works part on; the
+        other eleven they share.</p>
+      <a class="back" id="rulelink">The rule in full →</a>
+      <h2 class="prof-h" style="margin-top:52px">Conditions of the Work</h2>
+      <p id="certline"></p>
+      <a class="back" id="certlink">Conditions of the Work →</a>
+    </section>
+
   </div>
 </main>
 <div class="day-preview" id="preview"><img alt=""><div class="pv-date"></div></div>
@@ -29,18 +58,19 @@
 <script src="/assets/site.js"></script>
 <script>
   Site.mountHeader('works');
-  const id = new URLSearchParams(location.search).get('id') || Site.WORKS[0].id;
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id') || Site.WORKS[0].id;
   const work = Site.WORK_BY_ID[id];
   // Leaving is not instant: without stopping here the lines below run against
   // a work that does not exist and throw before the browser has gone anywhere.
   if (!work) { location.href = '/works.html'; throw new Error('unknown work'); }
-  document.getElementById('back').href = `/work.html?id=${id}`;
-  document.getElementById('rulelink').href = `/rule.html?id=${id}`;   // each work keeps its own rule
-  document.getElementById('atitle').textContent = `${work.title} — Archive`;
+
+  document.title = `${work.title} — Nikolai Grigoriev`;
+  document.getElementById('rulelink').href = `/rule.html?id=${id}`;
+  document.getElementById('certlink').href =
+    id === '87' ? '/conditions.html' : `/conditions.html?id=${encodeURIComponent(id)}`;
 
   const cal = document.getElementById('cal');
-  cal.setAttribute('role', 'region');
-  cal.setAttribute('aria-label', 'Calendar of days — use the month headings to navigate; select a day to open it');
   const preview = document.getElementById('preview');
   const pvImg = preview.querySelector('img');
   const pvDate = preview.querySelector('.pv-date');
@@ -53,85 +83,164 @@
   const silenceShade = (gap) => window.SILENCE.shade(gap);
 
   (async () => {
+    // ── 1 · the work ──────────────────────────────────────────────────────
+    // The day asked for in the address opens here rather than on a page of its
+    // own: this is the work's page, and a particular day is a state of it.
+    const startDate = params.get('date') || null;
     const meta = await Site.ready(id);
-    const { birth } = meta;
-    const last = meta.last;                       // calendar runs to TODAY — the silent days are days of the work too
+    const valid = startDate && /^\d{4}-\d{2}-\d{2}$/.test(startDate)
+      && startDate >= meta.birth && startDate <= meta.last;
+    await Site.mountArtBlock(document.getElementById('stage'), {
+      id, titleLink: false, keys: true, syncUrl: true,
+      startDate: valid ? startDate : null,
+      rail: null,
+      maxW: 1080, maxH: 760, maxHvh: 0.58, railGutter: 0,
+    });
+
+    // ── 2 · the caption ───────────────────────────────────────────────────
     const written = meta.alive.size;
+    const total = Site.daysBetween(meta.birth, meta.last) + 1;
+    const silent = Math.max(0, total - written);
+    const tomb = [
+      ['Title', work.title],
+      ['Medium', work.medium || '—'],
+      ['Dates', `${Site.fmtDate(meta.birth)} – Today`],
+      ['Record', `${written.toLocaleString('en-US')} days written · ${silent.toLocaleString('en-US')} silent`],
+    ];
+    document.getElementById('tomb').innerHTML = tomb
+      .map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+
+    // ── 3 · what the work is ──────────────────────────────────────────────
+    // Taken from the first section of the document that constitutes the work.
+    // Not written again here: a work described in two places is described
+    // twice, and the two drift.
+    fetch('/certificates.json', { cache: 'no-cache' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((all) => {
+        const cert = all && all[id];
+        if (!cert) return;
+        const first = cert.sections[0];
+        if (first && first[1]) document.getElementById('about').innerHTML = first[1];
+        const def = cert.sections.find((s) => s[0] === 'Definition');
+        if (def) document.getElementById('certline').innerHTML = def[1];
+      })
+      .catch(() => {});
+
+    // ── 5 · the rule, in short ────────────────────────────────────────────
+    // The first laws, and the seventh — the one the works part on. The rest is
+    // one link away; this page states enough to know what kind of thing it is.
+    const spec = (window.__WORKS && window.__WORKS[id] && window.__WORKS[id].rule) || {};
+    const COMMON = [
+      'Each day, one painting.',
+      'The painting is made from that day’s record of one living body, and from nothing else.',
+      'Nothing is arranged by hand.',
+      null,
+    ];
+    const lines = Array.isArray(spec.laws) && spec.laws.length
+      ? spec.laws.slice(0, 3).concat(spec.seed || spec.laws[8] || '')
+      : COMMON.map((l) => (l === null ? (spec.seed || '') : l));
+    document.getElementById('laws').innerHTML =
+      lines.filter(Boolean).map((l) => `<li>${l}</li>`).join('');
+
+    // ── 4 · the archive ───────────────────────────────────────────────────
+    const { birth } = meta;
+    const last = meta.last;   // the calendar runs to today — silent days are days of the work too
     document.getElementById('asub').textContent =
       `${Site.fmtDate(birth)} – Today · ${written.toLocaleString('en-US')} days written`;
 
     const b = Site.parseISO(birth), e = Site.parseISO(last);
-    let y = b.y, m = b.m, lastAlive = birth;
+
+    // Months are drawn as they come into view. A work of four years is fifteen
+    // hundred cells, and building them all at once is a second of stalled
+    // phone before the page can be touched.
+    const months = [];
+    let y = b.y, m = b.m;
     while (y < e.y || (y === e.y && m <= e.m)) {
-      const monthEl = document.createElement('div');
-      monthEl.className = 'arch-month';
-      monthEl.innerHTML = `<h2>${Site.MONTHS_LONG[m - 1]} ${y}</h2>`;
+      months.push([y, m]);
+      m++; if (m > 12) { m = 1; y++; }
+    }
+
+    const seen = new Map();       // date -> the last day the body wrote before it
+    let lastAlive = birth;
+    const gapOf = new Map();
+    for (let i = 0; ; i++) {
+      const iso = Site.addDaysISO(birth, i);
+      if (iso > last) break;
+      if (meta.alive.has(iso)) { lastAlive = iso; gapOf.set(iso, 0); }
+      else gapOf.set(iso, Site.daysBetween(lastAlive, iso));
+    }
+
+    function fill(monthEl, y, m) {
       const row = document.createElement('div');
       row.className = 'arch-row';
-
       const dim = daysInMonth(y, m);
       for (let d = 1; d <= dim; d++) {
         const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         if (iso < birth || iso > last) continue;
-        // Every day is a state of the work and opens it: a written day shows its
-        // painting; a silent day holds the last painting as it withers.
+        // Every day is a state of the work and opens it: a written day shows
+        // its painting; a silent day holds the last painting as it withers.
         const cell = document.createElement('a');
         cell.className = 'cell';
         cell.dataset.date = iso;
-        cell.href = `/work.html?id=${id}&date=${iso}`;
-        if (meta.alive.has(iso)) {
-          cell.classList.add('alive');
-          if (meta.incomplete.has(iso)) cell.classList.add('incomplete');
-          cell.title = Site.fmtDate(iso);
-          lastAlive = iso;
-        } else {
-          const gap = Site.daysBetween(lastAlive, iso);
-          cell.style.background = silenceShade(gap);   // withers by the work's real death curve
-          cell.title = `${Site.fmtDate(iso)} — silence, day ${gap}`;
-        }
+        cell.href = `/archive.html?id=${id}&date=${iso}`;
+        const gap = gapOf.get(iso) || 0;
+        if (gap > 0) cell.style.background = silenceShade(gap);
+        else cell.classList.add(meta.incomplete.has(iso) ? 'incomplete' : 'alive');
+        cell.setAttribute('aria-label', gap > 0
+          ? `${Site.fmtDate(iso)} — silence, day ${gap}`
+          : `${Site.fmtDate(iso)} — written`);
         row.appendChild(cell);
       }
       monthEl.appendChild(row);
-      cal.appendChild(monthEl);
-      m++; if (m > 12) { m = 1; y++; }
+      monthEl.dataset.filled = '1';
     }
 
-    // ── hover preview (desktop) ──────────────────────────────────────────
-    const PVW = 150;
-    const PVH = Math.round(PVW / meta.ratio);
-    pvImg.style.width = PVW + 'px';
-    pvImg.style.height = PVH + 'px';
-    let hoverCell = null, showT = null;
+    const io = new IntersectionObserver((entries) => {
+      for (const en of entries) {
+        if (!en.isIntersecting || en.target.dataset.filled) continue;
+        const [yy, mm] = en.target.dataset.ym.split('-').map(Number);
+        fill(en.target, yy, mm);
+        io.unobserve(en.target);
+      }
+    }, { rootMargin: '600px 0px' });
 
+    const frag = document.createDocumentFragment();
+    for (const [yy, mm] of months) {
+      const monthEl = document.createElement('div');
+      monthEl.className = 'arch-month';
+      monthEl.dataset.ym = `${yy}-${mm}`;
+      monthEl.innerHTML = `<h3>${Site.MONTHS_LONG[mm - 1]} ${yy}</h3>`;
+      frag.appendChild(monthEl);
+    }
+    cal.appendChild(frag);
+    for (const el of cal.children) io.observe(el);
+    // The months already on screen are drawn at once — an observer only fires
+    // on the next frame, and an empty calendar for one frame reads as a fault.
+    for (const el of cal.children) {
+      const r = el.getBoundingClientRect();
+      if (r.top < innerHeight + 600 && !el.dataset.filled) {
+        const [yy, mm] = el.dataset.ym.split('-').map(Number);
+        fill(el, yy, mm); io.unobserve(el);
+      }
+    }
+
+    // A day under the cursor shows itself, small, without leaving the archive.
+    let pvFor = null;
     cal.addEventListener('mouseover', (ev) => {
       const cell = ev.target.closest('.cell');
-      if (!cell || cell === hoverCell) return;
-      hoverCell = cell;
-      const date = cell.dataset.date;
-      const alive = cell.classList.contains('alive');
-      clearTimeout(showT);
-      showT = setTimeout(async () => {              // debounce: don't render on a quick sweep
-        if (hoverCell !== cell) return;
-        position(cell);
-        pvDate.textContent = Site.fmtDate(date) +
-          (cell.classList.contains('incomplete') ? ' · partial' : (alive ? '' : ' · silence'));
-        const url = await Site.render(id, date, PVW, PVH);
-        if (url && hoverCell === cell) { pvImg.src = url; preview.classList.add('show'); }
-      }, 180);
-    });
-    cal.addEventListener('mouseout', (ev) => {
-      const to = ev.relatedTarget && ev.relatedTarget.closest && ev.relatedTarget.closest('.cell');
-      if (!to) { hoverCell = null; clearTimeout(showT); preview.classList.remove('show'); }
-    });
-    function position(cell) {
+      if (!cell || cell.dataset.date === pvFor) return;
+      pvFor = cell.dataset.date;
       const r = cell.getBoundingClientRect();
-      const w = PVW + 12, h = PVH + 26;
-      let x = r.right + 12, yy = r.top + r.height / 2 - h / 2;
-      if (x + w > window.innerWidth - 8) x = r.left - w - 12;
-      yy = Math.max(8, Math.min(window.innerHeight - h - 8, yy));
-      preview.style.left = x + 'px';
-      preview.style.top = yy + 'px';
-    }
+      preview.style.left = Math.round(r.left + r.width / 2) + 'px';
+      preview.style.top = Math.round(r.top) + 'px';
+      pvDate.textContent = Site.fmtDate(pvFor);
+      preview.classList.add('on');
+      const want = pvFor;
+      Site.render(id, want, 180, Math.round(180 / (meta.ratio || 1.4))).then((url) => {
+        if (url && pvFor === want) pvImg.src = url;
+      }).catch(() => {});
+    });
+    cal.addEventListener('mouseleave', () => { preview.classList.remove('on'); pvFor = null; });
   })();
 </script>
 </body>

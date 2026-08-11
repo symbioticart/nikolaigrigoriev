@@ -1149,6 +1149,14 @@ http.createServer((req, res) => {
     serveJSON(req, res, WORKS_REGISTRY);
     return;
   }
+  // The documents that constitute the works. Read by the page that prints them
+  // and by each work's own page, which takes its description from the first
+  // section rather than keeping a second copy of it.
+  if (url === '/certificates.json') {
+    serveFile(req, res, path.join(dir, 'certificates.json'),
+      'application/json; charset=utf-8', 'no-cache');
+    return;
+  }
   // The shared script carries the registry inside it, so no page has to wait a
   // round trip to learn which works exist. The validator covers both files:
   // change the registry and the script is re-fetched.
@@ -1208,7 +1216,7 @@ http.createServer((req, res) => {
     for (const [id, w] of Object.entries(WORKS_REGISTRY)) {
       if (!w.listed) continue;
       const q = encodeURIComponent(id);
-      lines.push(u(`/work.html?id=${q}`, 'daily'));
+      // One page per work: the work, its caption, its every day, its documents.
       lines.push(u(`/archive.html?id=${q}`, 'daily'));
       lines.push(u(`/rule.html?id=${q}`, 'yearly'));
     }

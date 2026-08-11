@@ -336,12 +336,17 @@
     // The rail belongs to the work, not to the mood of the visit: a reader who
     // arrived on one day of it should still be able to reach the whole archive
     // and the rule. Only the way out is added on top, when one is needed.
-    rail = document.createElement('div');
-    rail.className = 'archive-rail';
-    rail.innerHTML =
-      `<a href="/archive.html?id=${id}">Archive</a>` +
-      `<a href="/rule.html?id=${id}">The rule</a>`;
-    (container.closest('main') || document.body).appendChild(rail);
+    //
+    // Except on the work's own page, which already holds both further down —
+    // a rail pointing at the page it is standing on is furniture.
+    if (opts.rail !== null) {
+      rail = document.createElement('div');
+      rail.className = 'archive-rail';
+      rail.innerHTML =
+        `<a href="/archive.html?id=${id}">Archive</a>` +
+        `<a href="/rule.html?id=${id}">The rule</a>`;
+      (container.closest('main') || document.body).appendChild(rail);
+    }
 
     if (opts.rail === 'close') {
       // Single-state view: the close × stands on the page's own right margin,
@@ -359,7 +364,7 @@
     const cap = document.createElement('div');
     cap.className = 'caption';
     const titleInner = opts.titleLink
-      ? `<a href="/work.html?id=${id}">${work.title}</a>`
+      ? `<a href="/archive.html?id=${id}">${work.title}</a>`
       : work.title;
     // The museum line — what the work is made of. It belongs on the work's own
     // page, where a reader has stopped in front of one thing; on the home page,

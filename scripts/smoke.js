@@ -171,7 +171,7 @@ async function reach(path, tries = 12, waitMs = 15000) {
   }
 
   // Every page a reader can reach.
-  for (const p of ['/', '/works.html', '/work.html?id=87', '/archive.html?id=87',
+  for (const p of ['/', '/works.html', '/archive.html?id=87', '/archive.html?id=89',
     '/about.html', '/rule.html?id=87', '/conditions.html']) {
     await open(p);
   }

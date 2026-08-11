@@ -245,7 +245,7 @@ main{padding:0 var(--pad);position:relative}
 
 .arch-scroll{padding-bottom:140px}
 .arch-month{margin-top:40px}
-.arch-month h2{font-size:12px;letter-spacing:.16em;color:var(--grey);
+.arch-month h2,.arch-month h3{font-size:12px;letter-spacing:.16em;color:var(--grey);
   text-transform:uppercase;margin-bottom:14px;font-weight:400}
 .arch-row{display:flex;flex-wrap:wrap;gap:7px}
 .cell{
@@ -358,3 +358,44 @@ main{padding:0 var(--pad);position:relative}
   .cell:not(.alive):hover{background:var(--silence)}
   .tile:hover .tile-frame{outline-color:rgba(0,0,0,.06)}
 }
+
+
+/* ── A work's page ─────────────────────────────────────────────────────────
+   One page per work, read downward: the work as it stands, the caption a
+   museum would print, what the work is, every day it has lived, its
+   documents. Prose keeps to a reading measure; the painting and the calendar
+   take the width. */
+.prof-stage{min-height:auto;padding:120px 0 0}
+.prof-block{padding-top:64px}
+.prof-block:last-child{padding-bottom:140px}
+.prof-h{font-size:12px;letter-spacing:.16em;color:var(--grey);
+  text-transform:uppercase;font-weight:400;margin-bottom:18px}
+.prof-text{max-width:62ch}
+.prof-text p{font-size:14px;line-height:1.75;color:var(--ink)}
+.prof-text .back{display:inline-block;margin-top:18px;font-size:13px;color:var(--grey)}
+.prof-text .back:hover{color:var(--ink)}
+/* the caption, as a museum prints it: term and fact, aligned */
+.tomb{display:grid;grid-template-columns:max-content minmax(0,1fr);
+  gap:10px 26px;max-width:74ch;font-size:13px;line-height:1.6}
+.tomb dt{color:var(--grey);letter-spacing:.04em}
+.tomb dd{color:var(--ink)}
+/* An extract, not the rule: the first laws and the one the works part on. It
+   is not numbered, because numbering it would promise that the fourth line is
+   the fourth law, and it is the seventh. */
+.prof-laws{list-style:none;max-width:62ch}
+.prof-laws li{position:relative;padding-left:22px;margin-bottom:12px;
+  font-size:14px;line-height:1.7}
+.prof-laws li::before{content:"";position:absolute;left:0;top:11px;
+  width:9px;height:1px;background:var(--silence)}
+.prof-laws li:last-child::before{background:var(--ink)}
+#archive .sub{font-size:13px;color:var(--faint)}
+#archive .arch-scroll{padding-bottom:0}
+#archive .arch-month:first-child{margin-top:26px}
+
+@media (max-width: 640px){
+  .prof-stage{padding-top:100px}
+  .prof-block{padding-top:48px}
+  .tomb{grid-template-columns:1fr;gap:2px 0}
+  .tomb dd{margin-bottom:12px}
+}
+.prof-note{font-size:12px;color:var(--grey);margin-top:6px;max-width:62ch;line-height:1.6}

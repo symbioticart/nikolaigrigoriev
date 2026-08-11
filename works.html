@@ -36,7 +36,10 @@
   async function mountTile(w) {
     const a = document.createElement('a');
     a.className = 'tile';
-    a.href = `/work.html?id=${w.id}`;
+    // A tile opens the work's page — the work itself, the caption a museum
+    // would print, every day it has lived, and its documents. One page per
+    // work, and this is it.
+    a.href = `/archive.html?id=${w.id}`;
     a.innerHTML =
       `<div class="tile-frame"><img alt="${w.title}"><div class="wash"></div></div>` +
       `<div class="tile-cap"><span class="t">${w.title}</span> <span class="s"></span></div>`;
