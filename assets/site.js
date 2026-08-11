@@ -369,7 +369,10 @@
     // The museum line — what the work is made of. It belongs on the work's own
     // page, where a reader has stopped in front of one thing; on the home page,
     // where the works are passed through, it would only be furniture.
-    const mediumLine = (!opts.titleLink && work.medium)
+    // The museum line belongs where a reader has stopped in front of one thing.
+    // A page that prints it in its own caption block asks for `medium: false`,
+    // so the sentence is not said twice a screen apart.
+    const mediumLine = (opts.medium !== false && !opts.titleLink && work.medium)
       ? `<p class="medium">${work.medium}</p>` : '';
     // Between the arrows stands the day being looked at — nothing else. What
     // used to stand there was the work's whole span, so the eye tied its left

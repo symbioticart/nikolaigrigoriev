@@ -29,7 +29,6 @@
     <!-- 4 · the body of the work: every day it has lived -->
     <section class="prof-block" id="archive">
       <h2 class="prof-h">Archive</h2>
-      <div class="sub" id="asub"></div>
       <div class="arch-legend">
         <span><i class="i-alive"></i>a day was written</span>
         <span><i class="i-dead"></i>silence — no data</span>
@@ -47,7 +46,7 @@
       <a class="back" id="rulelink">The rule in full →</a>
       <h2 class="prof-h" style="margin-top:52px">Conditions of the Work</h2>
       <p id="certline"></p>
-      <a class="back" id="certlink">Conditions of the Work →</a>
+      <a class="back" id="certlink">The document in full →</a>
     </section>
 
   </div>
@@ -91,7 +90,9 @@
     const valid = startDate && /^\d{4}-\d{2}-\d{2}$/.test(startDate)
       && startDate >= meta.birth && startDate <= meta.last;
     await Site.mountArtBlock(document.getElementById('stage'), {
-      id, titleLink: false, keys: true, syncUrl: true,
+      // The museum line stands in the passport below, once. Printing it above
+      // the painting as well said the same sentence twice, a screen apart.
+      id, titleLink: false, medium: false, keys: true, syncUrl: true,
       startDate: valid ? startDate : null,
       rail: null,
       maxW: 1080, maxH: 760, maxHvh: 0.58, railGutter: 0,
@@ -102,7 +103,6 @@
     const total = Site.daysBetween(meta.birth, meta.last) + 1;
     const silent = Math.max(0, total - written);
     const tomb = [
-      ['Title', work.title],
       ['Medium', work.medium || '—'],
       ['Dates', `${Site.fmtDate(meta.birth)} – Today`],
       ['Record', `${written.toLocaleString('en-US')} days written · ${silent.toLocaleString('en-US')} silent`],
@@ -120,7 +120,13 @@
         const cert = all && all[id];
         if (!cert) return;
         const first = cert.sections[0];
-        if (first && first[1]) document.getElementById('about').innerHTML = first[1];
+        if (first && first[1]) {
+          // The document closes by naming its medium. There it belongs; here
+          // the passport above has already said it, so the sentence is dropped
+          // from the view rather than from the document.
+          document.getElementById('about').innerHTML =
+            first[1].replace(/\s*Medium:[^.]*\.\s*$/, '');
+        }
         const def = cert.sections.find((s) => s[0] === 'Definition');
         if (def) document.getElementById('certline').innerHTML = def[1];
       })
@@ -145,9 +151,6 @@
     // ── 4 · the archive ───────────────────────────────────────────────────
     const { birth } = meta;
     const last = meta.last;   // the calendar runs to today — silent days are days of the work too
-    document.getElementById('asub').textContent =
-      `${Site.fmtDate(birth)} – Today · ${written.toLocaleString('en-US')} days written`;
-
     const b = Site.parseISO(birth), e = Site.parseISO(last);
 
     // Months are drawn as they come into view. A work of four years is fifteen
