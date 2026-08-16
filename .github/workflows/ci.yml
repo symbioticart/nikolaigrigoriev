@@ -16,7 +16,11 @@ on:
   pull_request:
   workflow_dispatch: {}
   schedule:
-    - cron: '0 9,19 * * *'   # walk the living site twice a day
+    # Twice a day, and deliberately after the morning has finished painting and
+    # deploying. The 09:00 run used to land in the middle of daily-state and
+    # judge a site that was mid-change; both of 15 August's red messages came
+    # from that window.
+    - cron: '0 11,19 * * *'   # walk the living site twice a day
 
 permissions:
   contents: read
@@ -97,7 +101,8 @@ jobs:
       - name: Put it up
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-        run: bash scripts/deploy.sh "$PROD_SERVICE"
+          VERIFY_URL: https://nikolaigrigoriev.com
+        run: bash scripts/deploy.sh "$PROD_SERVICE" "$GITHUB_SHA"
 
       - name: Walk it as a reader
         id: smoke
@@ -119,24 +124,31 @@ jobs:
             -d '{"deployId":"${{ steps.before.outputs.id }}"}' | head -c 200
           echo "rolled back to ${{ steps.before.outputs.id }}"
 
+      # Reported to the site, which is the only thing that speaks to Telegram.
       - name: Say what happened
         if: always()
         env:
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          OPS_SECRET: ${{ secrets.OPS_SECRET }}
         run: |
-          [ -z "$TG_BOT_TOKEN" ] && exit 0
+          [ -z "$OPS_SECRET" ] && exit 0
           msg=$(git log -1 --pretty=%s)
           if [ "${{ job.status }}" = "success" ]; then
-            text="🚀 На сайте новая версия: ${msg}. Проверено как зритель — всё на месте."
-            quiet=true
+            body=$(node -e 'console.log(JSON.stringify({
+              source: "релиз", level: "ok",
+              headline: "На сайте новая версия: " + process.env.M + ". Прошла проверку глазами зрителя.",
+            }))' M="$msg")
           else
-            text="🔴 Обновление сайта не прошло проверку и откачено: ${msg}. Сайт показывает предыдущую версию. Лог: github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-            quiet=false
+            body=$(node -e 'console.log(JSON.stringify({
+              source: "релиз", level: "broken",
+              headline: "Обновление сайта не прошло проверку и откачено: " + process.env.M + ".",
+              detail: "Сайт цел и показывает предыдущую версию — зритель ничего не потерял.",
+              action: "Смотреть лог: github.com/" + process.env.R + "/actions/runs/" + process.env.I,
+              runUrl: "github.com/" + process.env.R + "/actions/runs/" + process.env.I,
+            }))' M="$msg" R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID")
           fi
-          curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
-            -d chat_id="${TG_CHAT_ID}" -d disable_web_page_preview=true -d disable_notification=$quiet \
-            --data-urlencode "text=$text" || true
+          curl -fsS --max-time 15 -X POST "$PROD/ops/report" \
+            -H "x-ops-secret: $OPS_SECRET" -H 'Content-Type: application/json' \
+            -d "$body" > /dev/null || echo "could not reach the site to report"
 
   # ── Twice a day, walk the living site whether or not anything changed ────
   watch:
@@ -150,13 +162,27 @@ jobs:
           npm i --no-save puppeteer-core@23 > /dev/null 2>&1
           CHROME=$(command -v google-chrome || command -v chromium-browser || command -v chromium) \
             node scripts/smoke.js "$PROD"
+      # The old message said only that a check had failed, which told nobody
+      # anything: on 15 August it was right twice and read as noise both times.
+      # What it says now is what a visitor would actually have seen.
       - name: Say what a reader would have found
-        if: failure()
+        if: always()
         env:
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          OPS_SECRET: ${{ secrets.OPS_SECRET }}
         run: |
-          [ -z "$TG_BOT_TOKEN" ] && exit 0
-          curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
-            -d chat_id="${TG_CHAT_ID}" -d disable_web_page_preview=true \
-            --data-urlencode "text=🔴 Сайт сейчас показывает не то, что должен — проверка глазами зрителя не прошла. Лог: github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" || true
+          [ -z "$OPS_SECRET" ] && exit 0
+          if [ "${{ job.status }}" = "success" ]; then
+            body='{"source":"взгляд зрителя","level":"ok","headline":"Сайт снова показывает то, что должен."}'
+          else
+            body=$(node -e 'console.log(JSON.stringify({
+              source: "взгляд зрителя",
+              level: "broken",
+              headline: "Прошёл сайт как зритель — увидел не то, что должен.",
+              detail: (process.env.W || "").trim().slice(0, 600) || "Подробности в логе прогона.",
+              action: "Смотреть лог: github.com/" + process.env.R + "/actions/runs/" + process.env.I,
+              runUrl: "github.com/" + process.env.R + "/actions/runs/" + process.env.I,
+            }))' W="$(cat wrong.txt 2>/dev/null)" R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID")
+          fi
+          curl -fsS --max-time 15 -X POST "$PROD/ops/report" \
+            -H "x-ops-secret: $OPS_SECRET" -H 'Content-Type: application/json' \
+            -d "$body" > /dev/null || echo "could not reach the site to report"

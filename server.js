@@ -65,9 +65,25 @@ let REFRESH_TOKEN = process.env.OURA_REFRESH || '';
 const CLIENT_ID     = process.env.OURA_CLIENT_ID     || '';
 const CLIENT_SECRET = process.env.OURA_CLIENT_SECRET || '';
 
-const SYNC_INTERVAL = 6 * 60 * 60 * 1000;   // re-sync every 6h
 const NIGHT_WINDOW  = 200;                  // nights served without ?all=1
 const FETCH_CHUNK_DAYS = 90;                // API pull window per request
+
+// The ring is asked on Barcelona's clock, not on the process uptime. The grid
+// used to be `setInterval(sync, 6h)` counted from boot, so every deploy moved
+// all four sync times: on 15 August they landed at 03:47/09:47/15:47/21:47 and
+// the morning frame at 09:00 was drawn from a record six hours old.
+//
+// 09:30 is the load-bearing one. The body writes the night while it sleeps, but
+// the ring only hands it over once the phone opens it — around 8 or 9. A sync
+// before that reads yesterday, and the day's painting comes out a day behind.
+const TZ          = 'Europe/Madrid';        // Barcelona's zone
+const SYNC_HOURS  = [3, 9, 15, 21];
+const SYNC_MINUTE = 30;
+// Full history costs ~90 requests (four years in 90-day windows) and is only
+// needed to repair the archive, which is write-once and never drifts. Every
+// other sync takes the tail in a single request per collection: the archive
+// already holds everything older, and mergeDays gives it priority anyway.
+const FULL_SYNC_WEEKDAY = 0;                // Sunday, at the first slot of the day
 
 const BUILD_SHA = (process.env.RENDER_GIT_COMMIT || 'dev').slice(0, 7);
 const BOOT_TIME = Date.now();
@@ -208,9 +224,14 @@ const TG_API = process.env.TG_API_BASE || 'https://api.telegram.org';
 const OPS = {
   alerts: {},            // key -> { since, lastSent }
   muteUntil: 0,          // /mute
-  lastDigestDate: null,  // Madrid date of the last evening digest
+  lastDigestDate: null,  // Barcelona date of the last evening digest
   lastNotifiedDay: null, // last data day announced to the channel
   apps: [],              // wit36 applications since boot: { ts, name, lang }
+  lastSyncSlot: null,    // Barcelona slot key of the last scheduled sync
+  lastFullSync: null,    // ISO timestamp of the last full-history pull
+  // What the outside watchers found, latest per source. They no longer speak to
+  // Telegram themselves — see POST /ops/report.
+  reports: {},           // source -> { level, headline, detail, action, runUrl, at }
 };
 const RU_MONTHS = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 function ruDate(iso) {
@@ -250,67 +271,187 @@ function tgSend(text, opts = {}) {
   tgApi('sendMessage', p);
 }
 // The standard button row under /status and the digest — the bot's "menu".
+// The first one is the one that matters in the morning: the ring has just been
+// synchronised and the site does not know it yet.
 function menuButtons() {
   return [
-    [{ text: '🔄 Статус', callback_data: '/status' }, { text: '🎨 Проект 89', callback_data: '/89' }],
-    [{ text: '📨 Заявки', callback_data: '/apps' }, { text: '🚀 Деплой', callback_data: '/deploy' }, { text: '🔇 12ч', callback_data: '/mute' }],
+    [{ text: 'Обновить данные', callback_data: '/sync' }, { text: 'Как дела', callback_data: '/status' }],
+    [{ text: 'Проект 89', callback_data: '/89' }, { text: 'Заявки', callback_data: '/apps' }, { text: 'Тихо 12ч', callback_data: '/mute' }],
   ];
 }
-function opsProblem(key, text) {
+
+// Three levels and no more. Broken means a viewer sees the wrong thing or the
+// data has stopped, and it is worth interrupting the day for. Watch means it is
+// worth knowing and it usually mends itself — it waits for the evening. Green
+// exists only to close something that was announced.
+function opsProblem(key, text, level = 'watch') {
   const now = Date.now(), a = OPS.alerts[key];
   if (now < OPS.muteUntil) return;   // muted: don't mark as announced — it will fire after unmute
-  if (!a) { OPS.alerts[key] = { since: now, lastSent: now }; tgSend(text); return; }
-  if (now - a.lastSent > 48 * 3600e3) { a.lastSent = now; tgSend(`${text}\n\n(проблема держится уже ${ruDur(now - a.since)})`); }
+  if (!a) {
+    OPS.alerts[key] = { since: now, lastSent: now, level, text };
+    if (level === 'broken') tgSend(text);   // anything milder waits for the digest
+    return;
+  }
+  a.text = text;
+  if (level === 'broken' && now - a.lastSent > 48 * 3600e3) {
+    a.lastSent = now;
+    tgSend(`${text}\n\nДержится уже ${ruDur(now - a.since)}.`);
+  }
 }
 function opsRecovered(key, text) {
   const a = OPS.alerts[key];
   if (!a) return;
   delete OPS.alerts[key];
-  tgSend(`${text} (длилось ${ruDur(Date.now() - a.since)})`);
+  if (a.level === 'broken') tgSend(`${text} Длилось ${ruDur(Date.now() - a.since)}.`);
+}
+
+// Russian counts things by the last digit and then changes its mind about it.
+// Every message that names a number of days went through this or said "2 дней".
+function ruPlural(n, one, few, many) {
+  const a = Math.abs(n) % 100, b = a % 10;
+  if (a > 10 && a < 20) return many;
+  if (b > 1 && b < 5) return few;
+  if (b === 1) return one;
+  return many;
+}
+const ruDays = (n) => `${n} ${ruPlural(n, 'день', 'дня', 'дней')}`;
+
+// What the work is doing right now, in the words the canon uses (ratified
+// 2026-07-23): it does not die. A short silence pauses it, a long one dries it
+// toward absence, any signal at all brings it back.
+function workState() {
+  const m = currentMeta();
+  if (!STATE.live) return { line: 'показываю сохранённую запись, живого синка ещё не было', worry: true };
+  if (m.gapDays <= 1) return { line: 'в полном цвете', worry: false };
+  if (m.gapDays <= PAUSE_DAYS) {
+    return { line: `на паузе, ${ruDays(m.gapDays)} тишины — последний день застыл, цвет уходит`, worry: false };
+  }
+  if (m.gapDays < DISAPPEAR_DAYS) {
+    return { line: `иссыхает, ${ruDays(m.gapDays)} тишины — до полного исчезновения ещё ${ruDays(DISAPPEAR_DAYS - m.gapDays)}`, worry: true };
+  }
+  return { line: `исчезла — ${ruDays(m.gapDays)} тишины. Не стёрлась: любой сигнал вернёт её`, worry: true };
 }
 
 // One honest paragraph about the whole system — reused by /status and the digest.
+// Written as a column so the eye finds the one line that changed.
 function statusText() {
   const m = currentMeta();
   const dayCount = (STATE.raw || []).length;
-  const stateWord = m.status === 'paused' ? `картина на паузе, замерла (${m.gapDays} дн. без сигнала)`
-    : m.status === 'dormant' ? `картина засыхает — ${m.gapDays} дн. без сигнала`
-    : m.status === 'disappeared' ? `картина исчезла (${m.gapDays} дн.) — умерла, но не стёрлась: вернётся со швом, как только придут данные`
-    : '';
-  const gapLine = m.gapDays <= 1
-    ? 'данные свежие'
-    : `${stateWord}. Открой приложение Oura на телефоне, дай кольцу синхронизироваться — картина возродится`;
-  const syncLine = STATE.tokenError ? '🔴 авторизация слетела, нужен новый токен'
-    : STATE.lastSync ? `ок, ${ruAgo(Date.now() - Date.parse(STATE.lastSync))}`
-    : 'живой синк ещё не проходил' + (STATE.live ? '' : ' — показываю сохранённую запись');
-  const probs = Object.keys(OPS.alerts).length;
-  return [
-    `${probs ? '🟡' : '🟢'} Сайт работает — nikolaigrigoriev.com`,
-    `• Запись: ${dayCount} дней, последний — ${ruDate(m.lastDataDay)} (${gapLine})`,
-    `• Синк Oura: ${syncLine}`,
-    `• Версия: ${BUILD_SHA}, аптайм ${ruDur(Date.now() - BOOT_TIME)}`,
-    `• Состояние работы: ${m.status}` + (m.status === 'dormant' ? ` — до полного исчезновения ещё ${DISAPPEAR_DAYS - m.gapDays} дн. (сигнал вернёт её)` : ''),
-  ].join('\n');
+  const st = workState();
+  const paint = statePainting();
+
+  const ring = STATE.tokenError ? 'авторизация слетела, данные не идут'
+    : STATE.lastSync ? `${bcnClock(STATE.lastSync)}, ${ruAgo(Date.now() - Date.parse(STATE.lastSync))}`
+    : 'ещё не спрашивали';
+
+  const rows = [
+    ['Сайт', `работает, версия ${BUILD_SHA}, поднят ${ruDur(Date.now() - BOOT_TIME)} назад`],
+    ['Запись', `${ruDays(dayCount)}, последняя ночь — ${ruDate(m.lastDataDay)}`],
+    ['Кольцо', ring],
+    ['Картина', st.line],
+  ];
+  if (paint.known) {
+    rows.push(['На сайте', paint.behind > 1
+      ? `картины от ${ruDate(paint.day)}, запись дошла до ${ruDate(m.lastDataDay)}`
+      : `картины от ${ruDate(paint.day)} — сходится с записью`]);
+  }
+  const width = Math.max(...rows.map(r => r[0].length));
+  return rows.map(([k, v]) => `${k.padEnd(width)}  ${v}`).join('\n');
 }
 
-// Evening digest: one quiet message at 21:00 Europe/Madrid instead of noise.
+// Evening digest: one quiet message at 21:00 Barcelona instead of noise.
 const DIGEST_HOUR = parseInt(process.env.OPS_DIGEST_HOUR || '21', 10);
-function madridParts() {
-  const s = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid', hour12: false,
+function barcelonaParts() {
+  const s = new Intl.DateTimeFormat('sv-SE', { timeZone: TZ, hour12: false,
     year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date());
-  return { date: s.slice(0, 10), hour: +s.slice(11, 13) };
+  const date = s.slice(0, 10);
+  // The weekday is taken from that local date rather than from the clock, so it
+  // can never disagree with it on either side of midnight.
+  return { date, hour: +s.slice(11, 13), minute: +s.slice(14, 16), weekday: new Date(`${date}T12:00:00Z`).getUTCDay() };
 }
+// Barcelona time, as a reader would write it.
+function bcnClock(iso) {
+  if (!iso) return '—';
+  return new Intl.DateTimeFormat('sv-SE', { timeZone: TZ, hour12: false, hour: '2-digit', minute: '2-digit' })
+    .format(new Date(iso));
+}
+// Everything that is off, gathered from the server's own senses and from the
+// watchers that reported in. One list, one vocabulary, one place that decides
+// what is worth waking someone for.
+//
+// The digest used to count only the server's internal alerts. It knew nothing
+// about the checks running on GitHub, so on 15 August it said the site was fine
+// at 21:00 and a red alarm about the same site arrived at 21:27. Both were true
+// on their own terms, and together they meant nothing.
+function troubles() {
+  const out = [];
+  const m = currentMeta();
+  const paint = statePainting();
+  if (paint.known && paint.behind > 1) {
+    out.push({
+      level: 'broken',
+      what: `Зритель видит картины от ${ruDate(paint.day)}, а запись дошла до ${ruDate(m.lastDataDay)}.`,
+      why: 'Статичные состояния на сайте отстали от тела. Движок дорисует верное, но первое, что видит человек, — позавчерашнее.',
+      act: 'Нажми «Переложить картины» — перерисую и выложу заново.',
+    });
+  }
+  if (STATE.tokenError) {
+    out.push({
+      level: 'broken',
+      what: 'Oura не пускает к данным — авторизация слетела.',
+      why: 'Новые дни не приходят, картина замерла на последнем записанном.',
+      act: 'Обновить OURA_TOKEN: dashboard.render.com/web/srv-d7ektha8qa3s73ddeqd0 → Environment.',
+    });
+  }
+  if (STATE.live && m.gapDays > PAUSE_DAYS) {
+    out.push({
+      level: 'broken',
+      what: `Кольцо молчит ${ruDays(m.gapDays)}.`,
+      why: `Картина иссыхает, до полного исчезновения ещё ${ruDays(Math.max(0, DISAPPEAR_DAYS - m.gapDays))}.`,
+      act: 'Открой Oura на телефоне и дай кольцу синхронизироваться — картина вернётся в цвет.',
+    });
+  }
+  for (const [src, r] of Object.entries(OPS.reports)) {
+    if (!r || r.level === 'ok') continue;
+    if (Date.now() - Date.parse(r.at) > 36 * 3600e3) continue;   // stale news is not news
+    out.push({ level: r.level, what: r.headline, why: r.detail, act: r.action, src });
+  }
+  // Milder things the server noticed itself. They were never sent on their own —
+  // this is where they come out. Anything keyed `w:` came from a watcher and is
+  // already in OPS.reports above; counting it here too listed it twice.
+  for (const [key, a] of Object.entries(OPS.alerts)) {
+    if (a.level === 'broken' || !a.text || key.startsWith('w:')) continue;
+    out.push({ level: 'watch', what: a.text, src: key });
+  }
+  return out;
+}
+function troubleBlock(t) {
+  return [t.what, t.why, t.act && `Что делать: ${t.act}`].filter(Boolean).join('\n');
+}
+
 function digestTick() {
   try {
-    const { date, hour } = madridParts();
+    const { date, hour } = barcelonaParts();
     if (hour < DIGEST_HOUR || OPS.lastDigestDate === date) return;
     if (Date.now() < OPS.muteUntil) return;   // deferred: arrives after unmute, not lost
     OPS.lastDigestDate = date;
-    const today = new Date().toISOString().slice(0, 10);
-    let text = `Вечерняя сводка\n${statusText()}\n• Заявок WIT36 сегодня: ${OPS.apps.filter(a => a.ts.slice(0, 10) === today).length}`;
+    const today = isoDate(new Date());
+    const apps = OPS.apps.filter(a => a.ts.slice(0, 10) === today).length;
+    const bad = troubles();
+
+    const head = `Вечер, ${ruDate(today)}`;
+    const table = `${statusText()}\nЗаявки    ${apps ? `${apps} за сегодня` : 'нет'}`;
+    const tail = bad.length
+      ? bad.map(troubleBlock).join('\n\n')
+      : 'За день ничего не потребовало вмешательства.';
+    let text = `${head}\n\n${tail}\n\n${table}`;
+
     if (date.slice(8) === '01') {
-      const alive = daysBetween(WORK_BIRTH_DATE, isoDate(new Date()));
-      text += `\n\n🕰 Работа живёт ${alive} дней (с ${ruDate(WORK_BIRTH_DATE)}). После ${DISAPPEAR_DAYS} дней тишины подряд картина исчезает — умирает, но не стирается: любой сигнал (твой, потомка, другого человека) возрождает её со швом каждого сна. Сейчас тишина — ${currentMeta().gapDays} дн.`;
+      const alive = daysBetween(WORK_BIRTH_DATE, today);
+      text += `\n\nРабота живёт ${ruDays(alive)}, с ${ruDate(WORK_BIRTH_DATE)}. `
+        + `Она не умирает: до ${ruDays(PAUSE_DAYS)} тишины — пауза, дальше иссыхание, `
+        + `полное исчезновение на ${DISAPPEAR_DAYS}-й день. И любой сигнал возвращает её. `
+        + `Сейчас тишина — ${ruDays(currentMeta().gapDays)}.`;
     }
     tgSend(text, { silent: true, buttons: menuButtons() });
   } catch (e) { /* the digest must never crash the server */ }
@@ -319,13 +460,14 @@ function digestTick() {
 // Register the "/" command menu with Telegram (idempotent, refreshed on boot).
 function registerBotMenu() {
   tgApi('setMyCommands', { commands: [
-    { command: 'status', description: 'Как дела у сайта' },
+    { command: 'sync',   description: 'Спросить кольцо прямо сейчас' },
+    { command: 'status', description: 'Как дела у сайта и у картины' },
     { command: '89',     description: 'Проект 89 — последний день' },
-    { command: 'deploy', description: 'Какая версия на проде' },
     { command: 'apps',   description: 'Заявки WIT36 за неделю' },
+    { command: 'deploy', description: 'Какая версия на проде' },
     { command: 'health', description: 'Сырой JSON состояния' },
-    { command: 'mute',   description: 'Тишина на N часов (по умолч. 12)' },
-    { command: 'unmute', description: 'Включить уведомления' },
+    { command: 'mute',   description: 'Тишина на N часов, по умолчанию 12' },
+    { command: 'unmute', description: 'Вернуть голос' },
   ] });
 }
 
@@ -360,31 +502,57 @@ function runCommand(text, chatId) {
   const cmd = parts[0].split('@')[0].toLowerCase();
   const reply = (t, o) => tgSend(t, Object.assign({ chatId, isReply: true, silent: true }, o));
 
+  // The morning command. The ring hands the night over when the phone opens it,
+  // and until this exists the only answer to "I have just synchronised, why does
+  // the site not know" was: wait for the next slot, up to six hours away.
+  if (cmd === '/sync') {
+    if (STATE.syncing) { reply('Уже спрашиваю, подожди минуту.'); return; }
+    reply('Спрашиваю кольцо. Отвечу, когда будет ответ.');
+    const before = STATE.lastDataDay;
+    sync({ quiet: true }).then((r) => {
+      if (!r || !r.ok) { reply(`Не получилось: ${(r && r.reason) || 'нет ответа'}. Следующая попытка сама в ${nextSyncTime()}.`); return; }
+      if (r.lastDataDay !== before) {
+        reply(`Пришла ночь на ${ruDate(r.lastDataDay)}. Запись — ${ruDays(r.dayCount)}, картина в полном цвете.\n${SITE}/89`, { buttons: menuButtons() });
+      } else {
+        reply(`Кольцо ответило, нового дня пока нет — последняя ночь всё ещё ${ruDate(r.lastDataDay)}.\n`
+          + 'Обычно помогает открыть Oura на телефоне, дождаться, пока приложение допишет ночь, и нажать ещё раз.', { buttons: menuButtons() });
+      }
+    });
+    return;
+  }
   if (cmd === '/status') { reply(statusText(), { buttons: menuButtons() }); return; }
   if (cmd === '/89') {
     const m = currentMeta();
-    reply(`🎨 Проект 89 — вертикальная дневная история.\nПоследний записанный день: ${ruDate(m.lastDataDay)} (№${(STATE.raw || []).length}).\nСмотреть: ${SITE}/89`);
+    reply(`Проект 89 — вертикальная дневная история.\nПоследняя записанная ночь: ${ruDate(m.lastDataDay)}, всего ${ruDays((STATE.raw || []).length)}.\nСмотреть: ${SITE}/89`);
     return;
   }
   if (cmd === '/deploy') {
-    reply(`🚀 На проде версия ${BUILD_SHA}, запущена ${ruAgo(Date.now() - BOOT_TIME)}.\nДеплои: dashboard.render.com/web/srv-d7ektha8qa3s73ddeqd0\nКод: github.com/symbioticart/nikolaigrigoriev`);
+    reply(`На проде версия ${BUILD_SHA}, поднята ${ruAgo(Date.now() - BOOT_TIME)}.\nДеплои: dashboard.render.com/web/srv-d7ektha8qa3s73ddeqd0\nКод: github.com/symbioticart/nikolaigrigoriev`);
     return;
   }
   if (cmd === '/apps') {
     const week = OPS.apps.filter(a => Date.now() - Date.parse(a.ts) < 7 * 864e5);
     const lines = week.slice(-20).map(a => `• ${a.ts.slice(0, 16).replace('T', ' ')} — ${a.name} (${a.lang.toUpperCase()})`);
-    reply(`📨 Заявки WIT36 за 7 дней: ${week.length}\n${lines.join('\n') || '— пока нет'}\n\nПолные тексты приходят в канал отдельными сообщениями. Считаю с запуска сервера (${ruAgo(Date.now() - BOOT_TIME)}).`);
+    reply(`Заявки WIT36 за 7 дней: ${week.length}\n${lines.join('\n') || '— пока нет'}\n\nПолные тексты приходят отдельными сообщениями. Считаю с запуска сервера, ${ruAgo(Date.now() - BOOT_TIME)}.`);
     return;
   }
   if (cmd === '/mute') {
     const h = Math.min(Math.max(parseInt(parts[1], 10) || 12, 1), 168);
     OPS.muteUntil = Date.now() + h * 3600e3;
-    reply(`🔇 Молчу ${h} ч. Отвечать на команды продолжу. Вернуть голос: /unmute`);
+    reply(`Молчу ${h} ч. На команды отвечать продолжу. Вернуть голос: /unmute`);
     return;
   }
-  if (cmd === '/unmute') { OPS.muteUntil = 0; reply('🔊 Снова на связи — уведомления включены.'); return; }
+  if (cmd === '/unmute') { OPS.muteUntil = 0; reply('Снова на связи.'); return; }
   if (cmd === '/health') { reply(JSON.stringify(healthObj(), null, 1).slice(0, 3800)); return; }
-  reply('Команды:\n/status — как дела у сайта\n/89 — проект 89\n/deploy — что на проде\n/apps — заявки WIT36\n/health — сырой JSON\n/mute [часов] — тишина\n/unmute — включить уведомления');
+  reply('Что я умею:\n'
+    + '/sync — спросить кольцо прямо сейчас\n'
+    + '/status — как дела у сайта и у картины\n'
+    + '/89 — проект 89\n'
+    + '/apps — заявки WIT36\n'
+    + '/deploy — что на проде\n'
+    + '/health — сырой JSON\n'
+    + '/mute [часов] — тишина\n'
+    + '/unmute — вернуть голос');
 }
 
 // === WIT36 — WITHOUT WITNESS intake (served at /wit36) ===
@@ -678,6 +846,28 @@ function dormantFiles() {
   try { return fs.readdirSync(ARCHIVE_DIR).filter(f => /^\d{4}-\d{2}-\d{2}\.dormant\.json$/.test(f)); }
   catch (e) { return []; }
 }
+
+// Before any engine loads, a visitor sees three small paintings — one per work,
+// how it stands today — written by the morning job and shipped with the code.
+// They can fall behind the record: a deploy that carries the wrong commit, a
+// morning job that did not run. For a full day nothing noticed, because the only
+// thing that could tell was a browser on GitHub twice a day, and the server
+// itself never looked at the file it was serving. Now it does.
+let statePaintCache = { at: 0, val: { known: false } };
+function statePainting() {
+  if (Date.now() - statePaintCache.at < 60000) return statePaintCache.val;
+  let val = { known: false, day: null, behind: 0 };
+  try {
+    const idx = JSON.parse(fs.readFileSync(path.join(dir, 'state', 'index.json'), 'utf8'));
+    // The oldest of the three is the honest answer: one stale work is a stale site.
+    const painted = Object.values(idx).map(w => w && w.last).filter(Boolean).sort();
+    if (painted.length && STATE.lastDataDay) {
+      val = { known: true, day: painted[0], behind: Math.max(0, daysBetween(painted[0], STATE.lastDataDay)) };
+    }
+  } catch (e) { /* no paintings on disk — nothing to judge */ }
+  statePaintCache = { at: Date.now(), val };
+  return val;
+}
 // One-time migration: the earlier build wrote `<day>.dead.json`. The work does
 // not die — every such marker is a false death; remove them all.
 function purgeLegacyDeathMarkers() {
@@ -781,20 +971,32 @@ function nightMeta() {
 }
 
 // ---------- sync ----------
-async function sync() {
-  if (STATE.syncing) return;
-  if (!ACCESS_TOKEN && !(REFRESH_TOKEN && CLIENT_ID)) { console.warn('[sync] no token configured — serving the record'); return; }
+async function sync(opts = {}) {
+  if (STATE.syncing) return { ok: false, reason: 'busy' };
+  if (!ACCESS_TOKEN && !(REFRESH_TOKEN && CLIENT_ID)) { console.warn('[sync] no token configured — serving the record'); return { ok: false, reason: 'no token' }; }
+  const full = !!opts.full;
+  const before = (STATE.raw || []).length;
+  const beforeDay = STATE.lastDataDay;
   STATE.syncing = true;
   try {
-    // Full history from the work's birth, pulled in chunks.
+    // Full history from the work's birth, pulled in chunks — or just the tail.
+    //
+    // The tail is one request per collection and it is enough: a day that has
+    // been archived is immutable, mergeDays hands it priority over anything
+    // fetched, so re-reading four years changes nothing but the bill. The full
+    // pull stays for the weekly repair and for every boot, where the archive
+    // may be empty and the history has to be rebuilt from Oura.
     const chunks = [];
-    let cursor = new Date(Date.parse(WORK_BIRTH_DATE));
     const now = new Date();
+    let cursor = full
+      ? new Date(Date.parse(WORK_BIRTH_DATE))
+      : new Date(now.getTime() - (FETCH_CHUNK_DAYS - 1) * 864e5);
     while (cursor < now) {
       const end = new Date(Math.min(now.getTime(), cursor.getTime() + FETCH_CHUNK_DAYS * 864e5));
       chunks.push([isoDate(cursor), isoDate(end)]);
       cursor = new Date(end.getTime() + 864e5);
     }
+    console.log(`[sync] ${full ? 'full history' : 'tail'} — ${chunks.length} window(s)`);
 
     // allSettled per collection: one failing collection (e.g. workout) must
     // not lose the rest of the living record.
@@ -822,18 +1024,28 @@ async function sync() {
     if (authFailure && failedCols.size === COLS.length) throw authFailure;
 
     const fetched = buildDays(acc.sleep, acc.daily_sleep, acc.daily_readiness, acc.workout);
-    if (!fetched.length) throw new Error('no days built');
 
     // Priority: the live-written archive is immutable and wins; the live
     // fetch is the source of truth for everything else; the bundled snapshot
     // (which may include locally-converted catalog days with fewer fields)
     // only fills days the living record cannot provide.
     const archived = archiveRead();
+    // A tail that comes back empty is a silence, not a failure — the archive
+    // still holds the work. Only a pull that finds nothing anywhere is broken,
+    // and that is what the full sync at boot is there to catch.
+    if (!fetched.length && !archived.length) throw new Error('no days built');
     const rawDays = mergeDays(archived, fetched, snapshotRead());
     // Only live-confirmed days petrify into the immutable archive — and only
     // from a COMPLETE sync: a day fetched while a collection was failing has
     // null fields, and the write-once archive would keep it corrupted forever.
-    const fetchedSet = failedCols.size ? new Set() : new Set(fetched.map(d => d.day));
+    //
+    // Today never petrifies. The morning sync now lands minutes after the ring
+    // hands the night over, and Oura keeps writing to a day after it first
+    // appears — readiness can post later than sleep. Archived is archived, so a
+    // half-written night caught at 09:30 would stay half-written for good. It is
+    // still served; it only hardens once the day is behind us.
+    const today = isoDate(new Date());
+    const fetchedSet = failedCols.size ? new Set() : new Set(fetched.map(d => d.day).filter(d => d < today));
     const alreadySet = new Set(archived.map(d => d.day));
     archiveWrite(rawDays.filter(d => fetchedSet.has(d.day) || alreadySet.has(d.day)));
 
@@ -847,7 +1059,7 @@ async function sync() {
     const nights = mergeDays(nightsArchived, nightsFetched);
     if (!failedCols.has('sleep')) {
       const seen = new Set(nightsArchived.map(n => n.day));
-      const fresh = new Set(nightsFetched.map(n => n.day));
+      const fresh = new Set(nightsFetched.map(n => n.day).filter(d => d < today));   // today hardens tomorrow
       nightsWrite(nights.filter(n => fresh.has(n.day) || seen.has(n.day)));
     }
     STATE.nights = nights;
@@ -870,35 +1082,72 @@ async function sync() {
     STATE.degradedReasons = reasons;
 
     if (failedCols.size) {
-      opsProblem('collections', `🟡 Oura отдал не все данные (${[...failedCols].join(', ')}). Сайт работает, но часть метрик могла не записаться. Обычно чинится само к следующему синку — через 6 часов.`);
+      opsProblem('collections', `Oura отдал не все данные: ${[...failedCols].join(', ')}.\nЧто это значит: сайт работает, картина рисуется, но часть метрик за эти дни могла не записаться.\nЧто делать: ничего, обычно проходит к следующему синку в ${nextSyncTime()}.`);
     } else {
-      opsRecovered('collections', '🟢 Все данные Oura снова приходят полностью.');
+      opsRecovered('collections', 'Данные Oura снова приходят полностью.');
     }
-    opsRecovered('sync', '🟢 Синхронизация с Oura восстановилась — данные снова идут.');
-    opsRecovered('token', '🟢 Авторизация Oura снова работает.');
+    opsRecovered('sync', 'Связь с Oura восстановилась.');
+    opsRecovered('token', 'Авторизация Oura снова работает.');
+    if (full) OPS.lastFullSync = STATE.lastSync;
 
-    // Announce a new recorded day (quiet message — news, not an alarm).
-    if (STATE.lastDataDay && OPS.lastNotifiedDay && STATE.lastDataDay > OPS.lastNotifiedDay) {
-      OPS.lastNotifiedDay = STATE.lastDataDay;
-      tgSend(`🎨 Новый день в записи — ${ruDate(STATE.lastDataDay)} (день №${rawDays.length}).\nКартины обновились: ${SITE} и ${SITE}/89`, { silent: true });
+    // A new day in the record is news, and it belongs to the morning frame that
+    // carries the painting — not to a second message an hour later saying the
+    // same thing in different words. It is announced on its own only when it
+    // arrives outside the morning, which means the ring was late.
+    const added = rawDays.length - before;
+    const advanced = STATE.lastDataDay && beforeDay && STATE.lastDataDay > beforeDay;
+    if (advanced && !opts.quiet && barcelonaParts().hour >= 12) {
+      tgSend(`Запись догнала себя: ${ruDate(STATE.lastDataDay)} записан, всего ${rawDays.length} дней.\n`
+        + `Кольцо отдало этот день позже обычного — утренний кадр его ещё не застал.\n${SITE}/89`, { silent: true });
     }
+    if (advanced) OPS.lastNotifiedDay = STATE.lastDataDay;
 
     const m = currentMeta();
-    console.log(`[sync] ${rawDays.length} days, last=${m.lastDataDay}, gap=${m.gapDays}d, status=${m.status}${reasons.length ? ' DEGRADED: ' + reasons.join('; ') : ''}`);
+    console.log(`[sync] ${rawDays.length} days (+${added}), last=${m.lastDataDay}, gap=${m.gapDays}d, status=${m.status}${reasons.length ? ' DEGRADED: ' + reasons.join('; ') : ''}`);
+    return { ok: true, full, added, advanced, lastDataDay: m.lastDataDay, gapDays: m.gapDays, dayCount: rawDays.length };
   } catch (e) {
     console.error('[sync] failed:', e.message);
     STATE.degraded = true;
     STATE.degradedReasons = ['sync failed: ' + e.message];
     if (/401|refresh|token/i.test(e.message)) {
       STATE.tokenError = true;
-      opsProblem('token', '🔴 Слетела авторизация Oura — новые данные не приходят, сайт показывает сохранённую запись.\nЧто делать: обновить OURA_TOKEN — dashboard.render.com/web/srv-d7ektha8qa3s73ddeqd0 → Environment.');
+      opsProblem('token', 'Oura больше не пускает нас к данным — слетела авторизация.\n'
+        + 'Что это значит: новые дни не приходят, сайт показывает сохранённую запись. Картина замерла на последнем записанном дне.\n'
+        + 'Что делать: обновить OURA_TOKEN на dashboard.render.com/web/srv-d7ektha8qa3s73ddeqd0 → Environment.', 'broken');
     } else {
-      opsProblem('sync', `🟡 Не получилось забрать данные из Oura: ${e.message}\nСайт работает и показывает запись. Следующая попытка — через 6 часов.`);
+      opsProblem('sync', `Не получилось забрать данные из Oura: ${e.message}\n`
+        + 'Что это значит: сайт работает и показывает запись, новых дней пока нет.\n'
+        + `Что делать: ничего, следующая попытка в ${nextSyncTime()}. Если хочешь раньше — /sync.`);
     }
     if (!STATE.days) loadRecord();
+    return { ok: false, reason: e.message };
   } finally {
     STATE.syncing = false;
   }
+}
+
+// When the next scheduled sync lands, on Barcelona's clock. Messages used to
+// promise "через 6 часов", which stopped being true the moment a deploy moved
+// the grid — and it moved on every deploy.
+function nextSyncTime() {
+  const { hour, minute } = barcelonaParts();
+  const nowMinutes = hour * 60 + minute;
+  const hh = SYNC_HOURS.find(h => h * 60 + SYNC_MINUTE > nowMinutes);
+  return `${String(hh === undefined ? SYNC_HOURS[0] : hh).padStart(2, '0')}:${String(SYNC_MINUTE).padStart(2, '0')}`;
+}
+
+// The grid itself: checked every minute against Barcelona, so a restart cannot
+// shift it and a daylight-saving change cannot either.
+function syncTick() {
+  try {
+    const { date, hour, minute, weekday } = barcelonaParts();
+    if (!SYNC_HOURS.includes(hour) || minute !== SYNC_MINUTE) return;
+    const slot = `${date}T${hour}`;
+    if (OPS.lastSyncSlot === slot) return;
+    OPS.lastSyncSlot = slot;
+    const full = weekday === FULL_SYNC_WEEKDAY && hour === SYNC_HOURS[0];
+    sync({ full });
+  } catch (e) { /* the clock must never take the server down */ }
 }
 
 // Everything the outside observer (healthcheck action, /health command) is
@@ -933,6 +1182,15 @@ function healthObj() {
     dormantDays: dormantFiles().length,
     buildSha: BUILD_SHA,
     uptimeSec: Math.round((Date.now() - BOOT_TIME) / 1000),
+    // What a visitor is actually shown before any engine loads, and how far it
+    // has fallen behind the record. For a whole day this was the one broken
+    // thing on the site and /health had no word for it, so the watcher that
+    // reads /health kept reporting green while the site showed the day before
+    // yesterday.
+    statePaintedDay: statePainting().day,
+    stateBehindDays: statePainting().known ? statePainting().behind : null,
+    nextSyncAt: nextSyncTime(),
+    lastFullSyncAt: OPS.lastFullSync,
   };
 }
 
@@ -1021,6 +1279,64 @@ http.createServer((req, res) => {
     req.on('end', () => {
       res.writeHead(200, head({ 'Content-Type': 'application/json' })); res.end('{"ok":true}');
       try { handleTgUpdate(JSON.parse(body || '{}')); } catch (e) { /* malformed update ignored */ }
+    });
+    req.on('error', () => {});
+    return;
+  }
+
+  // Ask the ring now, and answer when it has been asked. The morning painter
+  // calls this before it paints: it used to draw from whatever the site happened
+  // to hold, and between two sync slots that was always the day before.
+  if (req.method === 'POST' && req.url.split('?')[0] === '/ops/sync') {
+    const secret = process.env.OPS_SECRET;
+    const got = Buffer.from(String(req.headers['x-ops-secret'] || ''));
+    const want = Buffer.from(secret || '');
+    if (!secret || got.length !== want.length || !crypto.timingSafeEqual(got, want)) {
+      res.writeHead(403, head({})); res.end(); return;
+    }
+    sync({ quiet: true }).then((r) => {
+      res.writeHead(200, head({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }));
+      res.end(JSON.stringify(r || { ok: false }));
+    }).catch(() => { try { res.writeHead(500, head({})); res.end(); } catch (e) {} });
+    return;
+  }
+
+  // The watchers report here instead of speaking to Telegram themselves.
+  //
+  // Seven senders wrote into one chat with seven vocabularies and no shared
+  // clock: the evening digest said the site was well at 21:00 and a red alarm
+  // about the same site arrived at 21:27. Now everything that is not "the site
+  // does not answer at all" comes through this door, and one voice decides what
+  // is worth saying and when. Uptime keeps its own voice on purpose — it speaks
+  // precisely when this door cannot be reached.
+  if (req.method === 'POST' && req.url.split('?')[0] === '/ops/report') {
+    const secret = process.env.OPS_SECRET;
+    const got = Buffer.from(String(req.headers['x-ops-secret'] || ''));
+    const want = Buffer.from(secret || '');
+    if (!secret || got.length !== want.length || !crypto.timingSafeEqual(got, want)) {
+      res.writeHead(403, head({})); res.end(); return;
+    }
+    let body = '';
+    req.on('data', c => { body += c; if (body.length > 65536) req.destroy(); });
+    req.on('end', () => {
+      res.writeHead(200, head({ 'Content-Type': 'application/json' })); res.end('{"ok":true}');
+      try {
+        const d = JSON.parse(body || '{}');
+        const source = String(d.source || 'watcher').slice(0, 40);
+        const level = ['broken', 'watch', 'ok'].includes(d.level) ? d.level : 'watch';
+        const rec = {
+          level,
+          headline: String(d.headline || '').slice(0, 400),
+          detail: String(d.detail || '').slice(0, 800),
+          action: String(d.action || '').slice(0, 400),
+          runUrl: String(d.runUrl || '').slice(0, 300),
+          at: new Date().toISOString(),
+        };
+        OPS.reports[source] = rec;
+        console.log(`[ops] ${source} → ${level}: ${rec.headline}`);
+        if (level === 'ok') opsRecovered(`w:${source}`, rec.headline || 'Проверка снова проходит.');
+        else opsProblem(`w:${source}`, troubleBlock({ what: rec.headline, why: rec.detail, act: rec.action }), level);
+      } catch (e) { /* a malformed report is not worth a crash */ }
     });
     req.on('error', () => {});
     return;
@@ -1347,11 +1663,15 @@ http.createServer((req, res) => {
   restoreRefreshToken();
   purgeLegacyDeathMarkers();   // the work does not die — remove any `<day>.dead.json`
   loadRecord();          // serve the record immediately
-  sync();                // then pull the living history
-  setInterval(sync, SYNC_INTERVAL);
-  // A restart after the digest hour must not re-send today's digest.
-  const mp = madridParts();
-  if (mp.hour >= DIGEST_HOUR) OPS.lastDigestDate = mp.date;
-  setInterval(digestTick, 60e3);   // evening digest, 21:00 Europe/Madrid
+  // The whole history on boot: the disk may be new, and this is the only moment
+  // the archive can be rebuilt from Oura. Every later sync takes the tail.
+  sync({ full: true, quiet: true });
+  setInterval(syncTick, 60e3);     // 03:30 / 09:30 / 15:30 / 21:30 Barcelona
+  // A restart after the digest hour must not re-send today's digest — and a
+  // restart inside a sync minute must not re-run the sync it just did on boot.
+  const bcn = barcelonaParts();
+  if (bcn.hour >= DIGEST_HOUR) OPS.lastDigestDate = bcn.date;
+  if (SYNC_HOURS.includes(bcn.hour) && bcn.minute === SYNC_MINUTE) OPS.lastSyncSlot = `${bcn.date}T${bcn.hour}`;
+  setInterval(digestTick, 60e3);   // evening digest, 21:00 Barcelona
   registerBotMenu();
 });

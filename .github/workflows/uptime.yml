@@ -3,6 +3,10 @@ name: uptime
 # Is the site alive at all? Pings every 30 minutes. Alerts once when the site
 # goes down, reminds every ~2h while it stays down, and reports recovery with
 # the outage duration. Data quality lives in healthcheck.yml — not here.
+#
+# This is the one watcher that still speaks to Telegram directly. Everything
+# else reports to the site and lets it decide what to say — which only works
+# while the site is answering. This job exists precisely for when it is not.
 
 on:
   schedule:
@@ -51,7 +55,7 @@ jobs:
           if alive; then
             if [ "$down_since" -gt 0 ]; then
               mins=$(( (now - down_since) / 60 ))
-              if send "🟢 Сайт снова работает. Лежал примерно ${mins} мин."; then
+              if send "Сайт снова работает. Лежал примерно ${mins} мин."; then
                 printf '{"downSince":0,"lastSent":0}' > .upstate/state.json
               fi   # send failed → keep the down state, retry the recovery next run
             else
@@ -61,11 +65,12 @@ jobs:
           else
             if [ "$down_since" -eq 0 ]; then
               sent=0
-              send "🔴 Сайт не отвечает (nikolaigrigoriev.com). Проверяю каждые 30 минут — напишу, когда поднимется. Логи: dashboard.render.com/web/srv-d7ektha8qa3s73ddeqd0" && sent=$now
+              msg=$'Сайт не отвечает — nikolaigrigoriev.com не открывается ни у кого.\nПроверяю каждые 30 минут и напишу, когда поднимется.\nЧто делать: смотреть логи на dashboard.render.com/web/srv-d7ektha8qa3s73ddeqd0'
+              send "$msg" && sent=$now
               printf '{"downSince":%s,"lastSent":%s}' "$now" "$sent" > .upstate/state.json
             elif [ $(( now - last_sent )) -gt 7200 ]; then
               mins=$(( (now - down_since) / 60 ))
-              if send "🔴 Сайт всё ещё лежит — уже ${mins} мин."; then
+              if send "Сайт всё ещё лежит — уже ${mins} мин."; then
                 printf '{"downSince":%s,"lastSent":%s}' "$down_since" "$now" > .upstate/state.json
               fi
             fi

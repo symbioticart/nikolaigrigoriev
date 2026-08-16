@@ -7,7 +7,7 @@ name: daily-state
 # failure while photographing /89 stopped the states from ever being repainted
 # — and the only alert said the frame had failed. The site then showed a
 # fortnight-old painting labelled "Today" and nothing anywhere noticed. It is
-# its own job now, with its own alert, and it says which surface broke.
+# its own job now, with its own report, and it says which surface broke.
 
 on:
   schedule:
@@ -15,7 +15,13 @@ on:
     # over later waits for the next morning; until then the site shows the
     # morning's painting rather than making its own copy of that day on the
     # spot. What must not happen is the site quietly painting a second version.
-    - cron: '20 7 * * *'
+    #
+    # 08:15 UTC — GitHub's scheduler has run this between 26 and 92 minutes late
+    # over the last fortnight, so the painting lands somewhere in the middle of
+    # the morning either way. What matters is that it is after the 09:30
+    # Barcelona sync, when the night the body just wrote is actually in the
+    # record. Before that it painted yesterday, every single day.
+    - cron: '15 8 * * *'
   workflow_dispatch: {}
 
 permissions:
@@ -31,11 +37,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Ask the ring before painting. The site syncs on its own clock, and a job
+      # that arrives between two slots would otherwise paint a day old record —
+      # which is exactly how the paintings ran a day behind every morning.
+      - name: Ask the ring first
+        env:
+          OPS_SECRET: ${{ secrets.OPS_SECRET }}
+        run: |
+          curl -fsS -m 120 -X POST "$SITE/ops/sync" -H "x-ops-secret: $OPS_SECRET" || \
+            echo "could not ask for a sync — painting from whatever the site has"
+
       - name: Paint what has not been painted
         run: |
           npm init -y > /dev/null && npm i --no-save puppeteer-core@23 > /dev/null 2>&1
           CHROME=$(command -v google-chrome || command -v chromium-browser || command -v chromium)
           CHROME="$CHROME" node scripts/gen-state.js "$SITE" state
+
+      # What the record said at the moment of painting. The proof below is held
+      # against THIS, not against the record as it stands afterwards: the server
+      # restarts on the deploy and re-syncs, and comparing the painting to a
+      # record that moved underneath it failed the job on 14 August for a
+      # painting that was perfectly correct.
+      - name: Remember what the body had written when we painted
+        id: wrote
+        run: |
+          last=$(curl -fsS -m 60 "$SITE/state/meta.json" \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+                const m=JSON.parse(s);
+                const days=Object.values(m).map(w=>(w.alive||[]).slice(-1)[0]).filter(Boolean).sort();
+                console.log(days[days.length-1]||"")})')
+          echo "last=$last" >> "$GITHUB_OUTPUT"
+          echo "painted against $last"
 
       - name: File the paintings
         id: file
@@ -50,55 +82,56 @@ jobs:
             git commit -q -m "state: paint the days just written [skip ci]"
             git pull --rebase --autostash origin main
             git push origin main
+            echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
             echo "changed=yes" >> "$GITHUB_OUTPUT"
           fi
 
       # A commit is not a deployment. The auto-deploy webhook has been
       # unreliable, and a painting that never reaches the server is a painting
       # that does not exist — this is precisely how the site came to be stale.
+      # deploy.sh names the commit and then checks which one actually answers.
       - name: Carry them to the site
         if: steps.file.outputs.changed == 'yes'
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          VERIFY_URL: https://nikolaigrigoriev.com
         run: |
           [ -z "$RENDER_API_KEY" ] && { echo "no Render key — the site will pick these up on the next deploy"; exit 0; }
-          dep=$(curl -fsS -X POST -H "Authorization: Bearer $RENDER_API_KEY" \
-            -H "Content-Type: application/json" \
-            "https://api.render.com/v1/services/$SERVICE/deploys" -d '{}' \
-            | grep -oE '"id":"dep-[a-z0-9]+"' | head -1 | cut -d'"' -f4)
-          echo "deploy $dep"
-          for i in $(seq 1 40); do
-            s=$(curl -fsS -H "Authorization: Bearer $RENDER_API_KEY" \
-              "https://api.render.com/v1/services/$SERVICE/deploys/$dep" \
-              | grep -oE '"status":"[a-z_]+"' | head -1 | cut -d'"' -f4)
-            case "$s" in live) echo "live"; exit 0;; build_failed|update_failed|canceled) echo "deploy $s"; exit 1;; esac
-            sleep 20
-          done
-          echo "deploy did not settle"; exit 1
+          bash scripts/deploy.sh "$SERVICE" "${{ steps.file.outputs.sha }}"
 
       # Prove it: the newest written day of every work must be on the site, and
-      # the manifest must reach as far as the record does. This is the check
-      # that was missing when Archipelago silently vanished from the manifest.
-      - name: Prove the site can show today
+      # the manifest must reach as far as the record did when we painted. This is
+      # the check that was missing when Archipelago silently vanished from the
+      # manifest.
+      #
+      # It asks more than once. Twice in a fortnight it fired because the service
+      # was still coming up behind its disk and answered 502 — an alarm about
+      # nothing, sent to a phone. smoke.js has had retries for exactly this since
+      # the beginning; this one did not.
+      - name: Prove the site can show what we painted
         run: |
           set -e
-          health=$(curl -fsS --max-time 60 "$SITE/health")
-          meta=$(curl -fsS --max-time 60 "$SITE/state/meta.json")
-          manifest=$(curl -fsS --max-time 60 "$SITE/state/index.json")
+          fetch() {
+            for i in $(seq 1 12); do
+              out=$(curl -fsS --max-time 30 "$1" 2>/dev/null) && { printf '%s' "$out"; return 0; }
+              sleep 10
+            done
+            return 1
+          }
+          health=$(fetch "$SITE/health") || { echo "the site never answered"; exit 1; }
+          manifest=$(fetch "$SITE/state/index.json") || { echo "the manifest never answered"; exit 1; }
           echo "$health" | head -c 200; echo
-          META="$meta" MANIFEST="$manifest" node - <<'JS'
-          const meta = JSON.parse(process.env.META);
+          WROTE='${{ steps.wrote.outputs.last }}' MANIFEST="$manifest" node - <<'JS'
           const man = JSON.parse(process.env.MANIFEST);
+          const wrote = process.env.WROTE;
           const problems = [];
-          for (const [id, w] of Object.entries(meta)) {
-            const alive = w.alive || [];
-            if (!alive.length) continue;               // a work with no record yet
-            const m = man[id];
-            if (!m) { problems.push(`${id}: absent from the manifest entirely`); continue; }
-            const lastWritten = alive[alive.length - 1];
-            if (m.last !== lastWritten) {
-              problems.push(`${id}: the site shows ${m.last}, the body wrote to ${lastWritten}`);
-            }
+          for (const [id, m] of Object.entries(man)) {
+            if (!m || !m.last) { problems.push(`${id}: absent from the manifest entirely`); continue; }
+            const behind = Math.round((Date.parse(wrote) - Date.parse(m.last)) / 86400000);
+            // A day behind is the rhythm: the painter runs once a morning and the
+            // record can move after it. Two days is a stall — the same tolerance
+            // smoke.js applies, so the two watchers can no longer disagree.
+            if (behind > 1) problems.push(`${id}: the site shows ${m.last}, the body had written to ${wrote}`);
           }
           if (problems.length) { console.error(problems.join('\n')); process.exit(1); }
           console.log('every work shows the last day its body wrote');
@@ -112,13 +145,25 @@ jobs:
             [ "$code" = "200" ] || exit 1
           done
 
-      - name: Say what broke
-        if: failure()
+      # Report to the site, which is the only thing that speaks to Telegram.
+      - name: Say what happened
+        if: always()
         env:
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          OPS_SECRET: ${{ secrets.OPS_SECRET }}
         run: |
-          [ -z "$TG_BOT_TOKEN" ] && exit 0
-          curl -fsS --max-time 15 "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
-            -d chat_id="${TG_CHAT_ID}" -d disable_web_page_preview=true \
-            --data-urlencode "text=🟡 Сегодняшний день не дошёл до сайта: свежие состояния не нарисованы, не выложены или не отдаются. Картины на сайте могут показывать вчерашнее. Лог: github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" || true
+          [ -z "$OPS_SECRET" ] && exit 0
+          if [ "${{ job.status }}" = "success" ]; then
+            body='{"source":"картины","level":"ok","headline":"Сегодняшние картины на сайте."}'
+          else
+            body=$(node -e 'console.log(JSON.stringify({
+              source: "картины",
+              level: "broken",
+              headline: "Сегодняшние картины не дошли до сайта.",
+              detail: "Зритель видит вчерашнее или позавчерашнее до того, как загрузится движок. Что-то из трёх: утреннее рисование не прошло, деплой увёз не тот коммит, или файлы не отдаются.",
+              action: "Перезапустить daily-state: github.com/" + process.env.R + "/actions/workflows/daily-state.yml",
+              runUrl: "github.com/" + process.env.R + "/actions/runs/" + process.env.I,
+            }))' R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID")
+          fi
+          curl -fsS --max-time 15 -X POST "$SITE/ops/report" \
+            -H "x-ops-secret: $OPS_SECRET" -H 'Content-Type: application/json' \
+            -d "$body" > /dev/null || echo "could not reach the site to report"

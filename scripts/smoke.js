@@ -256,6 +256,10 @@ async function reach(path, tries = 12, waitMs = 15000) {
   if (problems.length) {
     console.error('\nwrong:');
     for (const p of problems) console.error(`  - ${p}`);
+    // Left on disk so the report that follows can say what was wrong instead of
+    // only that something was. "Проверка не прошла" is not news anyone can act
+    // on; "the site shows 13 August, the body wrote to 15 August" is.
+    try { require('fs').writeFileSync('wrong.txt', problems.join('\n')); } catch (e) { /* the report will fall back */ }
     process.exit(1);
   }
   console.log('\nthe site is as it should be');
