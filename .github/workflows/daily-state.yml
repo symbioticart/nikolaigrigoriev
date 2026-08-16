@@ -155,14 +155,14 @@ jobs:
           if [ "${{ job.status }}" = "success" ]; then
             body='{"source":"картины","level":"ok","headline":"Сегодняшние картины на сайте."}'
           else
-            body=$(node -e 'console.log(JSON.stringify({
+            body=$(R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID" node -e 'console.log(JSON.stringify({
               source: "картины",
               level: "broken",
               headline: "Сегодняшние картины не дошли до сайта.",
               detail: "Зритель видит вчерашнее или позавчерашнее до того, как загрузится движок. Что-то из трёх: утреннее рисование не прошло, деплой увёз не тот коммит, или файлы не отдаются.",
               action: "Перезапустить daily-state: github.com/" + process.env.R + "/actions/workflows/daily-state.yml",
               runUrl: "github.com/" + process.env.R + "/actions/runs/" + process.env.I,
-            }))' R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID")
+            }))')
           fi
           curl -fsS --max-time 15 -X POST "$SITE/ops/report" \
             -H "x-ops-secret: $OPS_SECRET" -H 'Content-Type: application/json' \

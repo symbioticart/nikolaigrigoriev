@@ -133,18 +133,18 @@ jobs:
           [ -z "$OPS_SECRET" ] && exit 0
           msg=$(git log -1 --pretty=%s)
           if [ "${{ job.status }}" = "success" ]; then
-            body=$(node -e 'console.log(JSON.stringify({
+            body=$(M="$msg" node -e 'console.log(JSON.stringify({
               source: "релиз", level: "ok",
               headline: "На сайте новая версия: " + process.env.M + ". Прошла проверку глазами зрителя.",
-            }))' M="$msg")
+            }))')
           else
-            body=$(node -e 'console.log(JSON.stringify({
+            body=$(M="$msg" R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID" node -e 'console.log(JSON.stringify({
               source: "релиз", level: "broken",
               headline: "Обновление сайта не прошло проверку и откачено: " + process.env.M + ".",
               detail: "Сайт цел и показывает предыдущую версию — зритель ничего не потерял.",
               action: "Смотреть лог: github.com/" + process.env.R + "/actions/runs/" + process.env.I,
               runUrl: "github.com/" + process.env.R + "/actions/runs/" + process.env.I,
-            }))' M="$msg" R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID")
+            }))')
           fi
           curl -fsS --max-time 15 -X POST "$PROD/ops/report" \
             -H "x-ops-secret: $OPS_SECRET" -H 'Content-Type: application/json' \
@@ -174,14 +174,14 @@ jobs:
           if [ "${{ job.status }}" = "success" ]; then
             body='{"source":"взгляд зрителя","level":"ok","headline":"Сайт снова показывает то, что должен."}'
           else
-            body=$(node -e 'console.log(JSON.stringify({
+            body=$(W="$(cat wrong.txt 2>/dev/null)" R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID" node -e 'console.log(JSON.stringify({
               source: "взгляд зрителя",
               level: "broken",
               headline: "Прошёл сайт как зритель — увидел не то, что должен.",
               detail: (process.env.W || "").trim().slice(0, 600) || "Подробности в логе прогона.",
               action: "Смотреть лог: github.com/" + process.env.R + "/actions/runs/" + process.env.I,
               runUrl: "github.com/" + process.env.R + "/actions/runs/" + process.env.I,
-            }))' W="$(cat wrong.txt 2>/dev/null)" R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID")
+            }))')
           fi
           curl -fsS --max-time 15 -X POST "$PROD/ops/report" \
             -H "x-ops-secret: $OPS_SECRET" -H 'Content-Type: application/json' \

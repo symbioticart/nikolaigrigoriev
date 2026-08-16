@@ -18,37 +18,47 @@ SERVICE="${1:?which service}"
 API="https://api.render.com/v1/services/$SERVICE"
 
 SHA="${2:-$(git rev-parse HEAD)}"
-SHORT="${SHA:0:7}"
-echo "asking for $SHORT"
+# It is interpolated into a JSON body below; anything that is not a commit hash
+# has no business being there.
+case "$SHA" in
+  *[!0-9a-fA-F]* | "") echo "not a commit hash: $SHA"; exit 1 ;;
+esac
+echo "asking for ${SHA:0:7}"
+
+# `set -e` and pipelines do not mix: a grep that matches nothing kills the whole
+# script inside the assignment, so every careful check written below it — the
+# empty-response guard, the wait loop, the verification — never runs at all. The
+# pipe's failure is swallowed deliberately and the emptiness handled by hand.
+field() { grep -oE "\"$1\":\"[^\"]+\"" | head -1 | cut -d'"' -f4 || true; }
 
 dep=$(curl -fsS -X POST -H "Authorization: Bearer $RENDER_API_KEY" \
   -H "Content-Type: application/json" "$API/deploys" \
-  -d "{\"commitId\":\"$SHA\"}" \
-  | grep -oE '"id":"dep-[a-z0-9]+"' | head -1 | cut -d'"' -f4)
+  -d "{\"commitId\":\"$SHA\"}" | field id || true)
 [ -n "$dep" ] || { echo "Render did not accept the deploy"; exit 1; }
 echo "deploy $dep"
 
+status=""
 for _ in $(seq 1 60); do
-  s=$(curl -fsS -H "Authorization: Bearer $RENDER_API_KEY" "$API/deploys/$dep" \
-    | grep -oE '"status":"[a-z_]+"' | head -1 | cut -d'"' -f4)
-  case "$s" in
-    live) echo "standing"; break ;;
-    build_failed|update_failed|canceled|pre_deploy_failed) echo "deploy $s"; exit 1 ;;
+  status=$(curl -fsS -H "Authorization: Bearer $RENDER_API_KEY" "$API/deploys/$dep" | field status || true)
+  case "$status" in
+    live) break ;;
+    build_failed|update_failed|canceled|pre_deploy_failed) echo "deploy $status"; exit 1 ;;
+    "") echo "Render did not say — asking again" ;;
   esac
   sleep 15
 done
-[ "${s:-}" = "live" ] || { echo "the deploy never settled"; exit 1; }
+[ "$status" = "live" ] || { echo "the deploy never settled (last status: ${status:-none})"; exit 1; }
+echo "standing"
 
-# And prove it. The site reports the commit it is running; if that is not the
-# one we asked for, the deploy succeeded at carrying the wrong thing.
+# And prove it. The site reports the commit it is running; if that is not the one
+# we asked for, the deploy succeeded at carrying the wrong thing.
 if [ -n "${VERIFY_URL:-}" ]; then
   for _ in $(seq 1 20); do
-    got=$(curl -fsS -m 20 "$VERIFY_URL/health" 2>/dev/null \
-      | grep -oE '"buildSha":"[a-f0-9]+"' | head -1 | cut -d'"' -f4 || true)
-    [ "$got" = "$SHORT" ] && { echo "standing on $SHORT"; exit 0; }
+    got=$(curl -fsS -m 20 "$VERIFY_URL/health" 2>/dev/null | field buildCommit || true)
+    [ "$got" = "$SHA" ] && { echo "standing on ${SHA:0:7}"; exit 0; }
     sleep 10
   done
-  echo "asked for $SHORT, the site answers ${got:-nothing} — the wrong commit is live"
+  echo "asked for ${SHA:0:7}, the site answers ${got:-nothing} — the wrong commit is live"
   exit 1
 fi
 exit 0

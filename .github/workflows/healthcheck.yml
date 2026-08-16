@@ -54,15 +54,11 @@ jobs:
                 "Живой синк с Oura не поднялся — картина есть, но она не дышит.",
                 "Перезапустить сервис на Render.",
               ].join("|"));
-              // The site now knows how far the paintings it serves have fallen
-              // behind the record. A day is the rhythm; two is a stall — and for a
-              // whole day in August this was the one broken thing on the site while
-              // every check here reported green, because none of them looked.
-              if ((h.stateBehindDays ?? 0) > 1) out.push([
-                `Зритель видит картины от ${h.statePaintedDay}, а запись дошла до ${h.lastDataDay}.`,
-                "Статичные состояния на сайте отстали от тела.",
-                "Перезапустить daily-state.",
-              ].join("|"));
+              // Stale paintings are deliberately NOT judged here. The site sees
+              // that for itself now (statePaintedDay / stateBehindDays) and puts
+              // it in the digest; saying it from here too would print the same
+              // block twice in one evening message. What is checked here is only
+              // what a server cannot honestly witness about itself.
               if ((h.dayCount ?? 0) < (h.lastKnownGoodDayCount ?? 0)) out.push([
                 `Запись уменьшилась: ${h.dayCount} вместо ${h.lastKnownGoodDayCount}.`,
                 "Это не бывает нормальным — дни из записи не исчезают.",
@@ -98,7 +94,7 @@ jobs:
         run: |
           [ -z "$OPS_SECRET" ] && { echo "no ops secret"; exit 0; }
           if [ -s fails.txt ]; then
-            body=$(node -e '
+            body=$(R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID" node -e '
               const lines = require("fs").readFileSync("fails.txt","utf8").trim().split("\n");
               const [what, why, act] = lines[0].split("|");
               const more = lines.length > 1 ? `\nИ ещё: ${lines.slice(1).map(l=>l.split("|")[0]).join(" ")}` : "";
@@ -110,7 +106,7 @@ jobs:
                 action: act || "",
                 runUrl: "github.com/" + process.env.R + "/actions/runs/" + process.env.I,
               }));
-            ' R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID")
+            ')
           else
             body='{"source":"проверка данных","level":"ok","headline":"Данные снова в порядке."}'
           fi

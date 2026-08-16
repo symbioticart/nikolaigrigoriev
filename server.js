@@ -288,11 +288,18 @@ function opsProblem(key, text, level = 'watch') {
   const now = Date.now(), a = OPS.alerts[key];
   if (now < OPS.muteUntil) return;   // muted: don't mark as announced — it will fire after unmute
   if (!a) {
-    OPS.alerts[key] = { since: now, lastSent: now, level, text };
+    OPS.alerts[key] = { since: now, lastSent: now, level, text, announced: level === 'broken' };
     if (level === 'broken') tgSend(text);   // anything milder waits for the digest
     return;
   }
   a.text = text;
+  // A thing can get worse. Something that was only worth knowing and has become
+  // broken must be said now — not held for another 48 hours because an entry
+  // already existed. And once said out loud, its recovery is said out loud too,
+  // whatever level it has drifted to since.
+  const escalated = level === 'broken' && a.level !== 'broken';
+  a.level = level;
+  if (escalated) { a.lastSent = now; a.announced = true; tgSend(text); return; }
   if (level === 'broken' && now - a.lastSent > 48 * 3600e3) {
     a.lastSent = now;
     tgSend(`${text}\n\nДержится уже ${ruDur(now - a.since)}.`);
@@ -302,7 +309,7 @@ function opsRecovered(key, text) {
   const a = OPS.alerts[key];
   if (!a) return;
   delete OPS.alerts[key];
-  if (a.level === 'broken') tgSend(`${text} Длилось ${ruDur(Date.now() - a.since)}.`);
+  if (a.announced) tgSend(`${text} Длилось ${ruDur(Date.now() - a.since)}.`);
 }
 
 // Russian counts things by the last digit and then changes its mind about it.
@@ -598,7 +605,12 @@ function apiGet(urlStr) {
     const req = https.request(new URL(urlStr),
       { method: 'GET', headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } },
       res => { let d = ''; res.on('data', c => d += c); res.on('end', () => resolve({ status: res.statusCode, body: d })); });
-    req.on('error', reject); req.end();
+    req.on('error', reject);
+    // Without this a hung connection never settles, sync() never leaves its
+    // `finally`, STATE.syncing stays true, and every slot from then on returns
+    // "busy" — the record would simply stop advancing and nothing would say why.
+    req.setTimeout(60000, () => { req.destroy(new Error('Oura did not answer in 60s')); });
+    req.end();
   });
 }
 
@@ -1034,6 +1046,12 @@ async function sync(opts = {}) {
     // still holds the work. Only a pull that finds nothing anywhere is broken,
     // and that is what the full sync at boot is there to catch.
     if (!fetched.length && !archived.length) throw new Error('no days built');
+    // But an empty answer from every collection at once is NOT proof of silence,
+    // and confirmed silence is what petrifies days as dormant. Oura can answer
+    // 200 with nothing in it; treating that as "the body wrote nothing for
+    // ninety days" would write ninety false dormant markers into a record whose
+    // whole promise is that it holds only true, live-confirmed sleep.
+    const emptyAnswer = !fetched.length;
     const rawDays = mergeDays(archived, fetched, snapshotRead());
     // Only live-confirmed days petrify into the immutable archive — and only
     // from a COMPLETE sync: a day fetched while a collection was failing has
@@ -1064,13 +1082,14 @@ async function sync(opts = {}) {
     }
     STATE.nights = nights;
 
-    setDays(rawDays, true);
+    setDays(rawDays, emptyAnswer ? STATE.live : true);
     STATE.lastSync = new Date().toISOString();
     STATE.tokenError = false;
-    archiveDormancy();   // dormant days petrify; days that got data resurrect (live-confirmed only)
+    if (!emptyAnswer) archiveDormancy();   // dormant days petrify; days that got data resurrect (live-confirmed only)
 
     // self-check: silent degradation is a data malfunction, not slow Oura.
     const reasons = [];
+    if (emptyAnswer) reasons.push('Oura answered with no days at all');
     // daily_spo2 is not load-bearing: losing it costs the grain of one work's
     // ground and nothing else. It must not raise an alarm at three in the
     // morning, or the alarm stops meaning anything.
@@ -1141,9 +1160,13 @@ function nextSyncTime() {
 function syncTick() {
   try {
     const { date, hour, minute, weekday } = barcelonaParts();
-    if (!SYNC_HOURS.includes(hour) || minute !== SYNC_MINUTE) return;
+    // A ten-minute window rather than one exact minute: if a sync is already
+    // under way at HH:30 — the boot pull, or the button — the slot can still be
+    // taken a minute later instead of being lost for six hours.
+    if (!SYNC_HOURS.includes(hour) || minute < SYNC_MINUTE || minute >= SYNC_MINUTE + 10) return;
     const slot = `${date}T${hour}`;
     if (OPS.lastSyncSlot === slot) return;
+    if (STATE.syncing) return;   // try again next minute, still inside the window
     OPS.lastSyncSlot = slot;
     const full = weekday === FULL_SYNC_WEEKDAY && hour === SYNC_HOURS[0];
     sync({ full });
@@ -1189,6 +1212,7 @@ function healthObj() {
     // yesterday.
     statePaintedDay: statePainting().day,
     stateBehindDays: statePainting().known ? statePainting().behind : null,
+    buildCommit: process.env.RENDER_GIT_COMMIT || 'dev',   // the whole hash, so a deploy can prove itself
     nextSyncAt: nextSyncTime(),
     lastFullSyncAt: OPS.lastFullSync,
   };
@@ -1294,10 +1318,18 @@ http.createServer((req, res) => {
     if (!secret || got.length !== want.length || !crypto.timingSafeEqual(got, want)) {
       res.writeHead(403, head({})); res.end(); return;
     }
-    sync({ quiet: true }).then((r) => {
-      res.writeHead(200, head({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }));
-      res.end(JSON.stringify(r || { ok: false }));
-    }).catch(() => { try { res.writeHead(500, head({})); res.end(); } catch (e) {} });
+    // Asking again a few seconds later cannot tell us anything new, and each ask
+    // spends someone else's rate limit. A caller holding the secret is trusted,
+    // not licensed to hammer Oura.
+    const sinceLast = STATE.lastSync ? Date.now() - Date.parse(STATE.lastSync) : Infinity;
+    const answer = (code, obj) => {
+      try {
+        res.writeHead(code, head({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }));
+        res.end(JSON.stringify(obj));
+      } catch (e) { /* the caller hung up while we were asking the ring */ }
+    };
+    if (sinceLast < 60000) { answer(200, { ok: true, skipped: 'asked less than a minute ago', lastDataDay: STATE.lastDataDay }); return; }
+    sync({ quiet: true }).then((r) => answer(200, r || { ok: false })).catch(() => answer(500, { ok: false }));
     return;
   }
 
@@ -1316,12 +1348,29 @@ http.createServer((req, res) => {
     if (!secret || got.length !== want.length || !crypto.timingSafeEqual(got, want)) {
       res.writeHead(403, head({})); res.end(); return;
     }
-    let body = '';
-    req.on('data', c => { body += c; if (body.length > 65536) req.destroy(); });
+    // The answer is given AFTER the report has been understood. Answering
+    // "ok" first and then dropping a malformed body leaves the sender believing
+    // it warned somebody — which is the exact failure this endpoint exists to
+    // prevent. Bytes, not characters: a Russian headline is two bytes a letter.
+    const chunks = []; let size = 0; let tooBig = false;
+    req.setTimeout(15000, () => req.destroy());
+    req.on('data', (c) => {
+      size += c.length;
+      if (size > 65536) { tooBig = true; req.destroy(); return; }
+      chunks.push(c);
+    });
     req.on('end', () => {
-      res.writeHead(200, head({ 'Content-Type': 'application/json' })); res.end('{"ok":true}');
+      const say = (code, obj) => {
+        try { res.writeHead(code, head({ 'Content-Type': 'application/json' })); res.end(JSON.stringify(obj)); }
+        catch (e) { /* the sender hung up */ }
+      };
+      if (tooBig) { say(413, { ok: false, error: 'report too large' }); return; }
       try {
-        const d = JSON.parse(body || '{}');
+        const d = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+        if (!d || typeof d !== 'object' || Array.isArray(d)) { say(400, { ok: false, error: 'not a report' }); return; }
+        if (d.level && !['broken', 'watch', 'ok'].includes(d.level)) { say(400, { ok: false, error: 'unknown level' }); return; }
+        if (d.level !== 'ok' && !String(d.headline || '').trim()) { say(400, { ok: false, error: 'a report needs a headline' }); return; }
+        say(200, { ok: true });
         const source = String(d.source || 'watcher').slice(0, 40);
         const level = ['broken', 'watch', 'ok'].includes(d.level) ? d.level : 'watch';
         const rec = {
@@ -1333,10 +1382,21 @@ http.createServer((req, res) => {
           at: new Date().toISOString(),
         };
         OPS.reports[source] = rec;
+        // There are five watchers. A caller that invents new names — a mistake in
+        // a workflow as easily as anything else — must not grow this map forever
+        // on a process that runs for months.
+        const names = Object.keys(OPS.reports);
+        if (names.length > 20) {
+          names.sort((a, b) => Date.parse(OPS.reports[a].at) - Date.parse(OPS.reports[b].at));
+          for (const stale of names.slice(0, names.length - 20)) {
+            delete OPS.reports[stale];
+            delete OPS.alerts[`w:${stale}`];
+          }
+        }
         console.log(`[ops] ${source} → ${level}: ${rec.headline}`);
         if (level === 'ok') opsRecovered(`w:${source}`, rec.headline || 'Проверка снова проходит.');
         else opsProblem(`w:${source}`, troubleBlock({ what: rec.headline, why: rec.detail, act: rec.action }), level);
-      } catch (e) { /* a malformed report is not worth a crash */ }
+      } catch (e) { say(400, { ok: false, error: 'unreadable report' }); }
     });
     req.on('error', () => {});
     return;
@@ -1671,7 +1731,9 @@ http.createServer((req, res) => {
   // restart inside a sync minute must not re-run the sync it just did on boot.
   const bcn = barcelonaParts();
   if (bcn.hour >= DIGEST_HOUR) OPS.lastDigestDate = bcn.date;
-  if (SYNC_HOURS.includes(bcn.hour) && bcn.minute === SYNC_MINUTE) OPS.lastSyncSlot = `${bcn.date}T${bcn.hour}`;
+  if (SYNC_HOURS.includes(bcn.hour) && bcn.minute >= SYNC_MINUTE && bcn.minute < SYNC_MINUTE + 10) {
+    OPS.lastSyncSlot = `${bcn.date}T${bcn.hour}`;
+  }
   setInterval(digestTick, 60e3);   // evening digest, 21:00 Barcelona
   registerBotMenu();
 });

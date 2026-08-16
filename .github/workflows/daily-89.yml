@@ -98,14 +98,14 @@ jobs:
           if [ "${{ job.status }}" = "success" ]; then
             body='{"source":"архив 89","level":"ok","headline":"Сегодняшний кадр записан в архив."}'
           else
-            body=$(node -e 'console.log(JSON.stringify({
+            body=$(R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID" node -e 'console.log(JSON.stringify({
               source: "архив 89",
               level: "watch",
               headline: "Не получилось записать сегодняшний кадр в архив проекта 89.",
               detail: "На сайт и на картину это не влияет — работа живёт дальше. Пропущен один день в write-once архиве кадров.",
               action: "Перезапустить daily-89: github.com/" + process.env.R + "/actions/workflows/daily-89.yml",
               runUrl: "github.com/" + process.env.R + "/actions/runs/" + process.env.I,
-            }))' R="$GITHUB_REPOSITORY" I="$GITHUB_RUN_ID")
+            }))')
           fi
           curl -fsS --max-time 15 -X POST "$SITE/ops/report" \
             -H "x-ops-secret: $OPS_SECRET" -H 'Content-Type: application/json' \
