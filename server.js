@@ -1160,10 +1160,11 @@ function nextSyncTime() {
 function syncTick() {
   try {
     const { date, hour, minute, weekday } = barcelonaParts();
-    // A ten-minute window rather than one exact minute: if a sync is already
-    // under way at HH:30 — the boot pull, or the button — the slot can still be
-    // taken a minute later instead of being lost for six hours.
-    if (!SYNC_HOURS.includes(hour) || minute < SYNC_MINUTE || minute >= SYNC_MINUTE + 10) return;
+    // The rest of the hour, not one exact minute: if a sync is already under way
+    // at HH:30 — the boot pull, the button, a full history that is taking its
+    // time — the slot can still be taken later instead of being lost for six
+    // hours. The slot key below makes sure it is taken only once.
+    if (!SYNC_HOURS.includes(hour) || minute < SYNC_MINUTE) return;
     const slot = `${date}T${hour}`;
     if (OPS.lastSyncSlot === slot) return;
     if (STATE.syncing) return;   // try again next minute, still inside the window
@@ -1352,25 +1353,29 @@ http.createServer((req, res) => {
     // "ok" first and then dropping a malformed body leaves the sender believing
     // it warned somebody — which is the exact failure this endpoint exists to
     // prevent. Bytes, not characters: a Russian headline is two bytes a letter.
-    const chunks = []; let size = 0; let tooBig = false;
-    req.setTimeout(15000, () => req.destroy());
+    const chunks = []; let size = 0; let answered = false;
+    const say = (code, obj) => {
+      if (answered) return;
+      answered = true;
+      try { res.writeHead(code, head({ 'Content-Type': 'application/json' })); res.end(JSON.stringify(obj)); }
+      catch (e) { /* the sender hung up */ }
+    };
+    req.setTimeout(15000, () => { say(408, { ok: false, error: 'took too long to send' }); req.destroy(); });
     req.on('data', (c) => {
       size += c.length;
-      if (size > 65536) { tooBig = true; req.destroy(); return; }
+      // Say 413 first and only then hang up: destroying the request means `end`
+      // never fires, so a refusal written in the end handler would never be sent
+      // and the sender would see a dropped connection instead of a reason.
+      if (size > 65536) { say(413, { ok: false, error: 'report too large' }); req.destroy(); return; }
       chunks.push(c);
     });
     req.on('end', () => {
-      const say = (code, obj) => {
-        try { res.writeHead(code, head({ 'Content-Type': 'application/json' })); res.end(JSON.stringify(obj)); }
-        catch (e) { /* the sender hung up */ }
-      };
-      if (tooBig) { say(413, { ok: false, error: 'report too large' }); return; }
+      if (answered) return;
       try {
         const d = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
         if (!d || typeof d !== 'object' || Array.isArray(d)) { say(400, { ok: false, error: 'not a report' }); return; }
         if (d.level && !['broken', 'watch', 'ok'].includes(d.level)) { say(400, { ok: false, error: 'unknown level' }); return; }
         if (d.level !== 'ok' && !String(d.headline || '').trim()) { say(400, { ok: false, error: 'a report needs a headline' }); return; }
-        say(200, { ok: true });
         const source = String(d.source || 'watcher').slice(0, 40);
         const level = ['broken', 'watch', 'ok'].includes(d.level) ? d.level : 'watch';
         const rec = {
@@ -1396,7 +1401,11 @@ http.createServer((req, res) => {
         console.log(`[ops] ${source} → ${level}: ${rec.headline}`);
         if (level === 'ok') opsRecovered(`w:${source}`, rec.headline || 'Проверка снова проходит.');
         else opsProblem(`w:${source}`, troubleBlock({ what: rec.headline, why: rec.detail, act: rec.action }), level);
-      } catch (e) { say(400, { ok: false, error: 'unreadable report' }); }
+        // Only now. A watcher that is told "ok" has been told its warning
+        // reached somebody, and that has to be true — this endpoint exists
+        // because warnings were being lost.
+        say(200, { ok: true });
+      } catch (e) { say(500, { ok: false, error: 'the report was not filed' }); }
     });
     req.on('error', () => {});
     return;
@@ -1731,9 +1740,7 @@ http.createServer((req, res) => {
   // restart inside a sync minute must not re-run the sync it just did on boot.
   const bcn = barcelonaParts();
   if (bcn.hour >= DIGEST_HOUR) OPS.lastDigestDate = bcn.date;
-  if (SYNC_HOURS.includes(bcn.hour) && bcn.minute >= SYNC_MINUTE && bcn.minute < SYNC_MINUTE + 10) {
-    OPS.lastSyncSlot = `${bcn.date}T${bcn.hour}`;
-  }
+  if (SYNC_HOURS.includes(bcn.hour) && bcn.minute >= SYNC_MINUTE) OPS.lastSyncSlot = `${bcn.date}T${bcn.hour}`;
   setInterval(digestTick, 60e3);   // evening digest, 21:00 Barcelona
   registerBotMenu();
 });
