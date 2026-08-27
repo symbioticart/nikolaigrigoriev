@@ -720,10 +720,85 @@ function buildDays(sleepRaw, dailySleep, dailyReady, workoutRaw) {
 // stress — so it does not grow, and nothing here has to watch it.
 function loadRecord91() {
   if (!STATE.days91) {
-    try { STATE.days91 = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'days-91.json'), 'utf8')); }
-    catch { STATE.days91 = { days: [], meta: {} }; }
+    const days = record91Read();
+    STATE.days91 = { days, meta: { birth: days[0] && days[0].day, count: days.length,
+                                   last: days[days.length - 1] && days[days.length - 1].day, live: false } };
   }
   return STATE.days91;
+}
+
+// ---------- raw upstream -> the record of Variation 91 ----------
+// That work reads four channels no other one needs: the hour the body fell
+// asleep, how far that hour fell from its own, the day's steps, and the seconds
+// it spent under strain. Two of them come from collections nothing else here
+// asks for, so the record is built and kept apart rather than widening the day
+// every other work reads.
+function buildDays91(sleepRaw, dailySleep, dailyReady, activityRaw, stressRaw) {
+  const dsByDay = Object.fromEntries(dailySleep.map(r => [r.day, r]));
+  const rdByDay = Object.fromEntries(dailyReady.map(r => [r.day, r]));
+  const acByDay = Object.fromEntries((activityRaw || []).map(r => [r.day, r]));
+  const stByDay = Object.fromEntries((stressRaw || []).map(r => [r.day, r]));
+
+  const slByDay = {};
+  for (const s of sleepRaw) {
+    if (s.type !== 'long_sleep' || !s.day || !s.bedtime_start) continue;
+    const cur = slByDay[s.day];
+    if (!cur || (s.total_sleep_duration || 0) > (cur.total_sleep_duration || 0)) slByDay[s.day] = s;
+  }
+
+  const all = [...new Set([...Object.keys(slByDay), ...Object.keys(dsByDay), ...Object.keys(rdByDay)])].sort();
+  const days = [];
+  for (const d of all) {
+    const sl = slByDay[d], ds = dsByDay[d], rd = rdByDay[d], ac = acByDay[d], st = stByDay[d];
+    if (!sl && !rd) continue;
+    let bed = null;
+    if (sl) {
+      // The hour is read where the body slept, not in UTC: falling asleep at one
+      // in the morning is one in the morning wherever the ring was. The evening
+      // is carried into the negative so that midnight is a continuous point and
+      // 23:40 and 00:20 are forty minutes apart, not twenty-three hours.
+      const h = +sl.bedtime_start.slice(11, 13) + +sl.bedtime_start.slice(14, 16) / 60;
+      bed = +(h >= 12 ? h - 24 : h).toFixed(3);
+    }
+    days.push({
+      day: d,
+      hrv:    sl ? sl.average_hrv : null,
+      bed,
+      timing: ds ? ds.contributors.timing : null,
+      steps:  ac ? (ac.steps ?? null) : null,
+      stress: st ? (st.stress_high ?? null) : null,
+      temp:   rd ? rd.temperature_deviation : null,
+    });
+  }
+  return days;
+}
+
+// The growing record lives beside the archive, outside the repository, for the
+// same reason the archive does: it is written by the sync, and a file the
+// server rewrites has no business in a git history. The copy shipped in the
+// repository is the seed — it is what a fresh instance paints from until its
+// first sync answers.
+// Paths, not constants: ARCHIVE_DIR is settled further down the file, and a
+// constant here would read it before it exists.
+const record91Path = () => path.join(path.dirname(ARCHIVE_DIR), 'days-91.json');
+const seed91Path = () => path.join(__dirname, 'data', 'days-91.json');
+
+function record91Read() {
+  for (const f of [record91Path(), seed91Path()]) {
+    try { const d = JSON.parse(fs.readFileSync(f, 'utf8')).days; if (d && d.length) return d; }
+    catch { /* next */ }
+  }
+  return [];
+}
+function record91Write(days, live) {
+  try {
+    fs.mkdirSync(path.dirname(record91Path()), { recursive: true });
+    fs.writeFileSync(record91Path(), JSON.stringify({
+      days,
+      meta: { birth: days[0] && days[0].day, last: days[days.length - 1] && days[days.length - 1].day,
+              live: !!live, count: days.length },
+    }));
+  } catch (e) { console.warn('[91] write skipped:', e.message); }
 }
 
 // ---------- raw upstream -> the night itself ----------
@@ -1027,8 +1102,12 @@ async function sync(opts = {}) {
     // disturbance index is the amplitude of that work's ground grain. It is the
     // least important collection here — if it fails, allSettled isolates it, the
     // index is null, and the grain sits at its floor. Nothing else notices.
-    const COLS = ['sleep', 'daily_sleep', 'daily_readiness', 'workout', 'daily_spo2'];
-    const acc = { sleep: [], daily_sleep: [], daily_readiness: [], workout: [], daily_spo2: [] };
+    // daily_activity and daily_stress joined the list for Variation 91 alone:
+    // the steps are the area of its daily form, the seconds under strain are its
+    // sharp points. Like daily_spo2 they carry one work and nothing else — if
+    // they fail, allSettled isolates them and only that work's record waits.
+    const COLS = ['sleep', 'daily_sleep', 'daily_readiness', 'workout', 'daily_spo2', 'daily_activity', 'daily_stress'];
+    const acc = { sleep: [], daily_sleep: [], daily_readiness: [], workout: [], daily_spo2: [], daily_activity: [], daily_stress: [] };
     const failedCols = new Set();
     let authFailure = null;
     for (const [a, b] of chunks) {
@@ -1093,6 +1172,29 @@ async function sync(opts = {}) {
     }
     STATE.nights = nights;
 
+    // The sheet of Variation 91, on the same terms as the nights: what was
+    // written first stays as written, the live fetch fills what is missing, and
+    // a day is only kept once it is behind us. Nothing is admitted BEFORE the
+    // record already begins — a day slipped in under the earliest one would
+    // re-cut the silhouette of every day after it, and a day already painted is
+    // never repainted.
+    const need91 = ['sleep', 'daily_sleep', 'daily_readiness', 'daily_activity', 'daily_stress'];
+    if (!need91.some(n => failedCols.has(n))) {
+      const written91 = record91Read();
+      const floor91 = written91.length ? written91[0].day : null;
+      const fetched91 = buildDays91(acc.sleep, acc.daily_sleep, acc.daily_readiness,
+                                    acc.daily_activity, acc.daily_stress)
+        .filter(d => d.day < today && (!floor91 || d.day >= floor91));
+      const merged91 = mergeDays(written91, fetched91);
+      if (merged91.length) {
+        if (merged91.length !== written91.length) record91Write(merged91, true);
+        STATE.days91 = { days: merged91, meta: { birth: merged91[0].day, live: true,
+                                                 last: merged91[merged91.length - 1].day, count: merged91.length } };
+        if (merged91.length !== written91.length)
+          console.log(`[91] record grew ${written91.length} → ${merged91.length} days`);
+      }
+    }
+
     setDays(rawDays, emptyAnswer ? STATE.live : true);
     STATE.lastSync = new Date().toISOString();
     STATE.tokenError = false;
@@ -1104,7 +1206,8 @@ async function sync(opts = {}) {
     // daily_spo2 is not load-bearing: losing it costs the grain of one work's
     // ground and nothing else. It must not raise an alarm at three in the
     // morning, or the alarm stops meaning anything.
-    const criticalFailed = [...failedCols].filter(n => n !== 'daily_spo2');
+    const SINGLE_WORK_COLS = new Set(['daily_spo2', 'daily_activity', 'daily_stress']);
+    const criticalFailed = [...failedCols].filter(n => !SINGLE_WORK_COLS.has(n));
     if (criticalFailed.length) reasons.push('collections failed: ' + criticalFailed.join(','));
     if (rawDays.length < STATE.lastKnownGoodCount) reasons.push(`dayCount ${rawDays.length} < known-good ${STATE.lastKnownGoodCount}`);
     else STATE.lastKnownGoodCount = rawDays.length;
