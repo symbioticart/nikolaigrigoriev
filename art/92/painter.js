@@ -1,4 +1,10 @@
-// Variation 91 — накопительный холст.
+// S5-04 — накопительный холст, тесная кладка.
+//
+// Тот же лист и то же правило, что у S5-03, с двумя расхождениями: день
+// занимает вчетверо меньше места, и краска уходит из него быстрее на треть.
+// Тело то же, шаг мельче и память короче — лист набирается из многих мелких
+// дней, а не из немногих крупных, и глубина под свежими днями начинается
+// раньше.
 //
 // Один прожитый день кладёт на лист одну тёмную форму поверх предыдущих.
 // Композиция не выбирается: место дня — его час засыпания на суточном
@@ -28,11 +34,11 @@
 
   var S = {
     gap: 0, scarGap: 0.14, scarAfter: 14,
-    area: 0.096, stepsLo: 0.40, stepsHi: 1.60, scaleLo: 0.10, scaleHi: 4.00,
+    area: 0.024, stepsLo: 0.40, stepsHi: 1.60, scaleLo: 0.10, scaleHi: 4.00,
     window: 50, rMax: 0.40,
     // Выцветание с возрастом: день теряет плотность и в конце остаётся
     // волосяной линией. Ничего не стирается — уходит в глубину.
-    fillLife: 60, fillCurve: 2.2, hairMin: 0.04,
+    fillLife: 42, fillCurve: 2.2, hairMin: 0.04,
     hairAlpha: 0.26, hairWidth: 0.55,
     bowLo: -0.30, bowHi: 0.55, tiltDeg: 40,
     beakMax: 6, beakShare: 0.4, beakHour: 3600, beakMinL: 16, beakOut: 0.55,
@@ -255,5 +261,5 @@
     return outC;
   }
 
-  global.V91Painter = { paintDay: paintDay, normalize: normalize, S: S, PAPER: PAPER };
+  global.V92Painter = { paintDay: paintDay, normalize: normalize, S: S, PAPER: PAPER };
 })(typeof self !== 'undefined' ? self : globalThis);

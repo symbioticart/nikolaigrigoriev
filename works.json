@@ -121,7 +121,7 @@
     }
   },
   "91": {
-    "title": "Variation 91",
+    "title": "S5-03",
     "listed": false,
     "selected": false,
     "medium": "Software, a lived life written daily by an unchanging rule, screen. Dimensions variable — one sheet, the rule since 2026, the days since 2024.",
@@ -150,7 +150,7 @@
         "Nothing is arranged by hand.",
         "The sheet holds every day the body has lived: a new day is laid over the days already there.",
         "A day is weighed against the days of this body that came before it, never against the days that follow.",
-        "Several signals drive every visible feature, so that no single one can be read back out.",
+        "Every visible feature is driven by one named signal of the body, and this work does not hide it: a day's sharp points can be read back out as the hours it spent under strain. Nothing here pretends to be more entangled than it is.",
         "The seed of a day is the place its form takes on the sheet; the date only puts the days in order.",
         "The instrument's own verdict on a day is used nowhere in the work.",
         "Where a day falls is the hour the body went to sleep, and how far that hour fell from its own.",
@@ -161,7 +161,7 @@
         "Every day the work has lived is kept, whether or not it can still be seen."
       ],
       "seed": "The seed of a day is the place its form takes on the sheet; the date only puts the days in order.",
-      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2024, because the body had already been recording them.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html?id=91\">Conditions of the Work</a>."
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2024, because the body had already been recording them."
     }
   }
 }

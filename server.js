@@ -12,6 +12,7 @@ const path   = require('path');
 const crypto = require('crypto');
 const rule   = require('./rule');
 const rule89 = require('./rule89');
+const { sweep } = require('./oura-sweep');
 // Set only on the rehearsal copy: "name:password". Production leaves it unset.
 const STAGING_AUTH = process.env.STAGING_AUTH || '';
 // A rehearsal copy: kept out of search, whether or not it also asks a password.
@@ -660,10 +661,22 @@ async function apiGetAuthed(urlStr) {
 }
 
 async function fetchCollection(name, qs) {
-  const url = `https://api.ouraring.com/v2/usercollection/${name}?${qs}`;
-  const r = await apiGetAuthed(url);
-  if (r.status !== 200) throw new Error(`${name} ${r.status}: ${r.body.slice(0,120)}`);
-  return JSON.parse(r.body).data || [];
+  // A page at a time until Oura says there are no more. This used to take the
+  // first page only: a window holding more rows than one page lost the rest
+  // without a word, and the record was short in a way nothing could see.
+  const rows = [];
+  let token = null;
+  for (let page = 0; page < 200; page++) {
+    const url = `https://api.ouraring.com/v2/usercollection/${name}?${qs}` +
+                (token ? `&next_token=${encodeURIComponent(token)}` : '');
+    const r = await apiGetAuthed(url);
+    if (r.status !== 200) throw new Error(`${name} ${r.status}: ${r.body.slice(0,120)}`);
+    const j = JSON.parse(r.body);
+    if (Array.isArray(j.data)) rows.push(...j.data);
+    token = j.next_token;
+    if (!token) break;
+  }
+  return rows;
 }
 
 // ---------- raw upstream -> daily raw record ----------
@@ -1069,6 +1082,29 @@ function nightMeta() {
 }
 
 // ---------- sync ----------
+// Everything the ring gives, written down raw beside the archive. It runs after
+// the record is already served, in the background, and its failures never reach
+// the paintings: a work reads the record, not this. What it is for is the days
+// that have not happened yet — a signal nobody asks for today cannot be asked
+// for retroactively once the day is gone.
+const SWEEP_DIR = () => path.join(path.dirname(ARCHIVE_DIR), 'oura');
+let sweeping = false;
+function sweepLater(full) {
+  if (sweeping) return;
+  sweeping = true;
+  setTimeout(() => {
+    sweep({ get: apiGetAuthed, dir: SWEEP_DIR(), birth: WORK_BIRTH_DATE, full,
+            log: (m) => console.warn(m) })
+      .then((report) => {
+        STATE.sweep = { at: new Date().toISOString(), report };
+        const added = Object.entries(report).filter(([, v]) => v.added).map(([k, v]) => `${k}+${v.added}`);
+        console.log(`[sweep] ${added.length ? added.join(' ') : 'nothing new'}`);
+      })
+      .catch((e) => { STATE.sweep = { at: new Date().toISOString(), error: e.message }; console.warn('[sweep] failed:', e.message); })
+      .finally(() => { sweeping = false; });
+  }, 50);
+}
+
 async function sync(opts = {}) {
   if (STATE.syncing) return { ok: false, reason: 'busy' };
   if (!ACCESS_TOKEN && !(REFRESH_TOKEN && CLIENT_ID)) { console.warn('[sync] no token configured — serving the record'); return { ok: false, reason: 'no token' }; }
@@ -1197,6 +1233,7 @@ async function sync(opts = {}) {
 
     setDays(rawDays, emptyAnswer ? STATE.live : true);
     STATE.lastSync = new Date().toISOString();
+    sweepLater(full);
     STATE.tokenError = false;
     if (!emptyAnswer) archiveDormancy();   // dormant days petrify; days that got data resurrect (live-confirmed only)
 
@@ -1316,6 +1353,7 @@ function healthObj() {
     dataAdvancing: dayCount > 0 && dayCount >= (STATE.lastKnownGoodCount || 0),
     lastSyncAgeSec: STATE.lastSync ? Math.round((Date.now() - Date.parse(STATE.lastSync)) / 1000) : null,
     syncedAt: STATE.lastSync,
+    sweep: STATE.sweep || null,
     perCollection: STATE.perCollection || {},
     dormantDays: dormantFiles().length,
     buildSha: BUILD_SHA,
