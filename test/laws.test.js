@@ -211,7 +211,12 @@ test('a work that writes its own laws writes a whole rule, not a fragment', () =
     /one painting/i,                       // one unit of time, one canvas
     /nothing is arranged by hand/i,        // no composition
     /never against/i,                      // the past is not rewritten
-    /read back out/i,                      // no measurement is recoverable
+    // The rule must take a position on whether a measurement can be recovered
+    // from the picture. 87, 89 and Archipelago entangle several ranked signals
+    // into every feature and say so; 91 and 92 map one measure to one feature
+    // and say THAT, out loud, rather than leaving the reader to find it. What
+    // is not allowed is a rule that stays silent about it.
+    /read back/i,
     /never repainted/i,                    // a finished day is finished
     /silence/i,                            // what happens when the body stops
     /is kept/i,                            // nothing is discarded

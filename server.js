@@ -1646,6 +1646,14 @@ http.createServer((req, res) => {
         // an hour of sleep is too little to be a night; it is marked, not hidden
         incomplete: nights.filter(n => (n.tst || 0) < 3600).map(n => n.day),
       }),
+      '92': Object.assign({}, common, {
+        ratio: ratio('92'),
+        birth: days91.length ? days91[0].day : m.birth,
+        last: m.calendarEnd,
+        lastData: days91.length ? days91[days91.length - 1].day : null,
+        alive: days91.map(d => d.day),
+        incomplete: [],
+      }),
       '91': Object.assign({}, common, {
         ratio: ratio('91'),
         birth: days91.length ? days91[0].day : m.birth,
@@ -1680,7 +1688,9 @@ http.createServer((req, res) => {
   // the body spent under strain), so it keeps its own file rather than widening
   // the record every other work reads. The file is written from the archive and
   // does not yet grow: the ring sync fetches neither activity nor stress.
-  if (url === '/91/data.json') {
+  // Обе работы читают одну запись: у S5-04 то же тело и те же шесть каналов,
+  // расходятся они правилом, а не тем, что видят.
+  if (url === '/91/data.json' || url === '/92/data.json') {
     serveJSON(req, res, loadRecord91());
     return;
   }

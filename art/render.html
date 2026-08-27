@@ -85,6 +85,15 @@
       // nothing, and the fading is applied to the finished sheet below.
       paint: (p, day, D, w, h, sil) => window.V91Painter.paintDay(p, day, D, w, h),
     },
+    '92': {
+      // Тот же лист и та же запись, что у 91: расхождение целиком в правиле.
+      birth: (D) => D.days[0] && D.days[0].day,
+      last:  (D) => D.days[D.days.length - 1] && D.days[D.days.length - 1].day,
+      today: (D) => D.meta && D.meta.serverDate,
+      live:  (D) => !D.meta || D.meta.live !== false,
+      days: (D) => D.days,
+      paint: (p, day, D, w, h, sil) => window.V92Painter.paintDay(p, day, D, w, h),
+    },
     'archipelago': {
       // LIVE: /archipelago/data.json returns { nights:[…the night itself…], meta }.
       // A third work on this domain, and the first that is painted from ONE

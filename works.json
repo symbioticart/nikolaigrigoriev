@@ -150,13 +150,57 @@
         "Nothing is arranged by hand.",
         "The sheet holds every day the body has lived: a new day is laid over the days already there.",
         "A day is weighed against the days of this body that came before it, never against the days that follow.",
-        "Every visible feature is driven by one named signal of the body, and this work does not hide it: a day's sharp points can be read back out as the hours it spent under strain. Nothing here pretends to be more entangled than it is.",
+        "Each visible feature is driven by one measure of the body, and the rule is published: a measure can be read back out of the sheet, and the work does not pretend otherwise. The sharp points of a day are meant to be read — one point for one hour spent under strain.",
         "The seed of a day is the place its form takes on the sheet; the date only puts the days in order.",
         "The instrument's own verdict on a day is used nowhere in the work.",
         "Where a day falls is the hour the body went to sleep, and how far that hour fell from its own.",
         "The silhouette of a day is cut by the days around it, and only by the days before it.",
         "The same day always makes the same form, and a day once painted is never repainted.",
         "When no day arrives, nothing is laid: the sheet is held, and a long silence fades it.",
+        "When the days resume, the first form is written with a doubled channel, and that seam stays on the sheet.",
+        "Every day the work has lived is kept, whether or not it can still be seen."
+      ],
+      "seed": "The seed of a day is the place its form takes on the sheet; the date only puts the days in order.",
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2024, because the body had already been recording them."
+    }
+  },
+  "92": {
+    "title": "S5-04",
+    "listed": false,
+    "selected": false,
+    "medium": "Software, a lived life written daily by an unchanging rule, screen. Dimensions variable — one sheet, the rule since 2026, the days since 2024.",
+    "canvas": {
+      "w": 900,
+      "h": 1260,
+      "density": 1
+    },
+    "ground": "#eee9dd",
+    "silence": "over",
+    "engine": {
+      "painter": "92/painter.js",
+      "data": "/92/data.json",
+      "dateField": "day",
+      "readback": "2d"
+    },
+    "state": {
+      "w": 900,
+      "h": 1260,
+      "quality": 0.88
+    },
+    "rule": {
+      "laws": [
+        "Each day, one painting: one form laid on one sheet.",
+        "The form is made from that day's record of one body, and from nothing else.",
+        "Nothing is arranged by hand.",
+        "The sheet holds every day the body has lived: a new day is laid over the days already there, and it takes a quarter of the room a day took before.",
+        "A day is weighed against the days of this body that came before it, never against the days that follow.",
+        "Each visible feature is driven by one measure of the body, and the rule is published: a measure can be read back out of the sheet, and the work does not pretend otherwise. The sharp points of a day are meant to be read — one point for one hour spent under strain.",
+        "The seed of a day is the place its form takes on the sheet; the date only puts the days in order.",
+        "The instrument's own verdict on a day is used nowhere in the work.",
+        "Where a day falls is the hour the body went to sleep, and how far that hour fell from its own.",
+        "The silhouette of a day is cut by the days around it, and only by the days before it.",
+        "The same day always makes the same form, and a day once painted is never repainted.",
+        "When no day arrives, nothing is laid: the sheet is held, and a long silence fades it. Paint leaves a day by its forty-second.",
         "When the days resume, the first form is written with a doubled channel, and that seam stays on the sheet.",
         "Every day the work has lived is kept, whether or not it can still be seen."
       ],
