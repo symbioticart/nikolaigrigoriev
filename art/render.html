@@ -72,6 +72,19 @@
       // OuraPainter has no silence arg — withering is applied as a filter below.
       paint: (p, day, D, w, h, sil) => window.OuraPainter.paintDay(p, day, D, w, h),
     },
+    '91': {
+      // /91/data.json returns { days:[…], meta } — the work's own record.
+      // The sheet accumulates: the painter replays every day up to the one
+      // asked for, so the picture of a day is the whole life up to it.
+      birth: (D) => D.days[0] && D.days[0].day,
+      last:  (D) => D.days[D.days.length - 1] && D.days[D.days.length - 1].day,
+      today: (D) => D.meta && D.meta.serverDate,
+      live:  (D) => !D.meta || D.meta.live !== false,
+      days: (D) => D.days,
+      // Silence never reaches this painter either: a silent day simply lays
+      // nothing, and the fading is applied to the finished sheet below.
+      paint: (p, day, D, w, h, sil) => window.V91Painter.paintDay(p, day, D, w, h),
+    },
     'archipelago': {
       // LIVE: /archipelago/data.json returns { nights:[…the night itself…], meta }.
       // A third work on this domain, and the first that is painted from ONE

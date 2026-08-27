@@ -715,6 +715,17 @@ function buildDays(sleepRaw, dailySleep, dailyReady, workoutRaw) {
   return days;
 }
 
+// The record of Variation 91, read from disk once. It is written from the
+// archive rather than by the ring sync, which fetches neither activity nor
+// stress — so it does not grow, and nothing here has to watch it.
+function loadRecord91() {
+  if (!STATE.days91) {
+    try { STATE.days91 = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'days-91.json'), 'utf8')); }
+    catch { STATE.days91 = { days: [], meta: {} }; }
+  }
+  return STATE.days91;
+}
+
 // ---------- raw upstream -> the night itself ----------
 // Archipelago (a third work on this domain) is painted from ONE night, not from
 // the day it closed. Every five minutes of sleep becomes a charge whose weight
@@ -1477,6 +1488,11 @@ http.createServer((req, res) => {
     // not appear in its calendar as though it were.
     const nights = STATE.nights || [];
     const nm = nightMeta();
+    // Variation 91 keeps its own record, so its calendar begins where that
+    // record begins, not where the daily one does. The calendar still ends
+    // today: otherwise the days of silence never exist and the sheet can never
+    // be seen fading.
+    const days91 = loadRecord91().days || [];
     serveJSON(req, res, {
       '87': Object.assign({}, common, { ratio: ratio('87'), alive: alive87,
         incomplete: (STATE.days || []).filter(d => d.i === 1).map(d => d.d) }),
@@ -1488,6 +1504,14 @@ http.createServer((req, res) => {
         alive: nights.map(n => n.day),
         // an hour of sleep is too little to be a night; it is marked, not hidden
         incomplete: nights.filter(n => (n.tst || 0) < 3600).map(n => n.day),
+      }),
+      '91': Object.assign({}, common, {
+        ratio: ratio('91'),
+        birth: days91.length ? days91[0].day : m.birth,
+        last: m.calendarEnd,
+        lastData: days91.length ? days91[days91.length - 1].day : null,
+        alive: days91.map(d => d.day),
+        incomplete: [],
       }),
     });
     return;
@@ -1507,6 +1531,16 @@ http.createServer((req, res) => {
     // Serve the transported form {day, _m, _s} — the painter renders from a
     // fixed input (no global sort, no drift) and the raw body never leaves.
     serveJSON(req, res, { days: STATE.days89 || [], meta: currentMeta() });
+    return;
+  }
+  // ── Variation 91 — the accumulating sheet, its own record ──
+  // Its rule reads four channels no other work needs (the hour of falling
+  // asleep, how far that hour fell from its own, the day's steps, the seconds
+  // the body spent under strain), so it keeps its own file rather than widening
+  // the record every other work reads. The file is written from the archive and
+  // does not yet grow: the ring sync fetches neither activity nor stress.
+  if (url === '/91/data.json') {
+    serveJSON(req, res, loadRecord91());
     return;
   }
   // ── Archipelago — the night itself, its own data contract ──
