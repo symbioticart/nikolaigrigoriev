@@ -181,6 +181,21 @@ test('every work is described completely, in one place', () => {
     assert.ok(w.engine.data && w.engine.dateField, `${id} does not say where its record is`);
 
     assert.ok(w.state && w.state.w > 0 && w.state.h > 0, `${id} has no size to be shown at`);
+    // The picture the site keeps ready is the painting as it was written, at
+    // the size it was written. A state smaller than the painted buffer throws
+    // away paint that was made and then asks the browser to invent it back —
+    // which is how Variation 87 came to be delivered at 1400x1000 out of a
+    // 1960x1400 buffer and stood visibly softer beside 89 on the same screen.
+    const density = w.canvas.density || 1;
+    assert.ok(
+      w.state.w >= w.canvas.w * density && w.state.h >= w.canvas.h * density,
+      `${id} is kept at ${w.state.w}x${w.state.h}, smaller than the ${w.canvas.w * density}x${w.canvas.h * density} it is painted at`,
+    );
+    // …and no larger, which would be the browser inventing paint at the other end.
+    assert.ok(
+      w.state.w === w.canvas.w * density && w.state.h === w.canvas.h * density,
+      `${id} is kept at ${w.state.w}x${w.state.h}, which is not the size it is painted at`,
+    );
     assert.ok(w.rule && w.rule.seed, `${id} has no rule — its page of laws would be blank`);
   }
 });
