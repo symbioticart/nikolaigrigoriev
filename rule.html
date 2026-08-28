@@ -96,21 +96,6 @@
   document.getElementById('back').innerHTML =
     `<a href="/archive.html?id=${encodeURIComponent(id)}">← ${work.title}</a>`;
 
-  // The wiring, when the work has written it down: one row per signal the ring
-  // records, and what it moves. Works that have not written it show nothing
-  // rather than an empty frame.
-  const entry = (window.__WORKS || {})[id] || {};
-
-  const foot = document.getElementById('foot');
-  foot.innerHTML = spec.foot.replace('{birth}', '…');
-  // The first recorded day is a fact of the record, not a constant to be typed
-  // in: a work whose calendar begins where its material begins must read it off
-  // the record, or it will one day be wrong and no one will notice.
-  if (spec.foot.indexOf('{birth}') >= 0) {
-    Site.ready(id).then((meta) => {
-      foot.innerHTML = spec.foot.replace('{birth}', Site.fmtDate(meta.birth));
-    }).catch(() => {});
-  }
 </script>
 </body>
 </html>
