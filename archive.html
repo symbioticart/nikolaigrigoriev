@@ -75,7 +75,8 @@
   // The legend stands at the foot of the work's page and is declared by the
   // work itself (`rule.reads` in the registry). A work that has not declared
   // one shows no empty heading.
-  const reads = (work.rule && work.rule.reads) || [];
+  const reads = (window.__WORKS && window.__WORKS[id] && window.__WORKS[id].rule
+    && window.__WORKS[id].rule.reads) || [];
   if (reads.length) {
     document.getElementById('reads').innerHTML = reads
       .map(([signal, becomes]) => `<dt>${signal}</dt><dd>${becomes}</dd>`).join('');
