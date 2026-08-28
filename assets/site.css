@@ -388,6 +388,17 @@ main{padding:0 var(--pad);position:relative}
   gap:10px 26px;max-width:74ch;font-size:13px;line-height:1.6}
 .tomb dt{color:var(--grey);letter-spacing:.04em}
 .tomb dd{color:var(--ink)}
+/* What the ring writes, and what it becomes. The left column is a measurement
+   the body made, the right one the thing it moves in the painting. Neither
+   column explains what the work is about — that is not what a legend is for. */
+.reads{display:grid;grid-template-columns:minmax(0,20ch) minmax(0,1fr);
+  gap:14px 26px;max-width:78ch;font-size:13px;line-height:1.65;margin:0}
+.reads dt{color:var(--grey);letter-spacing:.04em}
+.reads dd{color:var(--ink);margin:0}
+@media (max-width:640px){
+  .reads{grid-template-columns:1fr;gap:2px 0}
+  .reads dd{margin-bottom:16px}
+}
 /* An extract, not the rule: the first laws and the one the works part on. It
    is not numbered, because numbering it would promise that the fourth line is
    the fourth law, and it is the seventh. */

@@ -161,8 +161,76 @@
         "Every day the work has lived is kept, whether or not it can still be seen."
       ],
       "seed": "The seed of a day is the place its form takes on the sheet; the date only puts the days in order.",
-      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2024, because the body had already been recording them."
-    }
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2024, because the body had already been recording them.",
+      "reads": [
+        [
+          "Heart-rate variability of the night",
+          "The fullness of the day's outline. Below the body's own middle the edges draw inward and the form narrows to points; above it they swell outward and the form fills."
+        ],
+        [
+          "Hours spent under strain",
+          "The sharp points of the day: one point to the hour. Half the days have none."
+        ],
+        [
+          "The hour the body fell asleep",
+          "The angle at which the day is set on the sheet — from the body's earliest hour round to its latest."
+        ],
+        [
+          "How far the sleep fell from its own hour",
+          "How far the day is set from the middle of the sheet. In its own hour it lies near the centre; out of it, towards the edge."
+        ],
+        [
+          "Steps",
+          "The area the day covers."
+        ],
+        [
+          "Deviation of body temperature",
+          "The tilt of the day, up to forty degrees either way."
+        ],
+        [
+          "The days already written",
+          "The silhouette of a day is cut by the days lying around it — and only by the days before it. The future does not reshape a day."
+        ],
+        [
+          "The age of a day",
+          "Its density. A fresh day lies as a body; the paint leaves it over two months, and what remains is a hairline."
+        ],
+        [
+          "Silence",
+          "A day the ring did not write lays nothing down. A long silence fades the whole sheet; the day the record resumes is written with a pale channel around it, and that seam stays."
+        ]
+      ]
+    },
+    "reads": [
+      [
+        "The hour the body fell asleep",
+        "Where the day is set around the middle of the sheet — its earliest hours at the top, and clockwise from there to its latest."
+      ],
+      [
+        "How far that hour fell from the body’s own",
+        "How far the day sits from the middle. A night that kept its hour lies near the centre; one that missed it goes out to the edge."
+      ],
+      [
+        "The variability of the heart through the night",
+        "Whether the outline is drawn inward or bows outward."
+      ],
+      [
+        "The seconds the body spent under strain",
+        "The number of sharp points on the form: one point for one hour. Half the days carry none."
+      ],
+      [
+        "The day’s steps",
+        "The area the form takes on the sheet."
+      ],
+      [
+        "The deviation of body temperature",
+        "The tilt of the form, up to forty degrees either way."
+      ],
+      [
+        "The days that have passed since",
+        "How much paint is left in the form. A day is a body while it is recent, then a hair-thin outline, and it is never removed."
+      ]
+    ]
   },
   "92": {
     "title": "S5-04",
@@ -206,6 +274,36 @@
       ],
       "seed": "The seed of a day is the place its form takes on the sheet; the date only puts the days in order.",
       "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2024, because the body had already been recording them."
-    }
+    },
+    "reads": [
+      [
+        "The hour the body fell asleep",
+        "Where the day is set around the middle of the sheet — its earliest hours at the top, and clockwise from there to its latest."
+      ],
+      [
+        "How far that hour fell from the body’s own",
+        "How far the day sits from the middle. A night that kept its hour lies near the centre; one that missed it goes out to the edge."
+      ],
+      [
+        "The variability of the heart through the night",
+        "Whether the outline is drawn inward or bows outward."
+      ],
+      [
+        "The seconds the body spent under strain",
+        "The number of sharp points on the form: one point for one hour. Half the days carry none."
+      ],
+      [
+        "The day’s steps",
+        "The area the form takes on the sheet — a quarter of what a day takes in S5-03."
+      ],
+      [
+        "The deviation of body temperature",
+        "The tilt of the form, up to forty degrees either way."
+      ],
+      [
+        "The days that have passed since",
+        "How much paint is left in the form. A day is a body for forty-two days — a third less than in S5-03 — then a hair-thin outline, and it is never removed."
+      ]
+    ]
   }
 }

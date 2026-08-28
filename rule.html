@@ -23,6 +23,19 @@
     font-size:12px;line-height:1.7;color:var(--faint)}
   .rule-foot a{color:var(--grey);border-bottom:1px solid var(--hair);padding-bottom:1px}
   .rule-foot a:hover{color:var(--ink)}
+  /* What the record turns into. The rule above states the law; this states the
+     wiring, and nothing else — no clause here says what any of it is about.
+     A work without the table simply does not show it. */
+  .rule-reads{width:100%;border-collapse:collapse;margin-top:46px;font-size:13px;line-height:1.6}
+  .rule-reads caption{text-align:left;font-size:12px;color:var(--faint);
+    padding-bottom:14px;border-bottom:1px solid var(--hair)}
+  .rule-reads td{vertical-align:top;padding:14px 0;border-bottom:1px solid var(--hair);color:var(--ink)}
+  .rule-reads td:first-child{width:38%;padding-right:26px;color:var(--grey)}
+  @media (max-width:560px){
+    .rule-reads td{display:block;border:0;padding:0}
+    .rule-reads td:first-child{width:auto;padding:16px 0 4px}
+    .rule-reads tr{display:block;border-bottom:1px solid var(--hair);padding-bottom:14px}
+  }
   .rule-other{margin-top:14px}
   .rule-back{margin-top:30px;font-size:12px}
   .rule-back a{color:var(--grey);text-decoration:none}
@@ -41,6 +54,10 @@
       <div class="of" id="of"></div>
       <ol class="rule-list" id="list"></ol>
       <div class="rule-foot" id="foot"></div>
+      <table class="rule-reads" id="reads" hidden>
+        <caption>What the ring wrote, and where it went</caption>
+        <tbody></tbody>
+      </table>
       <div class="rule-back" id="back"></div>
     </div>
   </div>
@@ -103,6 +120,18 @@
   // carry this row; the rule pages now match them.
   document.getElementById('back').innerHTML =
     `<a href="/archive.html?id=${encodeURIComponent(id)}">← ${work.title}</a>`;
+
+  // The wiring, when the work has written it down: one row per signal the ring
+  // records, and what it moves. Works that have not written it show nothing
+  // rather than an empty frame.
+  const entry = (window.__WORKS || {})[id] || {};
+  const reads = Array.isArray(entry.reads) ? entry.reads : null;
+  if (reads && reads.length) {
+    const table = document.getElementById('reads');
+    table.querySelector('tbody').innerHTML = reads
+      .map(([from, to]) => `<tr><td>${from}</td><td>${to}</td></tr>`).join('');
+    table.hidden = false;
+  }
 
   const foot = document.getElementById('foot');
   foot.innerHTML = spec.foot.replace('{birth}', '…');

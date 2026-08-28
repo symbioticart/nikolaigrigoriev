@@ -49,6 +49,12 @@
       <a class="back" id="certlink">The document in full →</a>
     </section>
 
+
+    <!-- 6 · the legend: what the ring writes, and what it becomes -->
+    <section class="prof-block prof-text" id="readsblock" hidden>
+      <h2 class="prof-h">What the ring writes</h2>
+      <dl class="reads" id="reads"></dl>
+    </section>
   </div>
 </main>
 <div class="day-preview" id="preview"><img alt=""><div class="pv-date"></div></div>
@@ -65,6 +71,16 @@
   if (!work) { location.href = '/works.html'; throw new Error('unknown work'); }
 
   document.title = `${work.title} — Nikolai Grigoriev`;
+
+  // The legend stands at the foot of the work's page and is declared by the
+  // work itself (`rule.reads` in the registry). A work that has not declared
+  // one shows no empty heading.
+  const reads = (work.rule && work.rule.reads) || [];
+  if (reads.length) {
+    document.getElementById('reads').innerHTML = reads
+      .map(([signal, becomes]) => `<dt>${signal}</dt><dd>${becomes}</dd>`).join('');
+    document.getElementById('readsblock').hidden = false;
+  }
   document.getElementById('rulelink').href = `/rule.html?id=${id}`;
   document.getElementById('certlink').href =
     id === '87' ? '/conditions.html' : `/conditions.html?id=${encodeURIComponent(id)}`;
