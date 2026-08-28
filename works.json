@@ -275,5 +275,97 @@
         ]
       ]
     }
+  },
+  "93": {
+    "title": "S5-05",
+    "listed": false,
+    "selected": false,
+    "medium": "Software, a fantastical plant written daily by an unchanging rule, screen. Dimensions variable — one plant, the rule since 2026, the days since 2022.",
+    "canvas": {
+      "w": 700,
+      "h": 1140,
+      "density": 1
+    },
+    "ground": "#f1ebdf",
+    "silence": "over",
+    "engine": {
+      "painter": "93/painter.js",
+      "data": "/89/data.json",
+      "dateField": "day",
+      "readback": "2d"
+    },
+    "state": {
+      "w": 700,
+      "h": 1140,
+      "quality": 0.88
+    },
+    "rule": {
+      "laws": [
+        "Each day, one painting: one plant grown on one sheet.",
+        "The plant is made from that day's record of one body, and from nothing else.",
+        "Nothing is arranged by hand.",
+        "Each organ of the plant — the seed head, the pod, the shell, each serrated leaf, the stem, the roots, the river beneath — is a separate entity, and each is driven by one measure of the body.",
+        "The rule is published: a measure can be read back out of the sheet, and the work does not pretend otherwise.",
+        "A day is weighed against the days of this body that came before it, never against the days that follow.",
+        "The same day always makes the same plant, and a day once painted is never repainted.",
+        "The seed of a day is grown from the body's own record of that day; the date only names it.",
+        "Each day is its own sheet: the plant of a day replaces nothing and covers nothing.",
+        "When no day arrives, nothing grows: the sheet is held, and a long silence fades it.",
+        "When the days resume, the plant returns in full colour; the silence leaves no mark on the form.",
+        "Every day the work has lived is kept, whether or not it is being looked at."
+      ],
+      "seed": "The seed of a day is grown from the body's own record of that day; the date only names it.",
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2022, because the body had already been recording them.",
+      "reads": [
+        [
+          "The readiness of the body",
+          "The stem — its height and its thickness. The spine of the plant."
+        ],
+        [
+          "The variability of the heart through the night",
+          "The seed head — its diameter and the number of its white convolutions."
+        ],
+        [
+          "The deviation of body temperature",
+          "The pod — the tilt of the cup and the number of its antennae."
+        ],
+        [
+          "The sleep of the night, taken whole",
+          "The shell — how many ribs its blue fan carries and how wide it opens."
+        ],
+        [
+          "The efficiency of that sleep",
+          "The right arm — the spread of its terminal foot."
+        ],
+        [
+          "The share of deep sleep",
+          "The mid-left leaf — the length and count of its serrations."
+        ],
+        [
+          "The share of dreaming sleep",
+          "The mid-right leaf — the length and count of its serrations."
+        ],
+        [
+          "The restlessness of the night",
+          "The lower-left leaf — its fullness. A calm night rounds it out."
+        ],
+        [
+          "The strain of the day's workouts",
+          "The lower-right leaf — the reach of its spikes."
+        ],
+        [
+          "The hours the body slept",
+          "The roots — how many, and how far they reach."
+        ],
+        [
+          "The resting rate of the heart",
+          "The river — the width of the blue current beneath the roots."
+        ],
+        [
+          "The breath of the night",
+          "The palette — the temperature of every brown in the plant."
+        ]
+      ]
+    }
   }
 }

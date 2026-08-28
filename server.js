@@ -1638,6 +1638,8 @@ http.createServer((req, res) => {
       '87': Object.assign({}, common, { ratio: ratio('87'), alive: alive87,
         incomplete: (STATE.days || []).filter(d => d.i === 1).map(d => d.d) }),
       '89': Object.assign({}, common, { ratio: ratio('89'), alive: alive89, incomplete: [] }),
+      // S5-05 reads the same frozen daily record as 89, so its calendar is 89's.
+      '93': Object.assign({}, common, { ratio: ratio('93'), alive: alive89, incomplete: [] }),
       'archipelago': Object.assign({}, common, {
         ratio: ratio('archipelago'),
         birth: nm.birth,

@@ -94,6 +94,18 @@
       days: (D) => D.days,
       paint: (p, day, D, w, h, sil) => window.V92Painter.paintDay(p, day, D, w, h),
     },
+    '93': {
+      // /89/data.json — та же замороженная запись, что читает 89: {day,_m,_s}.
+      // Один день — одно растение; лист не накапливается, поэтому картина дня
+      // рисуется из одного его дня. Тишина сюда не доходит: увядание ложится
+      // поверх готового листа, как у всех.
+      birth: (D) => D.days[0] && D.days[0].day,
+      last:  (D) => D.days[D.days.length - 1] && D.days[D.days.length - 1].day,
+      today: (D) => D.meta && D.meta.serverDate,
+      live:  (D) => !D.meta || D.meta.live !== false,
+      days: (D) => D.days,
+      paint: (p, day, D, w, h, sil) => window.V93Painter.paintDay(p, day, D, w, h),
+    },
     'archipelago': {
       // LIVE: /archipelago/data.json returns { nights:[…the night itself…], meta }.
       // A third work on this domain, and the first that is painted from ONE
