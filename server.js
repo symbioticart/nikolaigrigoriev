@@ -1750,7 +1750,13 @@ http.createServer((req, res) => {
       const w = WORKS_REGISTRY[id] || {};
       const s = studio[id] || {};
       out[id] = {
-        title: w.title || id,
+        // A work is called by its title once it has one; before that by its
+        // proper name if it was given one, else by its address — the season
+        // and the place in it. Only a work the studio has never addressed
+        // falls back to the bare number.
+        title: w.title || s.name || s.address || id,
+        address: s.address || '',
+        name: s.name || '',
         medium: w.medium || '',
         // A work with no entry in the registry is one that has only just been
         // begun; it stands where the artist says it stands.

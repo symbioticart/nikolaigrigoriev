@@ -26,7 +26,22 @@
 </main>
 <script src="/assets/site.js"></script>
 <script>
-  Site.mountHeader(null);
+  // The list of works is the studio. It must never depend on anything else
+  // on this page: the shared script draws the header, and if that script
+  // fails to arrive — a blocker, a cache, a bad deploy — the header is lost
+  // and nothing more. Once, the first line of this script called into it,
+  // and one missing file took every work off the screen.
+  const rows = document.getElementById('rows');
+  const ssub = document.getElementById('ssub');
+  const esc = (s) => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  try {
+    if (window.Site && typeof Site.mountHeader === 'function') Site.mountHeader(null);
+    else ssub.textContent = 'the shared script did not load — the record below is read directly';
+  } catch (e) {
+    ssub.textContent = 'the header failed: ' + (e && e.message ? e.message : e);
+  }
 
   // The order is the order of a work's life, not a sort. A work rises through
   // it and may stop anywhere; the last group is the one nobody sees.
@@ -38,22 +53,31 @@
     ['set aside', 'Set aside · kept, not continued'],
   ];
 
-  (async () => {
-    const all = await fetch('/studio.json', { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : null)).catch(() => null);
-    if (!all) { document.getElementById('rows').textContent = 'The studio has no record here.'; return; }
+  async function load(url) {
+    const r = await fetch(url, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`${url} answered ${r.status}`);
+    return r.json();
+  }
 
-    const ids = Object.keys(all);
-    document.getElementById('ssub').textContent =
+  (async () => {
+    let all;
+    try { all = await load('/studio.json'); }
+    catch (e) { rows.textContent = 'The studio has no record here: ' + e.message; return; }
+
+    const ids = Object.keys(all).filter((id) => id !== '_');
+    if (!ids.length) { rows.textContent = 'The record is empty: no work has been begun.'; return; }
+    ssub.textContent =
       `every rule ever written · ${ids.length} work${ids.length === 1 ? '' : 's'} · not on the public site`;
 
     // How each work stands in the record, read in one request from the site's
     // own account of itself. Asked work by work through the painting machinery,
     // a work with no brush yet — which is exactly what a studio is full of —
     // waits for an engine that will never start, and the page waits with it.
-    // One work not begun kept every other one off the screen.
-    const meta = await fetch('/state/meta.json', { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+    // One work not begun kept every other one off the screen. And if this
+    // request fails, the list is still drawn: a work without its day count is
+    // still a work.
+    let meta = {};
+    try { meta = await load('/state/meta.json'); } catch (e) { meta = {}; }
     const facts = {};
     for (const id of ids) {
       const m = meta[id];
@@ -63,28 +87,46 @@
     }
 
     const out = [];
+    const placed = new Set();
     for (const [standing, heading] of ORDER) {
-      const group = ids.filter((id) => all[id].standing === standing);
+      const group = ids.filter((id) => (all[id].standing || 'begun') === standing);
       if (!group.length) continue;
-      out.push(`<div class="studio-group">${heading}</div>`);
+      out.push(`<div class="studio-group">${esc(heading)}</div>`);
       for (const id of group) {
+        placed.add(id);
         const w = all[id];
         const f = facts[id];
         const line = f
           ? `${w.begun ? 'rule ' + w.begun.slice(0, 4) + ' · ' : ''}${f.written.toLocaleString('en-US')} days · last written ${f.last}`
           : `${w.begun ? 'begun ' + w.begun : 'not begun'} · no record yet`;
         const missing = [!w.hasPainter && 'no brush', !w.hasRule && 'no rule'].filter(Boolean).join(' · ');
+        const where = [w.address && w.address !== w.title ? w.address : '', w.branch]
+          .filter(Boolean).join(' · ');
+        // A work with no brush has no page to open: the archive would show an
+        // empty frame. It is listed, and it leads nowhere until it paints.
+        const open = w.hasPainter ? 'a' : 'div';
+        const href = w.hasPainter ? ` href="/archive.html?id=${encodeURIComponent(id)}"` : '';
         out.push(
-          `<a class="studio-row" href="/archive.html?id=${encodeURIComponent(id)}">` +
-            `<span class="t">${w.title}</span>` +
-            `<span class="f">${line}${missing ? ' · ' + missing : ''}</span>` +
-            `<span class="b">${w.branch}</span>` +
-          `</a>` +
-          (w.note ? `<div class="studio-note">${w.note}</div>` : ''));
+          `<${open} class="studio-row"${href}>` +
+            `<span class="t">${esc(w.title || id)}</span>` +
+            `<span class="f">${esc(line)}${missing ? ' · ' + esc(missing) : ''}</span>` +
+            `<span class="b">${esc(where)}</span>` +
+          `</${open}>` +
+          (w.note ? `<div class="studio-note">${esc(w.note)}</div>` : ''));
       }
     }
-    document.getElementById('rows').innerHTML = out.join('');
-  })();
+    // A standing this page does not know is still a work: it is shown, not lost.
+    const stray = ids.filter((id) => !placed.has(id));
+    if (stray.length) {
+      out.push(`<div class="studio-group">Standing unknown to this page</div>`);
+      for (const id of stray) {
+        const w = all[id];
+        out.push(`<div class="studio-row"><span class="t">${esc(w.title || id)}</span>` +
+          `<span class="f">standing “${esc(w.standing)}”</span><span class="b">${esc(w.branch)}</span></div>`);
+      }
+    }
+    rows.innerHTML = out.join('');
+  })().catch((e) => { rows.textContent = 'The studio could not draw its record: ' + (e && e.message ? e.message : e); });
 </script>
 </body>
 </html>

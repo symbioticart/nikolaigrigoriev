@@ -372,3 +372,48 @@ test('a work is one shape, whichever file is asked', async () => {
       `${id} is ${w.ratio} to the server and ${c.w / c.h} in the registry`);
   }
 });
+
+// ── The studio, where the artist is ──────────────────────────────────────────
+test('the studio names a begun work by its address and never leads it to an empty page', async () => {
+  // A work that has only just been begun has no entry in the public registry:
+  // no title, no brush, no rule. The studio still has to show it, call it by
+  // the address the atelier gave it, and not link it to an archive page that
+  // would open an empty frame. And the page that lists the works must not
+  // depend on the shared script: once, one missing file emptied the studio.
+  const { spawn } = require('node:child_process');
+  const port = 3603;
+  const record = path.join(scratch, 'studio-record.json');
+  fs.writeFileSync(record, JSON.stringify({
+    _: 'the artist’s private record',
+    '87': { standing: 'selected', branch: 'main', begun: '2022-05-24', note: '' },
+    '94': { standing: 'begun', branch: 'work-94', begun: '2026-09-04',
+            note: 'заведена пустой', address: 'S6-01' },
+  }));
+  const child = spawn(process.execPath, [path.join(ROOT, 'server.js')], {
+    cwd: ROOT,
+    env: { ...process.env, PORT: String(port), OURA_TOKEN: '', ARCHIVE_DIR: scratch,
+           TG_BOT_TOKEN: '', TG_CHAT_ID: '', STAGING_AUTH: '', STUDIO: '1', STUDIO_FILE: record },
+    stdio: 'ignore',
+  });
+  const base = `http://127.0.0.1:${port}`;
+  try {
+    for (let i = 0; i < 60; i++) {
+      try { await fetch(`${base}/health`); break; } catch { await new Promise(r => setTimeout(r, 250)); }
+    }
+    const j = await (await fetch(`${base}/studio.json`)).json();
+    assert.equal(j['94'].title, 'S6-01', 'a begun work is called by its address, not its number');
+    assert.equal(j['94'].address, 'S6-01');
+    assert.equal(j['94'].standing, 'begun');
+    assert.equal(j['94'].hasPainter, false);
+    assert.equal(j['87'].title, 'Variation 87', 'a work in the registry keeps its title');
+    assert.ok(!('_' in j), 'the record’s own notes are not a work');
+
+    const html = await (await fetch(`${base}/studio`)).text();
+    assert.doesNotMatch(html, /<script>\s*Site\./,
+      'the list script must not begin by calling into the shared script');
+    assert.match(html, /window\.Site\s*&&/, 'the header is drawn only if the shared script arrived');
+    assert.match(html, /hasPainter \? 'a' : 'div'/, 'a work with no brush is not a link');
+  } finally {
+    child.kill('SIGKILL');
+  }
+});
