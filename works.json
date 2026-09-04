@@ -275,5 +275,32 @@
         ]
       ]
     }
+  },
+  "94": {
+    "title": "S6-01",
+    "listed": false,
+    "selected": false,
+    "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — the rule since 2026, the days since 2022.",
+    "canvas": {
+      "w": 920,
+      "h": 1350,
+      "density": 1
+    },
+    "ground": "#eee9dd",
+    "silence": "over",
+    "engine": {
+      "painter": "94/painter.js",
+      "data": "/data/days.json",
+      "dateField": "d"
+    },
+    "state": {
+      "w": 920,
+      "h": 1350,
+      "quality": 0.88
+    },
+    "rule": {
+      "seed": "The seed of a day is drawn from the artist’s name, the date, and the day’s record together; no two days can coincide.",
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the record it reads begins in 2022, because the body had already been keeping it."
+    }
   }
 }

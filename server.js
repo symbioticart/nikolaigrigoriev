@@ -1637,6 +1637,9 @@ http.createServer((req, res) => {
     serveJSON(req, res, {
       '87': Object.assign({}, common, { ratio: ratio('87'), alive: alive87,
         incomplete: (STATE.days || []).filter(d => d.i === 1).map(d => d.d) }),
+      // S6-01 reads the same record as 87, so it lives on the same calendar.
+      '94': Object.assign({}, common, { ratio: ratio('94'), alive: alive87,
+        incomplete: (STATE.days || []).filter(d => d.i === 1).map(d => d.d) }),
       '89': Object.assign({}, common, { ratio: ratio('89'), alive: alive89, incomplete: [] }),
       'archipelago': Object.assign({}, common, {
         ratio: ratio('archipelago'),

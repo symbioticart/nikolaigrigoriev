@@ -386,8 +386,10 @@ test('the studio names a begun work by its address and never leads it to an empt
   fs.writeFileSync(record, JSON.stringify({
     _: 'the artist’s private record',
     '87': { standing: 'selected', branch: 'main', begun: '2022-05-24', note: '' },
-    '94': { standing: 'begun', branch: 'work-94', begun: '2026-09-04',
-            note: 'заведена пустой', address: 'S6-01' },
+    // A number the registry does not know, so the test does not start failing
+    // the day that work gets its brush.
+    '999': { standing: 'begun', branch: 'work-999', begun: '2026-09-04',
+             note: 'заведена пустой', address: 'S9-01' },
   }));
   const child = spawn(process.execPath, [path.join(ROOT, 'server.js')], {
     cwd: ROOT,
@@ -401,10 +403,10 @@ test('the studio names a begun work by its address and never leads it to an empt
       try { await fetch(`${base}/health`); break; } catch { await new Promise(r => setTimeout(r, 250)); }
     }
     const j = await (await fetch(`${base}/studio.json`)).json();
-    assert.equal(j['94'].title, 'S6-01', 'a begun work is called by its address, not its number');
-    assert.equal(j['94'].address, 'S6-01');
-    assert.equal(j['94'].standing, 'begun');
-    assert.equal(j['94'].hasPainter, false);
+    assert.equal(j['999'].title, 'S9-01', 'a begun work is called by its address, not its number');
+    assert.equal(j['999'].address, 'S9-01');
+    assert.equal(j['999'].standing, 'begun');
+    assert.equal(j['999'].hasPainter, false);
     assert.equal(j['87'].title, 'Variation 87', 'a work in the registry keeps its title');
     assert.ok(!('_' in j), 'the record’s own notes are not a work');
 

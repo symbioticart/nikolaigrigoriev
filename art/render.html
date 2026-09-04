@@ -62,6 +62,17 @@
       // data, no new form.
       paint: (p, day, D, w, h, sil) => window.Painter.paintDay(p, day, D, w, h),
     },
+    '94': {
+      // S6-01 reads the record 87 reads — { days:[{d,s,c,i}], meta } — and
+      // grows a body from its channels. Silence never reaches this painter:
+      // the last painting is held and only its colour drains, below.
+      birth: (D) => (D.meta && D.meta.birth) || (D.days[0] && D.days[0].d),
+      last:  (D) => (D.meta && (D.meta.lastDataDay || D.meta.last)) || (D.days[D.days.length - 1] && D.days[D.days.length - 1].d),
+      today: (D) => D.meta && D.meta.serverDate,
+      live:  (D) => !D.meta || D.meta.live !== false,
+      days: (D) => D.days,
+      paint: (p, day, D, w, h, sil) => window.OilMorphogenesisPainter.paintDay(p, day, D, w, h),
+    },
     '89': {
       // /89/data.json returns { days:[raw Oura metrics], meta }.
       birth: (D) => D.days[0] && D.days[0].day,
