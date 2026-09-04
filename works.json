@@ -52,7 +52,7 @@
   "89": {
     "title": "Variation 89",
     "listed": true,
-    "selected": true,
+    "selected": false,
     "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — the rule since 2025, the days since 2022.",
     "canvas": {
       "w": 920,
@@ -279,7 +279,7 @@
   "94": {
     "title": "S6-01",
     "listed": true,
-    "selected": false,
+    "selected": true,
     "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — the rule since 2026, the days since 2022.",
     "canvas": {
       "w": 920,
