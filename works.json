@@ -278,7 +278,7 @@
   },
   "94": {
     "title": "S6-01",
-    "listed": false,
+    "listed": true,
     "selected": false,
     "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — the rule since 2026, the days since 2022.",
     "canvas": {
@@ -299,8 +299,50 @@
       "quality": 0.88
     },
     "rule": {
+      "laws": [
+        "Each day, one painting.",
+        "The painting is made from that day’s record of one living body, and from nothing else.",
+        "Nothing is arranged by hand.",
+        "A day is painted only after it has closed.",
+        "A day is weighed against the days of this body that came before it, never against the days that follow.",
+        "Several signals drive every visible feature, so that no single one can be read back out. The day reaches the brush as five measures of a body, and each is made of at least two ranked signals.",
+        "The seed of a day is drawn from the artist’s name, the date, and the day’s record together; no two days can coincide.",
+        "Before a mark is made, a body is grown from the five measures. The body is never drawn. It decides where the brush goes.",
+        "The brush is an oil brush on an ivory ground, with two palettes and three registers of stroke. It paints three tissues in the order a body is built: the flesh across the whole sheet, the seams of the skin over it, the vessels last and finest.",
+        "The same day always makes the same painting.",
+        "A day that has been painted is never repainted.",
+        "When no day arrives, the last painting is held. From the second day of silence it fades.",
+        "When the days resume, the painting returns.",
+        "Every day the work has lived is kept."
+      ],
       "seed": "The seed of a day is drawn from the artist’s name, the date, and the day’s record together; no two days can coincide.",
-      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the record it reads begins in 2022, because the body had already been keeping it."
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the record it reads begins in 2022, because the body had already been keeping it.<br>It paints with the brush of Variation 87, and parts from it in what is painted: not marks scattered over a sheet, but a body grown from the day, which is never shown.",
+      "reads": [
+        [
+          "Readiness, sleep and the variability of the heart, ranked together",
+          "How many lobes the body has, and whether the marks come from the warm palette or the deep one."
+        ],
+        [
+          "The variability of the heart, deep sleep and the sleep score",
+          "The rim of the body, drawn inward or swelling; the curvature of its lobes; the width of the strokes."
+        ],
+        [
+          "Restlessness, breath, resting heart rate and the deviation of temperature",
+          "The sharp points on the rim, up to six; the hue turned warm; how far each stroke wanders from its line."
+        ],
+        [
+          "Hours slept, efficiency, REM and latency",
+          "The pattern of the skin, from a fine network to coarse islands, and the tonal contrast of the marks."
+        ],
+        [
+          "Training, workouts and readiness",
+          "How far the body reaches across the sheet."
+        ],
+        [
+          "Silence",
+          "A day the ring did not write lays nothing down. The last painting is held, and from the second day its colour drains."
+        ]
+      ]
     }
   }
 }
