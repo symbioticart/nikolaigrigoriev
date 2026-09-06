@@ -1,0 +1,11 @@
+[Unit]
+Description=Кадр дня — каждое утро после того, как daily-89 записал его в архив
+
+[Timer]
+# daily-89 снимает кадр в 08:00 UTC и коммитит его; час запаса на то, что
+# планировщик GitHub опаздывает (по опыту — от 26 до 218 минут).
+OnCalendar=*-*-* 11:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
