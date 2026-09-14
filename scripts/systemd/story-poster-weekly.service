@@ -1,0 +1,10 @@
+[Unit]
+Description=Вариация 89 — плёнка недели в телеграм, MP4 1080x1920
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/srv/nikolaigrigoriev
+EnvironmentFile=/etc/v89-poster.env
+ExecStart=/usr/bin/node scripts/story-poster.js weekly
