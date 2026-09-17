@@ -16,6 +16,11 @@
       medium: w.medium,
       selected: !!w.selected,
       unlisted: w.listed === false,
+      // The date of the work is the day its rule was written. The record it
+      // reads is often older — the body was already keeping it.
+      begun: w.begun || null,
+      // What one state is written from: a day, or — for a work of sleep — a night.
+      unit: w.unit || 'day',
       // The shape of a work is its canvas, not a number kept beside it.
       ratio: w.canvas.w / w.canvas.h,
       ground: w.ground,
@@ -30,11 +35,23 @@
     // arrived. No captions here: a caption written in two places is two
     // captions, and this copy had already drifted a whole council's revision
     // behind the one in the registry.
-    { id: '87', title: 'Variation 87', selected: true, ratio: 980 / 700, ground: '#eee9dd' },
-    { id: '89', title: 'Variation 89', selected: true, ratio: 920 / 1350, ground: '#eee9dd' },
-    { id: 'archipelago', title: 'Archipelago', selected: true, ratio: 900 / 1200, ground: '#090909' },
+    { id: '87', title: 'S1-01', selected: true, ratio: 980 / 700, ground: '#eee9dd' },
+    { id: '89', title: 'S4-01', selected: true, ratio: 920 / 1350, ground: '#eee9dd' },
+    { id: 'archipelago', title: 'S5-01', selected: true, ratio: 900 / 1200, ground: '#090909' },
   ];
   const WORK_BY_ID = Object.fromEntries(WORKS.map((w) => [w.id, w]));
+  // A work is called by its address — S1-01 — and may be asked for by it too:
+  // `?id=S1-01` finds the same work as `?id=87`. The number stays the key
+  // under which its record, its painter and its pictures are kept.
+  for (const w of WORKS) {
+    if (w.title && !WORK_BY_ID[w.title]) WORK_BY_ID[w.title] = w;
+    if (w.title && !WORK_BY_ID[w.title.toLowerCase()]) WORK_BY_ID[w.title.toLowerCase()] = w;
+  }
+  // The address a page was opened with, resolved to the key everything else uses.
+  function resolveId(raw) {
+    const w = raw != null ? WORK_BY_ID[raw] : null;
+    return w ? w.id : raw;
+  }
 
   // A page opened for an unlisted work asks not to be indexed. Done here rather
   // than per page, so every surface that takes ?id= — the work, its archive, its
@@ -548,6 +565,7 @@
 
     async function show(newIdx, animate) {
       idx = Math.max(0, Math.min(cal.length - 1, newIdx));
+      const newIdxClamped = idx;
       const date = label(idx);
       if (animate) img.classList.remove('in');
       // The waiting text belongs on an empty plate only: on the first mount and
@@ -556,6 +574,13 @@
       // reads as a fault.
       if (!img.src || animate) plate.classList.add('loading');
       const d = measure();
+      // Paging must be seen to happen. A day whose picture is the ready-made
+      // file — yesterday, while today is still silent — arrives in the same
+      // tick it was asked for, and the fade out and back in collapsed into one
+      // frame: the edge was pressed, the caption changed, the painting did not
+      // move, and the work read as one that could not be paged. So the plate
+      // is let go of for as long as the fade takes before the day is laid on.
+      const paged = animate ? new Promise((r) => setTimeout(r, 260)) : null;
 
       // A silent day is the last written painting, withering. When that painting
       // is the one the ready-made picture holds — which is the case for every
@@ -572,6 +597,9 @@
       } else {
         url = await render(id, date, d.w, d.h);
       }
+      if (paged) await paged;
+      // A later press has moved on; this day is no longer the one asked for.
+      if (idx !== newIdxClamped) return;
       wither(sil);
       if (url) { img.src = url; requestAnimationFrame(() => img.classList.add('in')); }
       plate.classList.remove('loading');
@@ -673,7 +701,7 @@
   window.Site = {
     mountArtBlock,
     warm,
-    WORKS, WORK_BY_ID,
+    WORKS, WORK_BY_ID, resolveId,
     ready: (id) => metaOf(id),
     standing, silenceParams,
     render,

@@ -407,7 +407,7 @@ test('the studio names a begun work by its address and never leads it to an empt
     assert.equal(j['999'].address, 'S9-01');
     assert.equal(j['999'].standing, 'begun');
     assert.equal(j['999'].hasPainter, false);
-    assert.equal(j['87'].title, 'Variation 87', 'a work in the registry keeps its title');
+    assert.equal(j['87'].title, 'S1-01', 'a work in the registry keeps its title');
     assert.ok(!('_' in j), 'the record’s own notes are not a work');
 
     const html = await (await fetch(`${base}/studio`)).text();

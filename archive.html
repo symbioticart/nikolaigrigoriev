@@ -21,7 +21,7 @@
     </section>
 
     <!-- 3 · what the work is, in the words of the document that constitutes it -->
-    <section class="prof-block prof-text">
+    <section class="prof-block prof-text" id="aboutblock" hidden>
       <h2 class="prof-h">The work</h2>
       <p id="about"></p>
     </section>
@@ -29,7 +29,7 @@
     <!-- 4 · the body of the work: every day it has lived -->
     <section class="prof-block" id="archive">
       <h2 class="prof-h">Archive</h2>
-      <div class="arch-legend">
+      <div class="arch-legend" id="legend">
         <span><i class="i-alive"></i>a day was written</span>
         <span><i class="i-dead"></i>silence — no data</span>
       </div>
@@ -41,12 +41,17 @@
     <section class="prof-block prof-text">
       <h2 class="prof-h">The rule</h2>
       <ul class="prof-laws" id="laws"></ul>
-      <p class="prof-note">The last of these is the law the works part on; the
-        other eleven they share.</p>
+      <p class="prof-note">The first laws, and the law of the seed — the one
+        the works part on.</p>
       <a class="back" id="rulelink">The rule in full →</a>
-      <h2 class="prof-h" style="margin-top:52px">Conditions of the Work</h2>
-      <p id="certline"></p>
-      <a class="back" id="certlink">The document in full →</a>
+      <!-- Shown only for a work whose document has been set down: a heading
+           over nothing, with a link that opened another work's document, was
+           what S6-01 carried for a fortnight. -->
+      <div id="certblock" hidden>
+        <h2 class="prof-h" style="margin-top:52px">Conditions of the Work</h2>
+        <p id="certline"></p>
+        <a class="back" id="certlink">The document in full →</a>
+      </div>
     </section>
 
 
@@ -64,13 +69,19 @@
 <script>
   Site.mountHeader('works');
   const params = new URLSearchParams(location.search);
-  const id = params.get('id') || Site.WORKS[0].id;
+  const id = Site.resolveId(params.get('id') || Site.WORKS[0].id);
   const work = Site.WORK_BY_ID[id];
   // Leaving is not instant: without stopping here the lines below run against
   // a work that does not exist and throw before the browser has gone anywhere.
   if (!work) { location.href = '/works.html'; throw new Error('unknown work'); }
 
   document.title = `${work.title} — Nikolai Grigoriev`;
+  // A work of sleep is written from nights, and its archive says so.
+  if (work.unit === 'night') {
+    document.getElementById('legend').innerHTML =
+      '<span><i class="i-alive"></i>a night was written</span>' +
+      '<span><i class="i-dead"></i>silence — no data</span>';
+  }
 
   // The legend stands at the foot of the work's page and is declared by the
   // work itself (`rule.reads` in the registry). A work that has not declared
@@ -83,6 +94,11 @@
     document.getElementById('readsblock').hidden = false;
   }
   document.getElementById('rulelink').href = `/rule.html?id=${id}`;
+  (function () {
+    const r = window.__WORKS && window.__WORKS[id] && window.__WORKS[id].rule;
+    const n = r && Array.isArray(r.laws) && r.laws.length ? r.laws.length : 12;
+    document.getElementById('rulelink').textContent = `The rule in full — ${n} laws →`;
+  })();
   document.getElementById('certlink').href =
     id === '87' ? '/conditions.html' : `/conditions.html?id=${encodeURIComponent(id)}`;
 
@@ -119,10 +135,16 @@
     const written = meta.alive.size;
     const total = Site.daysBetween(meta.birth, meta.last) + 1;
     const silent = Math.max(0, total - written);
+    // The date of the work is the day its rule was written, as the date of a
+    // painting is the day it was painted. The record it reads is often older
+    // — the body was already keeping it — and that is a fact of the record,
+    // stated on the record's own line.
+    const unit = work.unit === 'night' ? 'nights' : 'days';
     const tomb = [
       ['Medium', work.medium || '—'],
-      ['Dates', `${Site.fmtDate(meta.birth)} – Today`],
-      ['Record', `${written.toLocaleString('en-US')} days written · ${silent.toLocaleString('en-US')} silent`],
+      ['Dates', `${Site.fmtDate(work.begun || meta.birth)} – Today`],
+      ['Record', `${written.toLocaleString('en-US')} ${unit} written · ${silent.toLocaleString('en-US')} silent` +
+        (work.begun && work.begun > meta.birth ? ` · from ${Site.fmtDate(meta.birth)}` : '')],
     ];
     document.getElementById('tomb').innerHTML = tomb
       .map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
@@ -143,9 +165,13 @@
           // from the view rather than from the document.
           document.getElementById('about').innerHTML =
             first[1].replace(/\s*Medium:[^.]*\.\s*$/, '');
+          document.getElementById('aboutblock').hidden = false;
         }
         const def = cert.sections.find((s) => s[0] === 'Definition');
-        if (def) document.getElementById('certline').innerHTML = def[1];
+        if (def) {
+          document.getElementById('certline').innerHTML = def[1];
+          document.getElementById('certblock').hidden = false;
+        }
       })
       .catch(() => {});
 

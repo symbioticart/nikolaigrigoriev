@@ -20,13 +20,17 @@
     "              engines are told to leave it alone. How a work is watched in",
     "              its real conditions before it is shown.",
     "  rule        what the page of laws says for this work. `seed` replaces the",
-    "              seventh law — the one place the works genuinely part."
+    "              seventh law — the one place the works genuinely part.",
+    "  begun       the day the rule was written — the date of the work. The record it",
+    "              reads is often older: the body was already keeping it.",
+    "  unit        what one state of the work is written from: 'day' (default) or 'night'."
   ],
   "87": {
-    "title": "Variation 87",
+    "title": "S1-01",
+    "begun": "2022-05-24",
     "listed": true,
     "selected": true,
-    "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — since 2022.",
+    "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — the rule and the days since 2022.",
     "canvas": {
       "w": 980,
       "h": 700,
@@ -50,7 +54,8 @@
     }
   },
   "89": {
-    "title": "Variation 89",
+    "title": "S4-01",
+    "begun": "2025-01-01",
     "listed": true,
     "selected": false,
     "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — the rule since 2025, the days since 2022.",
@@ -77,7 +82,9 @@
     }
   },
   "archipelago": {
-    "title": "Archipelago",
+    "title": "S5-01",
+    "begun": "2026-07-29",
+    "unit": "night",
     "listed": true,
     "selected": true,
     "medium": "Software, a sleeping body written nightly by an unchanging rule, screen. Dimensions variable — the rule since 2026, the nights since 2022.",
@@ -122,6 +129,7 @@
   },
   "91": {
     "title": "S5-03",
+    "begun": "2026-08-27",
     "listed": false,
     "selected": false,
     "medium": "Software, a lived life written daily by an unchanging rule, screen. Dimensions variable — one sheet, the rule since 2026, the days since 2024.",
@@ -204,6 +212,7 @@
   },
   "92": {
     "title": "S5-04",
+    "begun": "2026-08-27",
     "listed": false,
     "selected": false,
     "medium": "Software, a lived life written daily by an unchanging rule, screen. Dimensions variable — one sheet, the rule since 2026, the days since 2024.",
@@ -278,6 +287,7 @@
   },
   "94": {
     "title": "S6-01",
+    "begun": "2026-09-04",
     "listed": true,
     "selected": true,
     "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — the rule since 2026, the days since 2022.",
@@ -316,7 +326,7 @@
         "Every day the work has lived is kept."
       ],
       "seed": "The seed of a day is drawn from the artist’s name, the date, and the day’s record together; no two days can coincide.",
-      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the record it reads begins in 2022, because the body had already been keeping it.<br>It paints with the brush of Variation 87, and parts from it in what is painted: not marks scattered over a sheet, but a body grown from the day, which is never shown.",
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the record it reads begins in 2022, because the body had already been keeping it.<br>It paints with the brush of S1-01, and parts from it in what is painted: not marks scattered over a sheet, but a body grown from the day, which is never shown.",
       "reads": [
         [
           "Readiness, sleep and the variability of the heart, ranked together",
@@ -347,6 +357,7 @@
   },
   "96": {
     "title": "S6-03",
+    "begun": "2026-09-15",
     "listed": true,
     "selected": false,
     "medium": "Software, ground crossed by a living body and turned by its nights, written daily by an unchanging rule, screen. Dimensions variable — the rule and the days since 2026.",

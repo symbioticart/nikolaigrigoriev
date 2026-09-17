@@ -50,7 +50,9 @@
     const meta = await Site.ready(w.id);
     const frame = a.querySelector('.tile-frame');
     frame.style.setProperty('--r', meta.ratio);
-    a.querySelector('.s').textContent = `${Site.fmtYear(meta.birth)} – Today`;
+    // The year of the work is the year its rule was written, not the first
+    // year of the record it reads.
+    a.querySelector('.s').textContent = `${Site.fmtYear(w.begun || meta.birth)} – Today`;
     span(a);
 
     // The work as it stands, taken from the same ready picture the home page
@@ -72,7 +74,11 @@
 
   // Build every tile up front; paints resolve independently. An unlisted work
   // is not among them: nothing on the site leads to it.
-  Site.WORKS.filter((w) => !w.unlisted).forEach(mountTile);
+  // In the order of their addresses — season, then place in the season — so
+  // the catalogue reads as the practice is counted, whatever order the works
+  // were described in.
+  const byAddress = (a, b) => String(a.title).localeCompare(String(b.title), 'en', { numeric: true });
+  Site.WORKS.filter((w) => !w.unlisted).sort(byAddress).forEach(mountTile);
 </script>
 </body>
 </html>

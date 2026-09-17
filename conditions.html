@@ -3,151 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Variation 87 — Conditions of the Work</title>
+  <title>S1-01 — Conditions of the Work</title>
 <meta name="description" content="The conditions of the work: what is fixed, what is promised, and what may never change.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3' fill='%231a1a1a'/%3E%3C/svg%3E">
-  <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="fonts/jetbrainsmono-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/site.css">
   <style>
-    @font-face {
-      font-family: 'Manrope';
-      font-style: normal;
-      font-weight: 200 800;
-      src: url('fonts/manrope-latin.woff2') format('woff2');
-    }
-    @font-face {
-      font-family: 'JetBrains Mono';
-      font-style: normal;
-      font-weight: 100 800;
-      src: url('fonts/jetbrainsmono-latin.woff2') format('woff2');
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { background: #fafafa; color: #1a1a1a; font-family: 'Manrope', sans-serif; }
-    .artist {
-      position: fixed;
-      top: 20px;
-      left: 24px;
-      font-size: 12px;
-      font-weight: 300;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: #000;
-      z-index: 100;
-      text-decoration: none;
-    }
-    .back-top {
-      position: fixed;
-      top: 20px;
-      right: 24px;
-      font-size: 12px;
-      font-weight: 300;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: #1a1a1a;
-      opacity: 0.6;
-      text-decoration: none;
-      z-index: 100;
-    }
-    .back-top:hover { opacity: 0.9; }
-    .sheet {
-      max-width: 620px;
-      margin: 0 auto;
-      padding: 110px 32px 96px;
-      font-size: 14px;
-      font-weight: 300;
-      line-height: 1.7;
-    }
-    .kicker {
-      font-size: 10px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      opacity: 0.4;
-      margin-bottom: 10px;
-    }
-    h1 {
-      font-size: 20px;
-      font-weight: 400;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    .sub {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 9.5px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      opacity: 0.55;
-      margin-bottom: 48px;
-    }
-    h2 {
-      font-size: 12px;
-      font-weight: 400;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      margin: 34px 0 10px;
-    }
-    h2 .n { opacity: 0.35; display: inline-block; min-width: 2ch; margin-right: 0.8em; font-family: 'JetBrains Mono', monospace; font-weight: 300; }
-    p { margin-bottom: 10px; opacity: 0.78; }
-    .mono { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.02em; }
-    .hash { word-break: break-all; opacity: 0.55; }
-    .sig {
-      margin-top: 64px;
-      padding-top: 28px;
-      border-top: 1px solid rgba(0,0,0,0.15);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px 32px;
-    }
-    .sig .field { border: 0; padding: 0; opacity: 1; }
-    .sig .rule { display: block; height: 44px; border-bottom: 1px solid rgba(0,0,0,.45); }
-    .sig .cap { display: block; margin-top: 6px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; opacity: .45; }
+    /* The document that constitutes a work, shown on the work's own site: the
+       site's header, the site's face, and the sheet itself set as a document
+       is set — a reading measure, numbered sections, a line for a signature.
+       It used to wear a face of its own, so a reader could not tell whose
+       site the paper was on. Print keeps the sheet and drops the site. */
+    .sheet { max-width: 620px; margin: 0 auto; padding: 120px 0 96px;
+      font-size: 14px; line-height: 1.7; color: var(--ink); }
+    .kicker { font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--grey); margin-bottom: 10px; }
+    h1 { font-size: 15px; font-weight: 400; letter-spacing: .2px; margin-bottom: 4px; }
+    .sub { font-size: 12px; letter-spacing: .05em; color: var(--grey); margin-bottom: 48px;
+      font-variant-numeric: tabular-nums; }
+    h2 { font-size: 12px; font-weight: 400; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--grey); margin: 34px 0 10px; }
+    h2 .n { display: inline-block; min-width: 2ch; margin-right: .8em;
+      font-variant-numeric: tabular-nums; color: var(--silence); }
+    p { margin-bottom: 10px; }
+    .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11.5px;
+      letter-spacing: .02em; }
+    .hash { word-break: break-all; color: var(--grey); }
+    .sig { margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--hair);
+      display: grid; grid-template-columns: 1fr 1fr; gap: 40px 32px; }
+    .sig .field { border: 0; padding: 0; }
+    .sig .rule { display: block; height: 44px; border-bottom: 1px solid var(--grey); }
+    .sig .cap { display: block; margin-top: 6px; font-size: 10px; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--grey); }
     .doc-hash { margin-top: 40px; }
-    .back {
-      display: inline-block;
-      margin-top: 56px;
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: #1a1a1a;
-      opacity: 0.4;
-      text-decoration: none;
-      border-bottom: 1px solid rgba(0,0,0,0.2);
-      padding-bottom: 1px;
-    }
-    /* Touch: enlarge the hit area of the footer links without moving their
-       underline off the text (WCAG 2.5.8). */
+    .back { display: inline-block; margin-top: 56px; font-size: 13px; color: var(--grey); }
+    .back:hover { color: var(--ink); }
+    .unset { color: var(--grey); }
     @media (max-width: 640px) {
-      .sheet { padding: 96px 20px 80px; }
-      .back, .artist, .back-top { position: relative; }
-      .back::after, .artist::after, .back-top::after {
-        content: ''; position: absolute; left: -6px; right: -6px; top: -11px; bottom: -11px;
-      }
+      .sheet { padding: 100px 0 80px; }
+      .back { padding: 7px 0; }
     }
     @page { margin: 25mm 22mm; }
     @media print {
       html, body { background: #fff; color: #000; }
+      .site-head, .skip { display: none; }
       .sheet { padding: 0; max-width: 100%; font-size: 10.5pt; line-height: 1.6; }
-      p { opacity: 1; orphans: 3; widows: 3; }
-      .kicker, .sub, h2 .n { opacity: .6; }
-      .hash { opacity: 1; }
+      p { orphans: 3; widows: 3; }
       h2 { break-after: avoid; }
       .sig { break-inside: avoid; border-top: 1px solid #000; }
       .sig .rule { border-bottom: 1px solid #000; }
       .doc-hash { break-inside: avoid; }
-      .back, .artist, .back-top { display: none; }
+      .back { display: none; }
     }
   </style>
 </head>
 <body>
-  <a class="artist" href="./" aria-label="Nikolai Grigoriev — home">Nikolai Grigoriev</a>
-  <a class="back-top" href="/archive.html?id=87">← Variation 87</a>
+  <main id="main">
   <div class="sheet">
     <div class="kicker">Nikolai Grigoriev</div>
     <h1>Conditions of the Work</h1>
-    <div class="sub">Variation 87 · 2022–TODAY · this document constitutes the work</div>
+    <div class="sub">S1-01 · <span id="c-years">2022</span>–Today · this document constitutes the work</div>
 
     <h2><span class="n">1</span>The Work</h2>
-    <p>“Variation 87” is a living work by Nikolai Grigoriev. It turns a single life — the quiet traces one body leaves without being asked — slowly into an image, so that living can be seen and lived as a work of art. Its subject is not death but what death sharpens: the attention a life is worth once you know it ends. The work also belongs to a larger one: the lives it and its kind record gather into a collective form made to stand in a museum, a monument to attentive living — a shared dimension this work is made to join. A dated state is written “Variation 87, state of [date].” The work is one; its daily states are states of one work. Medium: software, lived time written daily by an unchanging rule, screen.</p>
+    <p>“S1-01” (until September 2026 shown as “Variation 87”) is a living work by Nikolai Grigoriev. It turns a single life — the quiet traces one body leaves without being asked — slowly into an image, so that living can be seen and lived as a work of art. Its subject is not death but what death sharpens: the attention a life is worth once you know it ends. The work also belongs to a larger one: the lives it and its kind record gather into a collective form made to stand in a museum, a monument to attentive living — a shared dimension this work is made to join. A dated state is written “Variation 87, state of [date].” The work is one; its daily states are states of one work. Medium: software, lived time written daily by an unchanging rule, screen.</p>
 
     <h2><span class="n">2</span>Definition</h2>
     <p>The rule and this certificate constitute the work. Any image, screen, or print is an execution of the rule — evidence of the work, not the work itself. Whoever holds this certificate holds the work; without this certificate there is no work.</p>
@@ -190,15 +107,16 @@
     <div style="margin-top:56px; display:flex; gap:26px; flex-wrap:wrap;">
       <a class="back" href="/rule.html?id=87" style="margin-top:0;">The rule →</a>
       <a class="back" href="/about.html" style="margin-top:0;">About the artist →</a>
-      <a class="back" href="/archive.html?id=87" style="margin-top:0;">← Variation 87</a>
+      <a class="back" href="/archive.html?id=87" style="margin-top:0;">← S1-01</a>
     </div>
   </div>
-
+  </main>
+<script src="/assets/site.js"></script>
 <script>
 /* Every certificate is read from certificates.json, the one place the documents
  * that constitute the works are written down.
  *
- * The sheet below is the certificate of Variation 87 as it was signed, left in
+ * The sheet below is the certificate of S1-01 as it was signed, left in
  * the page so that the document a reader arrives at is there whether or not
  * anything runs. Asking for another work replaces it; asking for 87 leaves it
  * standing and only re-reads its first recorded day off the record.
@@ -208,7 +126,8 @@
  * only where the work differs, and in the fingerprints of its own code.
  */
 (function () {
-  var id = new URLSearchParams(location.search).get('id') || '87';
+  Site.mountHeader(null);
+  var id = Site.resolveId(new URLSearchParams(location.search).get('id') || '87');
 
   function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 
@@ -222,8 +141,11 @@
         var d = m.birth.split('-'), MON = ['January','February','March','April','May','June',
           'July','August','September','October','November','December'];
         el.innerHTML = el.innerHTML.replace('{birth}', (+d[2]) + ' ' + MON[+d[1] - 1] + ' ' + d[0]);
+        // The years on the sheet run from the date of the work — the day its
+        // rule was written — not from the first day of the record it reads.
+        var w = (window.__WORKS || {})[id] || {};
         var years = document.getElementById('c-years');
-        if (years) years.textContent = d[0];
+        if (years) years.textContent = (w.begun || m.birth).slice(0, 4);
       })
       .catch(function () {});
   }
@@ -234,7 +156,24 @@
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (all) {
       var cert = all && all[id];
-      if (!cert) return;
+      // A work whose document has not been set down shows no document — and
+      // never another work's. The sheet of S1-01 stood here under S6-01's
+      // link for a fortnight, and a reader had no way to tell.
+      if (!cert) {
+        var w = (window.__WORKS || {})[id] || {};
+        var name = w.title || id;
+        document.title = 'Conditions of the Work — ' + name;
+        document.querySelector('.sheet').innerHTML =
+          '<div class="kicker">Nikolai Grigoriev</div>' +
+          '<h1>Conditions of the Work</h1>' +
+          '<div class="sub">' + esc(name) + '</div>' +
+          '<p class="unset">The document that constitutes this work has not been set down yet.</p>' +
+          '<div style="margin-top:56px; display:flex; gap:26px; flex-wrap:wrap;">' +
+            '<a class="back" href="/rule.html?id=' + encodeURIComponent(id) + '" style="margin-top:0;">The rule →</a>' +
+            '<a class="back" href="/archive.html?id=' + encodeURIComponent(id) + '" style="margin-top:0;">← ' + esc(name) + '</a>' +
+          '</div>';
+        return;
+      }
 
       // A work still being watched in its real conditions is not indexed, and
       // neither is its document. Read from the registry, so a work that is
@@ -247,17 +186,12 @@
       }
 
       document.title = 'Conditions of the Work — ' + cert.title;
-      var back = document.querySelector('.back-top');
-      if (back) {
-        back.textContent = '← ' + cert.title;
-        back.setAttribute('href', '/archive.html?id=' + encodeURIComponent(id));
-      }
 
       var S = cert.sections;
       var html =
         '<div class="kicker">Nikolai Grigoriev</div>' +
         '<h1>Conditions of the Work</h1>' +
-        '<div class="sub">' + esc(cert.title) + ' · <span id="c-years">2022</span>–TODAY · this document constitutes the work</div>';
+        '<div class="sub">' + esc(cert.title) + ' · <span id="c-years">2022</span>–Today · this document constitutes the work</div>';
 
       S.forEach(function (s, i) {
         html += '<h2><span class="n">' + (i + 1) + '</span>' + esc(s[0]) + '</h2>';
