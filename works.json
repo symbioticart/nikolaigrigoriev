@@ -344,5 +344,91 @@
         ]
       ]
     }
+  },
+  "96": {
+    "title": "S6-03",
+    "listed": true,
+    "selected": false,
+    "medium": "Software, ground crossed by a living body and turned by its nights, written daily by an unchanging rule, screen. Dimensions variable — the rule and the days since 2026.",
+    "canvas": {
+      "w": 920,
+      "h": 1350,
+      "density": 1
+    },
+    "ground": "#eee9dd",
+    "silence": "over",
+    "engine": {
+      "painter": "96/painter.js",
+      "data": "/96/data.json",
+      "dateField": "d",
+      "readback": "2d"
+    },
+    "state": {
+      "w": 920,
+      "h": 1350,
+      "quality": 0.88
+    },
+    "rule": {
+      "laws": [
+        "Each day, one painting: the ground the body crossed that day, laid on one sheet.",
+        "The painting is made from that day’s record of one living body — where it went, how it moved, how its heart worked, and the night that opened the day — and from nothing else.",
+        "Nothing is arranged by hand.",
+        "The sheet is turned by the body’s nights. Each day adds the turn of the night that opened it: a night calmer than every night before it turns the sheet forty-five degrees clockwise, a faster one forty-five degrees against, the middle night not at all. A day without a recorded night does not turn it.",
+        "A day is laid down only after it has closed, at 09:30 the next morning in Barcelona.",
+        "The sheet holds every day: the oldest below, the newest on top.",
+        "A day is weighed against the days and nights of this body that came before it, never against those that follow.",
+        "Each day is fitted to the sheet by its own reach; a day smaller than two hundred metres is not enlarged beyond that.",
+        "The turn of a day can be read back as the rank of its night among the nights before it, and the path can be read back as a shape. The width of the stroke cannot: it is the pace woven with the heart, each against that day’s own range.",
+        "A circle of two hundred and fifty metres around the house is never written.",
+        "The seed of a day is its date; the same day always makes the same painting.",
+        "A day that has been painted is never repainted. It loses a twentieth of its presence each day after, and never falls below a twentieth.",
+        "A day without a walk lays nothing down. When no day arrives from the instrument, the last sheet is held; from the second day of silence it fades.",
+        "Every day the work has lived is kept."
+      ],
+      "seed": "The seed of a day is its date; the same day always makes the same painting.",
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026. The sheet is turned by the body’s nights, not by the calendar.",
+      "reads": [
+        [
+          "The average heart rate of the night that opened the day, against every night before it",
+          "The turn of the sheet, up to forty-five degrees either way. The turns add up."
+        ],
+        [
+          "The reach of the day",
+          "The scale at which the day is fitted to the sheet."
+        ],
+        [
+          "The pace of movement and the work of the heart",
+          "The width of the stroke."
+        ],
+        [
+          "A stop longer than a minute and a half",
+          "A pool of ink."
+        ],
+        [
+          "The hour the body moved",
+          "The temperature of the ink: blue-black at night, sienna by day."
+        ],
+        [
+          "The heart at work",
+          "Warm patches inside the stroke."
+        ],
+        [
+          "Ground crossed on earlier days",
+          "A dark wet bed under the stroke."
+        ],
+        [
+          "The climb",
+          "Ink bleeding into the paper beside the stroke."
+        ],
+        [
+          "The age of a day",
+          "Its presence."
+        ],
+        [
+          "Silence",
+          "A day without a walk lays nothing down. When the instrument sends no day, the sheet is held, and from the second day it fades."
+        ]
+      ]
+    }
   }
 }

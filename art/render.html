@@ -73,6 +73,18 @@
       days: (D) => D.days,
       paint: (p, day, D, w, h, sil) => window.OilMorphogenesisPainter.paintDay(p, day, D, w, h),
     },
+    '96': {
+      // S6-03 reads the path in its public form: { days:[{d,turn,segs,…}], meta }.
+      // A sheet is every frozen day up to the one asked for, so the painter is
+      // handed the whole record. It composes in 2D and returns the sheet.
+      // Silence never reaches it: the host holds the last sheet and fades it.
+      birth: (D) => D.meta && D.meta.birth,
+      last:  (D) => D.meta && D.meta.lastDataDay,
+      today: (D) => D.meta && D.meta.serverDate,
+      live:  (D) => !D.meta || D.meta.live !== false,
+      days: (D) => D.days,
+      paint: (p, day, D, w, h, sil) => window.S603Painter.paintDay(p, day, D, w, h),
+    },
     '89': {
       // /89/data.json returns { days:[raw Oura metrics], meta }.
       birth: (D) => D.days[0] && D.days[0].day,

@@ -419,3 +419,23 @@ test('the studio names a begun work by its address and never leads it to an empt
     child.kill('SIGKILL');
   }
 });
+
+// ── S6-03: the path leaves the house only in its public form ─────────────────
+test("S6-03 serves the path without the house or the beat of the heart", async () => {
+  const d = await (await fetch(`${BASE}/96/data.json`)).json();
+  assert.ok(d.days.length > 0, "S6-03 has nothing to show");
+  for (const day of d.days) {
+    assert.deepEqual(Object.keys(day).sort(), ["d", "effort", "heart", "segs", "span", "stats", "turn"]);
+    assert.ok(Math.abs(day.turn) <= 45, `${day.d} turns beyond 45°`);
+    for (const k of Object.keys(day.stats)) assert.doesNotMatch(k, /^hr/i, `${day.d} carries ${k}`);
+    for (const seg of day.segs) for (const p of seg) {
+      assert.ok(Math.hypot(p[0], p[1]) >= 250, `${day.d} has a point inside the circle of the house`);
+    }
+  }
+});
+
+test("S6-03 takes a record only from the house", async () => {
+  const r = await fetch(`${BASE}/ops/96`, { method: "POST", body: JSON.stringify({ days: [] }),
+    headers: { "Content-Type": "application/json", "x-ops-secret": "guess" } });
+  assert.equal(r.status, 403);
+});

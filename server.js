@@ -814,6 +814,73 @@ function record91Write(days, live) {
   } catch (e) { console.warn('[91] write skipped:', e.message); }
 }
 
+// ---------- S6-03: the path, as the house lets it out ----------
+// The house keeps the path in latitude and longitude with the heart in beats.
+// None of that comes here. Each morning, after the day has frozen at 09:30,
+// the house sends the public form: metres around a point, the circle of the
+// house already removed, the heart as a share of the day's own range, the
+// night as a turn in degrees. The site stores what it was sent and nothing
+// else. The copy shipped in the repository is the seed, as for Variation 91:
+// what a fresh instance paints from until the house is first heard.
+const record96Path = () => path.join(path.dirname(ARCHIVE_DIR), 'days-96.json');
+const seed96Path = () => path.join(__dirname, 'data', 'days-96.json');
+const DAY96_KEYS = new Set(['d', 'turn', 'heart', 'effort', 'span', 'stats', 'segs']);
+
+function loadRecord96() {
+  if (!STATE.record96) {
+    STATE.record96 = { days: [], receivedAt: null };
+    for (const [f, seed] of [[record96Path(), false], [seed96Path(), true]]) {
+      try {
+        const r = JSON.parse(fs.readFileSync(f, 'utf8'));
+        if (r.days && r.days.length) { STATE.record96 = seed ? { days: r.days, receivedAt: null } : r; break; }
+      } catch { /* next */ }
+    }
+  }
+  return STATE.record96;
+}
+
+// What a pushed form must be before it is kept. A form that carries anything
+// but the public fields is refused whole: the house is the only place a
+// latitude may live, and a mistake there must not become a file here.
+function checkForm96(form) {
+  if (!form || !Array.isArray(form.days)) return 'no days';
+  let prev = '';
+  for (const d of form.days) {
+    if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d.d || '')) return 'a day without a date';
+    if (d.d <= prev) return 'days out of order at ' + d.d;
+    prev = d.d;
+    for (const k of Object.keys(d)) if (!DAY96_KEYS.has(k)) return `a field that is not public: ${k}`;
+    if (typeof d.turn !== 'number' || Math.abs(d.turn) > 45) return 'a turn beyond 45° at ' + d.d;
+    if (!Array.isArray(d.segs)) return 'no segments at ' + d.d;
+    for (const seg of d.segs) {
+      if (!Array.isArray(seg)) return 'a broken segment at ' + d.d;
+      for (const pt of seg) {
+        if (!Array.isArray(pt) || pt.length !== 7) return 'a point of the wrong shape at ' + d.d;
+        if (Math.hypot(pt[0], pt[1]) < 250) return 'a point inside the circle of the house at ' + d.d;
+      }
+    }
+    for (const k of Object.keys(d.stats || {})) if (/^hr/i.test(k)) return `a heart measurement in the stats: ${k}`;
+  }
+  return null;
+}
+
+function meta96() {
+  const rec = loadRecord96();
+  const days = rec.days || [];
+  const serverDate = isoDate(new Date());
+  const last = days.length ? days[days.length - 1].d : null;
+  // A day freezes the next morning, so a record that keeps arriving ends its
+  // calendar on that morning. Only when the house has not been heard for a
+  // day and a half does the calendar run on to today and the silence begin.
+  const fresh = rec.receivedAt && Date.now() - Date.parse(rec.receivedAt) < 36 * 3600e3;
+  const morning = last ? isoDate(new Date(Date.parse(last + 'T00:00:00Z') + 864e5)) : null;
+  const calendarEnd = !last ? null
+    : fresh ? (morning < serverDate ? morning : serverDate)
+    : (serverDate > last ? serverDate : last);
+  return { birth: days.length ? days[0].d : null, lastDataDay: last, serverDate, calendarEnd,
+           live: !!fresh, receivedAt: rec.receivedAt || null, count: days.length };
+}
+
 // ---------- raw upstream -> the night itself ----------
 // Archipelago (a third work on this domain) is painted from ONE night, not from
 // the day it closed. Every five minutes of sleep becomes a charge whose weight
@@ -1486,6 +1553,56 @@ http.createServer((req, res) => {
     return;
   }
 
+  // S6-03: the house sends the public form of the path after the day froze.
+  if (req.method === 'POST' && req.url.split('?')[0] === '/ops/96') {
+    const secret = process.env.OPS_SECRET;
+    const got = Buffer.from(String(req.headers['x-ops-secret'] || ''));
+    const want = Buffer.from(secret || '');
+    if (!secret || got.length !== want.length || !crypto.timingSafeEqual(got, want)) {
+      res.writeHead(403, head({})); res.end(); return;
+    }
+    const chunks = []; let size = 0; let answered = false;
+    const say = (code, obj) => {
+      if (answered) return;
+      answered = true;
+      try { res.writeHead(code, head({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' })); res.end(JSON.stringify(obj)); }
+      catch (e) { /* the house hung up */ }
+    };
+    req.setTimeout(30000, () => { say(408, { ok: false, error: 'took too long to send' }); req.destroy(); });
+    req.on('data', (c) => {
+      size += c.length;
+      if (size > 32 << 20) { say(413, { ok: false, error: 'form too large' }); req.destroy(); return; }
+      chunks.push(c);
+    });
+    req.on('end', () => {
+      if (answered) return;
+      let form;
+      try { form = JSON.parse(Buffer.concat(chunks).toString('utf8')); }
+      catch { say(400, { ok: false, error: 'not json' }); return; }
+      const bad = checkForm96(form);
+      if (bad) { say(400, { ok: false, error: bad }); return; }
+      // A frozen day is never repainted: a form that would change a day
+      // already kept is refused, not merged.
+      const kept = loadRecord96().days || [];
+      const sent = new Map(form.days.map((d) => [d.d, JSON.stringify(d)]));
+      for (const d of kept) {
+        if (!sent.has(d.d)) { say(409, { ok: false, error: 'a kept day is missing: ' + d.d }); return; }
+        if (sent.get(d.d) !== JSON.stringify(d)) { say(409, { ok: false, error: 'a kept day would change: ' + d.d }); return; }
+      }
+      const rec = { days: form.days, receivedAt: new Date().toISOString() };
+      try {
+        fs.mkdirSync(path.dirname(record96Path()), { recursive: true });
+        const tmp = record96Path() + '.tmp';
+        fs.writeFileSync(tmp, JSON.stringify(rec));
+        fs.renameSync(tmp, record96Path());
+      } catch (e) { say(500, { ok: false, error: 'not written' }); return; }
+      STATE.record96 = rec;
+      say(200, { ok: true, days: rec.days.length, last: meta96().lastDataDay, added: rec.days.length - kept.length });
+    });
+    req.on('error', () => {});
+    return;
+  }
+
   // The watchers report here instead of speaking to Telegram themselves.
   //
   // Seven senders wrote into one chat with seven vocabularies and no shared
@@ -1640,6 +1757,15 @@ http.createServer((req, res) => {
       // S6-01 reads the same record as 87, so it lives on the same calendar.
       '94': Object.assign({}, common, { ratio: ratio('94'), alive: alive87,
         incomplete: (STATE.days || []).filter(d => d.i === 1).map(d => d.d) }),
+      // S6-03 lives on the path's own calendar: it begins with the first
+      // walked day and ends on the morning the last one froze.
+      '96': (() => {
+        const m96 = meta96();
+        return Object.assign({}, common, {
+          ratio: ratio('96'), birth: m96.birth, last: m96.calendarEnd, lastData: m96.lastDataDay,
+          alive: (loadRecord96().days || []).map((d) => d.d), incomplete: [],
+        });
+      })(),
       '89': Object.assign({}, common, { ratio: ratio('89'), alive: alive89, incomplete: [] }),
       'archipelago': Object.assign({}, common, {
         ratio: ratio('archipelago'),
@@ -1695,6 +1821,11 @@ http.createServer((req, res) => {
   // расходятся они правилом, а не тем, что видят.
   if (url === '/91/data.json' || url === '/92/data.json') {
     serveJSON(req, res, loadRecord91());
+    return;
+  }
+  // ── S6-03 — the path in its public form ──
+  if (url === '/96/data.json') {
+    serveJSON(req, res, { days: loadRecord96().days || [], meta: meta96() });
     return;
   }
   // ── Archipelago — the night itself, its own data contract ──
