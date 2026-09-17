@@ -30,7 +30,7 @@
     "begun": "2022-05-24",
     "listed": true,
     "selected": true,
-    "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — the rule and the days since 2022.",
+    "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable. The rule and the days since 2022.",
     "canvas": {
       "w": 980,
       "h": 700,
@@ -50,49 +50,7 @@
     },
     "rule": {
       "seed": "The seed of a day is drawn from the artist’s name, the date, and the day’s record together; no two days can coincide.",
-      "foot": "First recorded day {birth}.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html\">Conditions of the Work</a>.",
-      "reads": [
-        [
-          "Readiness, sleep and the variability of the heart, ranked together",
-          "How dense the sheet is, and how light the colour: a strong day lays fewer marks and lifts the tone; a hard day crowds the sheet."
-        ],
-        [
-          "The variability of the heart, deep sleep and the sleep score",
-          "The number and width of the large leaves of colour, and how widely the marks vary in size."
-        ],
-        [
-          "Readiness and the intensity of training",
-          "How many curved gestures are woven through the middle."
-        ],
-        [
-          "Restlessness, breath, efficiency and the resting heart",
-          "The number and width of the beaded chains, and how far each mark trembles from its line."
-        ],
-        [
-          "Hours slept, efficiency and the sleep score",
-          "The length of the leaves, and how saturated the colour is."
-        ],
-        [
-          "REM sleep, latency and deep sleep",
-          "The curvature of the marks and the tonal contrast between them."
-        ],
-        [
-          "The deviation of body temperature, the resting heart and breath",
-          "The hue, turned warm or cool."
-        ],
-        [
-          "Training and workouts",
-          "The count of splatters."
-        ],
-        [
-          "Readiness and the resting heart",
-          "The angle at which the whole composition is set."
-        ],
-        [
-          "Silence",
-          "A day the ring did not write lays nothing down. The last painting is held, and from the second day its colour drains."
-        ]
-      ]
+      "foot": "First recorded day {birth}.<br>The full conditions of this work, its definition, its silence and its transfer, are set out in the document that constitutes it: <a href=\"/conditions.html\">Conditions of the Work</a>."
     }
   },
   "89": {
@@ -100,7 +58,7 @@
     "begun": "2025-01-01",
     "listed": true,
     "selected": false,
-    "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — the rule since 2025, the days since 2022.",
+    "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable. The rule since 2025, the days since 2022.",
     "canvas": {
       "w": 920,
       "h": 1350,
@@ -120,45 +78,7 @@
     },
     "rule": {
       "seed": "The seed of a day is drawn from the day’s record alone; the date plays no part in it. Two days of the same body make the same painting, however far apart they fall.",
-      "foot": "First recorded day {birth}.<br>The rule was written in 2025; the record it reads begins in 2022, because the body had already been keeping it.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html?id=89\">Conditions of the Work</a>.",
-      "reads": [
-        [
-          "The variability of the heart and the sleep score",
-          "The wave the marks follow across the sheet: its frequency and its phase."
-        ],
-        [
-          "The variability of the heart, deep sleep and the sleep score",
-          "The number and width of the large leaves, and how widely the marks vary in size."
-        ],
-        [
-          "Readiness and training",
-          "How many curved gestures there are, and the angle at which the composition is set."
-        ],
-        [
-          "The resting heart",
-          "The length and width of the gestures: a calm heart draws them long and thin."
-        ],
-        [
-          "Restlessness, breath, efficiency and the resting heart",
-          "The number and width of the beaded chains, and how far each mark trembles from its line."
-        ],
-        [
-          "REM sleep and hours slept",
-          "The curvature of the marks and the length of the leaves."
-        ],
-        [
-          "The deviation of body temperature, deep sleep and the sleep score",
-          "The hue, turned warm or cool; the tonal contrast; the saturation of the colour."
-        ],
-        [
-          "Training, workouts and how quickly sleep came",
-          "The count of splatters, and the number of thick dabs laid last."
-        ],
-        [
-          "Silence",
-          "A day the ring did not write lays nothing down. The last painting is held, and from the second day its colour drains."
-        ]
-      ]
+      "foot": "First recorded day {birth}.<br>The rule was written in 2025; the record it reads begins in 2022, because the body had already been keeping it.<br>The full conditions of this work, its definition, its silence and its transfer, are set out in the document that constitutes it: <a href=\"/conditions.html?id=89\">Conditions of the Work</a>."
     }
   },
   "archipelago": {
@@ -167,7 +87,7 @@
     "unit": "night",
     "listed": true,
     "selected": true,
-    "medium": "Software, a sleeping body written nightly by an unchanging rule, screen. Dimensions variable — the rule since 2026, the nights since 2022.",
+    "medium": "Software, a sleeping body written nightly by an unchanging rule, screen. Dimensions variable. The rule since 2026, the nights since 2022.",
     "canvas": {
       "w": 900,
       "h": 1200,
@@ -204,45 +124,7 @@
         "Every night the work has lived is kept."
       ],
       "seed": "The seed of a night is drawn from that night’s record alone; the date plays no part in it.",
-      "foot": "First recorded night {birth}.<br>The rule was written in 2026; the nights it reads begin in 2022, because the body had already been recording them.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html?id=archipelago\">Conditions of the Work</a>.",
-      "reads": [
-        [
-          "Every five minutes of sleep",
-          "One charge. Deep sleep weighs most, REM less, light sleep least; the minutes awake weigh nothing and only part what is drawn."
-        ],
-        [
-          "The variability of the heart in those minutes",
-          "How far a charge reaches: recovery reaches further."
-        ],
-        [
-          "Movement in those minutes",
-          "How much a charge weighs: a restless minute weighs less."
-        ],
-        [
-          "The cycles of the night",
-          "The passes of the shuttle across the sheet, one pass per cycle; the time it took to fall asleep stands empty at the head of the first."
-        ],
-        [
-          "The sum of the charges",
-          "The body: one mass while the sleep holds, islands when it breaks."
-        ],
-        [
-          "The heart through the night, against its own floor",
-          "The light on the rim of the body: an even light would mean an object, an uneven one means someone is inside."
-        ],
-        [
-          "Breath, and how badly the body breathed",
-          "The grain of the ground: slow breath, a coarser grain; disturbed breath, a stronger one."
-        ],
-        [
-          "The deviation of body temperature",
-          "How heavily the ink is laid."
-        ],
-        [
-          "Silence",
-          "From the second night without a record the rim goes out first, then the body dims from within. When the nights resume, the painting returns."
-        ]
-      ]
+      "foot": "First recorded night {birth}.<br>The rule was written in 2026; the nights it reads begin in 2022, because the body had already been recording them.<br>The full conditions of this work, its definition, its silence and its transfer, are set out in the document that constitutes it: <a href=\"/conditions.html?id=archipelago\">Conditions of the Work</a>."
     }
   },
   "91": {
@@ -250,7 +132,7 @@
     "begun": "2026-08-27",
     "listed": false,
     "selected": false,
-    "medium": "Software, a lived life written daily by an unchanging rule, screen. Dimensions variable — one sheet, the rule since 2026, the days since 2024.",
+    "medium": "Software, a lived life written daily by an unchanging rule, screen. Dimensions variable. One sheet, the rule since 2026, the days since 2024.",
     "canvas": {
       "w": 900,
       "h": 1260,
@@ -276,7 +158,7 @@
         "Nothing is arranged by hand.",
         "The sheet holds every day the body has lived: a new day is laid over the days already there.",
         "A day is weighed against the days of this body that came before it, never against the days that follow.",
-        "Each visible feature is driven by one measure of the body, and the rule is published: a measure can be read back out of the sheet, and the work does not pretend otherwise. The sharp points of a day are meant to be read — one point for one hour spent under strain.",
+        "Each visible feature is driven by one measure of the body, and the rule is published: a measure can be read back out of the sheet, and the work does not pretend otherwise. The sharp points of a day are meant to be read: one point for one hour spent under strain.",
         "The seed of a day is the place its form takes on the sheet; the date only puts the days in order.",
         "The instrument's own verdict on a day is used nowhere in the work.",
         "Where a day falls is the hour the body went to sleep, and how far that hour fell from its own.",
@@ -287,45 +169,7 @@
         "Every day the work has lived is kept, whether or not it can still be seen."
       ],
       "seed": "The seed of a day is the place its form takes on the sheet; the date only puts the days in order.",
-      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2024, because the body had already been recording them.",
-      "reads": [
-        [
-          "Heart-rate variability of the night",
-          "The fullness of the day's outline. Below the body's own middle the edges draw inward and the form narrows to points; above it they swell outward and the form fills."
-        ],
-        [
-          "Hours spent under strain",
-          "The sharp points of the day: one point to the hour. Half the days have none."
-        ],
-        [
-          "The hour the body fell asleep",
-          "The angle at which the day is set on the sheet — from the body's earliest hour round to its latest."
-        ],
-        [
-          "How far the sleep fell from its own hour",
-          "How far the day is set from the middle of the sheet. In its own hour it lies near the centre; out of it, towards the edge."
-        ],
-        [
-          "Steps",
-          "The area the day covers."
-        ],
-        [
-          "Deviation of body temperature",
-          "The tilt of the day, up to forty degrees either way."
-        ],
-        [
-          "The days already written",
-          "The silhouette of a day is cut by the days lying around it — and only by the days before it. The future does not reshape a day."
-        ],
-        [
-          "The age of a day",
-          "Its density. A fresh day lies as a body; the paint leaves it over two months, and what remains is a hairline."
-        ],
-        [
-          "Silence",
-          "A day the ring did not write lays nothing down. A long silence fades the whole sheet; the day the record resumes is written with a pale channel around it, and that seam stays."
-        ]
-      ]
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2024, because the body had already been recording them."
     }
   },
   "92": {
@@ -333,7 +177,7 @@
     "begun": "2026-08-27",
     "listed": false,
     "selected": false,
-    "medium": "Software, a lived life written daily by an unchanging rule, screen. Dimensions variable — one sheet, the rule since 2026, the days since 2024.",
+    "medium": "Software, a lived life written daily by an unchanging rule, screen. Dimensions variable. One sheet, the rule since 2026, the days since 2024.",
     "canvas": {
       "w": 900,
       "h": 1260,
@@ -359,7 +203,7 @@
         "Nothing is arranged by hand.",
         "The sheet holds every day the body has lived: a new day is laid over the days already there, and it takes a quarter of the room a day took before.",
         "A day is weighed against the days of this body that came before it, never against the days that follow.",
-        "Each visible feature is driven by one measure of the body, and the rule is published: a measure can be read back out of the sheet, and the work does not pretend otherwise. The sharp points of a day are meant to be read — one point for one hour spent under strain.",
+        "Each visible feature is driven by one measure of the body, and the rule is published: a measure can be read back out of the sheet, and the work does not pretend otherwise. The sharp points of a day are meant to be read: one point for one hour spent under strain.",
         "The seed of a day is the place its form takes on the sheet; the date only puts the days in order.",
         "The instrument's own verdict on a day is used nowhere in the work.",
         "Where a day falls is the hour the body went to sleep, and how far that hour fell from its own.",
@@ -370,37 +214,7 @@
         "Every day the work has lived is kept, whether or not it can still be seen."
       ],
       "seed": "The seed of a day is the place its form takes on the sheet; the date only puts the days in order.",
-      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2024, because the body had already been recording them.",
-      "reads": [
-        [
-          "The hour the body fell asleep",
-          "Where the day is set around the middle of the sheet — its earliest hours at the top, and clockwise from there to its latest."
-        ],
-        [
-          "How far that hour fell from the body’s own",
-          "How far the day sits from the middle. A night that kept its hour lies near the centre; one that missed it goes out to the edge."
-        ],
-        [
-          "The variability of the heart through the night",
-          "Whether the outline is drawn inward or bows outward."
-        ],
-        [
-          "The seconds the body spent under strain",
-          "The number of sharp points on the form: one point for one hour. Half the days carry none."
-        ],
-        [
-          "The day’s steps",
-          "The area the form takes on the sheet — a quarter of what a day takes in S5-03."
-        ],
-        [
-          "The deviation of body temperature",
-          "The tilt of the form, up to forty degrees either way."
-        ],
-        [
-          "The days that have passed since",
-          "How much paint is left in the form. A day is a body for forty-two days — a third less than in S5-03 — then a hair-thin outline, and it is never removed."
-        ]
-      ]
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2024, because the body had already been recording them."
     }
   },
   "94": {
@@ -408,7 +222,7 @@
     "begun": "2026-09-04",
     "listed": true,
     "selected": true,
-    "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable — the rule since 2026, the days since 2022.",
+    "medium": "Software, lived time written daily by an unchanging rule, screen. Dimensions variable. The rule since 2026, the days since 2022.",
     "canvas": {
       "w": 920,
       "h": 1350,
@@ -444,33 +258,7 @@
         "Every day the work has lived is kept."
       ],
       "seed": "The seed of a day is drawn from the artist’s name, the date, and the day’s record together; no two days can coincide.",
-      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the record it reads begins in 2022, because the body had already been keeping it.<br>It paints with the brush of S1-01, and parts from it in what is painted: not marks scattered over a sheet, but a body grown from the day, which is never shown.",
-      "reads": [
-        [
-          "Readiness, sleep and the variability of the heart, ranked together",
-          "How many lobes the body has, and whether the marks come from the warm palette or the deep one."
-        ],
-        [
-          "The variability of the heart, deep sleep and the sleep score",
-          "The rim of the body, drawn inward or swelling; the curvature of its lobes; the width of the strokes."
-        ],
-        [
-          "Restlessness, breath, resting heart rate and the deviation of temperature",
-          "The sharp points on the rim, up to six; the hue turned warm; how far each stroke wanders from its line."
-        ],
-        [
-          "Hours slept, efficiency, REM and latency",
-          "The pattern of the skin, from a fine network to coarse islands, and the tonal contrast of the marks."
-        ],
-        [
-          "Training, workouts and readiness",
-          "How far the body reaches across the sheet."
-        ],
-        [
-          "Silence",
-          "A day the ring did not write lays nothing down. The last painting is held, and from the second day its colour drains."
-        ]
-      ]
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the record it reads begins in 2022, because the body had already been keeping it.<br>It paints with the brush of S1-01 and parts from it in what is painted: a body grown from the day, which is never shown."
     }
   },
   "96": {
@@ -478,7 +266,7 @@
     "begun": "2026-09-15",
     "listed": true,
     "selected": false,
-    "medium": "Software, ground crossed by a living body and turned by its nights, written daily by an unchanging rule, screen. Dimensions variable — the rule and the days since 2026.",
+    "medium": "Software, ground crossed by a living body and turned by its nights, written daily by an unchanging rule, screen. Dimensions variable. The rule and the days since 2026.",
     "canvas": {
       "w": 920,
       "h": 1350,
@@ -500,7 +288,7 @@
     "rule": {
       "laws": [
         "Each day, one painting: the ground the body crossed that day, laid on one sheet.",
-        "The painting is made from that day’s record of one living body — where it went, how it moved, how its heart worked, and the night that opened the day — and from nothing else.",
+        "The painting is made from that day’s record of one living body, where it went, how it moved, how its heart worked and the night that opened the day, and from nothing else.",
         "Nothing is arranged by hand.",
         "The sheet is turned by the body’s nights. Each day adds the turn of the night that opened it: a night calmer than every night before it turns the sheet forty-five degrees clockwise, a faster one forty-five degrees against, the middle night not at all. A day without a recorded night does not turn it.",
         "A day is laid down only after it has closed, at 09:30 the next morning in Barcelona.",
@@ -515,49 +303,7 @@
         "Every day the work has lived is kept."
       ],
       "seed": "The seed of a day is its date; the same day always makes the same painting.",
-      "foot": "First recorded day {birth}.<br>The rule was written in 2026. The sheet is turned by the body’s nights, not by the calendar.",
-      "reads": [
-        [
-          "The average heart rate of the night that opened the day, against every night before it",
-          "The turn of the sheet, up to forty-five degrees either way. The turns add up."
-        ],
-        [
-          "The reach of the day",
-          "The scale at which the day is fitted to the sheet."
-        ],
-        [
-          "The pace of movement and the work of the heart",
-          "The width of the stroke."
-        ],
-        [
-          "A stop longer than a minute and a half",
-          "A pool of ink."
-        ],
-        [
-          "The hour the body moved",
-          "The temperature of the ink: blue-black at night, sienna by day."
-        ],
-        [
-          "The heart at work",
-          "Warm patches inside the stroke."
-        ],
-        [
-          "Ground crossed on earlier days",
-          "A dark wet bed under the stroke."
-        ],
-        [
-          "The climb",
-          "Ink bleeding into the paper beside the stroke."
-        ],
-        [
-          "The age of a day",
-          "Its presence."
-        ],
-        [
-          "Silence",
-          "A day without a walk lays nothing down. When the instrument sends no day, the sheet is held, and from the second day it fades."
-        ]
-      ]
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026. The sheet is turned by the body’s nights, not by the calendar."
     }
   }
 }

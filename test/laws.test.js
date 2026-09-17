@@ -244,7 +244,7 @@ test('every work is captioned in the same grammar', () => {
   delete all._;
   for (const [id, w] of Object.entries(all)) {
     assert.match(w.medium,
-      /^Software, .+ written (daily|nightly) by an unchanging rule, screen\. Dimensions variable — .+\.$/,
+      /^Software, .+ written (daily|nightly) by an unchanging rule, screen\. Dimensions variable\. [A-Z].+\.$/,
       `${id} is captioned out of the common grammar: "${w.medium}"`);
     // A year in the caption must be a year the work can stand behind.
     for (const year of w.medium.match(/\b(19|20)\d\d\b/g) || []) {

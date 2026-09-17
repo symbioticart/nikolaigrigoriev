@@ -31,7 +31,7 @@
       <h2 class="prof-h">Archive</h2>
       <div class="arch-legend" id="legend">
         <span><i class="i-alive"></i>a day was written</span>
-        <span><i class="i-dead"></i>silence — no data</span>
+        <span><i class="i-dead"></i>silence, no data</span>
       </div>
       <div class="arch-scroll" id="cal" role="region"
            aria-label="Calendar of days — select a day to open it"></div>
@@ -55,11 +55,6 @@
     </section>
 
 
-    <!-- 6 · the legend: what the ring writes, and what it becomes -->
-    <section class="prof-block prof-text" id="readsblock" hidden>
-      <h2 class="prof-h">What the ring writes</h2>
-      <dl class="reads" id="reads"></dl>
-    </section>
   </div>
 </main>
 <div class="day-preview" id="preview"><img alt=""><div class="pv-date"></div></div>
@@ -80,24 +75,14 @@
   if (work.unit === 'night') {
     document.getElementById('legend').innerHTML =
       '<span><i class="i-alive"></i>a night was written</span>' +
-      '<span><i class="i-dead"></i>silence — no data</span>';
+      '<span><i class="i-dead"></i>silence, no data</span>';
   }
 
-  // The legend stands at the foot of the work's page and is declared by the
-  // work itself (`rule.reads` in the registry). A work that has not declared
-  // one shows no empty heading.
-  const reads = (window.__WORKS && window.__WORKS[id] && window.__WORKS[id].rule
-    && window.__WORKS[id].rule.reads) || [];
-  if (reads.length) {
-    document.getElementById('reads').innerHTML = reads
-      .map(([signal, becomes]) => `<dt>${signal}</dt><dd>${becomes}</dd>`).join('');
-    document.getElementById('readsblock').hidden = false;
-  }
   document.getElementById('rulelink').href = `/rule.html?id=${id}`;
   (function () {
     const r = window.__WORKS && window.__WORKS[id] && window.__WORKS[id].rule;
     const n = r && Array.isArray(r.laws) && r.laws.length ? r.laws.length : 12;
-    document.getElementById('rulelink').textContent = `The rule in full — ${n} laws →`;
+    document.getElementById('rulelink').textContent = `The rule in full · ${n} laws →`;
   })();
   document.getElementById('certlink').href =
     id === '87' ? '/conditions.html' : `/conditions.html?id=${encodeURIComponent(id)}`;
