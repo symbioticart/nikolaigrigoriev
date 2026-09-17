@@ -50,7 +50,49 @@
     },
     "rule": {
       "seed": "The seed of a day is drawn from the artist’s name, the date, and the day’s record together; no two days can coincide.",
-      "foot": "First recorded day {birth}.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html\">Conditions of the Work</a>."
+      "foot": "First recorded day {birth}.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html\">Conditions of the Work</a>.",
+      "reads": [
+        [
+          "Readiness, sleep and the variability of the heart, ranked together",
+          "How dense the sheet is, and how light the colour: a strong day lays fewer marks and lifts the tone; a hard day crowds the sheet."
+        ],
+        [
+          "The variability of the heart, deep sleep and the sleep score",
+          "The number and width of the large leaves of colour, and how widely the marks vary in size."
+        ],
+        [
+          "Readiness and the intensity of training",
+          "How many curved gestures are woven through the middle."
+        ],
+        [
+          "Restlessness, breath, efficiency and the resting heart",
+          "The number and width of the beaded chains, and how far each mark trembles from its line."
+        ],
+        [
+          "Hours slept, efficiency and the sleep score",
+          "The length of the leaves, and how saturated the colour is."
+        ],
+        [
+          "REM sleep, latency and deep sleep",
+          "The curvature of the marks and the tonal contrast between them."
+        ],
+        [
+          "The deviation of body temperature, the resting heart and breath",
+          "The hue, turned warm or cool."
+        ],
+        [
+          "Training and workouts",
+          "The count of splatters."
+        ],
+        [
+          "Readiness and the resting heart",
+          "The angle at which the whole composition is set."
+        ],
+        [
+          "Silence",
+          "A day the ring did not write lays nothing down. The last painting is held, and from the second day its colour drains."
+        ]
+      ]
     }
   },
   "89": {
@@ -78,7 +120,45 @@
     },
     "rule": {
       "seed": "The seed of a day is drawn from the day’s record alone; the date plays no part in it. Two days of the same body make the same painting, however far apart they fall.",
-      "foot": "First recorded day {birth}.<br>The rule was written in 2025; the record it reads begins in 2022, because the body had already been keeping it.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html?id=89\">Conditions of the Work</a>."
+      "foot": "First recorded day {birth}.<br>The rule was written in 2025; the record it reads begins in 2022, because the body had already been keeping it.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html?id=89\">Conditions of the Work</a>.",
+      "reads": [
+        [
+          "The variability of the heart and the sleep score",
+          "The wave the marks follow across the sheet: its frequency and its phase."
+        ],
+        [
+          "The variability of the heart, deep sleep and the sleep score",
+          "The number and width of the large leaves, and how widely the marks vary in size."
+        ],
+        [
+          "Readiness and training",
+          "How many curved gestures there are, and the angle at which the composition is set."
+        ],
+        [
+          "The resting heart",
+          "The length and width of the gestures: a calm heart draws them long and thin."
+        ],
+        [
+          "Restlessness, breath, efficiency and the resting heart",
+          "The number and width of the beaded chains, and how far each mark trembles from its line."
+        ],
+        [
+          "REM sleep and hours slept",
+          "The curvature of the marks and the length of the leaves."
+        ],
+        [
+          "The deviation of body temperature, deep sleep and the sleep score",
+          "The hue, turned warm or cool; the tonal contrast; the saturation of the colour."
+        ],
+        [
+          "Training, workouts and how quickly sleep came",
+          "The count of splatters, and the number of thick dabs laid last."
+        ],
+        [
+          "Silence",
+          "A day the ring did not write lays nothing down. The last painting is held, and from the second day its colour drains."
+        ]
+      ]
     }
   },
   "archipelago": {
@@ -124,7 +204,45 @@
         "Every night the work has lived is kept."
       ],
       "seed": "The seed of a night is drawn from that night’s record alone; the date plays no part in it.",
-      "foot": "First recorded night {birth}.<br>The rule was written in 2026; the nights it reads begin in 2022, because the body had already been recording them.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html?id=archipelago\">Conditions of the Work</a>."
+      "foot": "First recorded night {birth}.<br>The rule was written in 2026; the nights it reads begin in 2022, because the body had already been recording them.<br>The full conditions of this work — its definition, its silence, its transfer — are set out in the document that constitutes it: <a href=\"/conditions.html?id=archipelago\">Conditions of the Work</a>.",
+      "reads": [
+        [
+          "Every five minutes of sleep",
+          "One charge. Deep sleep weighs most, REM less, light sleep least; the minutes awake weigh nothing and only part what is drawn."
+        ],
+        [
+          "The variability of the heart in those minutes",
+          "How far a charge reaches: recovery reaches further."
+        ],
+        [
+          "Movement in those minutes",
+          "How much a charge weighs: a restless minute weighs less."
+        ],
+        [
+          "The cycles of the night",
+          "The passes of the shuttle across the sheet, one pass per cycle; the time it took to fall asleep stands empty at the head of the first."
+        ],
+        [
+          "The sum of the charges",
+          "The body: one mass while the sleep holds, islands when it breaks."
+        ],
+        [
+          "The heart through the night, against its own floor",
+          "The light on the rim of the body: an even light would mean an object, an uneven one means someone is inside."
+        ],
+        [
+          "Breath, and how badly the body breathed",
+          "The grain of the ground: slow breath, a coarser grain; disturbed breath, a stronger one."
+        ],
+        [
+          "The deviation of body temperature",
+          "How heavily the ink is laid."
+        ],
+        [
+          "Silence",
+          "From the second night without a record the rim goes out first, then the body dims from within. When the nights resume, the painting returns."
+        ]
+      ]
     }
   },
   "91": {

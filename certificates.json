@@ -187,5 +187,123 @@
       "p5 · 2.2.0 · vendor/p5.min.js · SHA-256 · 994ad50423ab4190681ba0f7539fe3f65d22011d065fdba50a5150654747522c"
     ]
   },
-  "_treatment": "Any change to the code is either a conservation treatment — authorised by the artist and recorded in the treatment log under a new mark — or a new state of the work. No third possibility exists."
+  "_treatment": "Any change to the code is either a conservation treatment — authorised by the artist and recorded in the treatment log under a new mark — or a new state of the work. No third possibility exists.",
+  "94": {
+    "title": "S6-01",
+    "sections": [
+      [
+        "The Work",
+        "“S6-01” is a living work by Nikolai Grigoriev. It reads the record S1-01 reads and paints with its brush, and parts from it in what is painted: not marks scattered over a sheet, but a body grown from the day, which is never shown. Before a mark is made, the day — five measures of one living body, each made of several ranked signals — grows a form: its lobes, its rim, its skin, its vessels. The brush goes where that form sends it, and the form itself is never drawn. Its subject is not the record but what a day builds: the shape a life would take if each of its days were given a body of its own. A dated state is written “S6-01, state of [date].” The work is one; its daily states are states of one work. Medium: software, lived time written daily by an unchanging rule, screen."
+      ],
+      [
+        "Definition",
+        "The rule and this certificate constitute the work. Any image, screen, or print is an execution of the rule — evidence of the work, not the work itself. Whoever holds this certificate holds the work; without this certificate there is no work."
+      ],
+      [
+        "The Rule",
+        "Each day, the daily signal of one living body is turned into one painting. The seed of a day is drawn from the name of the artist, the date, and the day’s record together, by a fixed formula; no two days can coincide. Every day is weighed only against the days of this body’s own history that precede it. The day reaches the brush as five measures of a body, and each is made of at least two ranked signals, so that no measurement can be read back out of the image. Before a mark is made, a body is grown from the five measures; the body is never drawn, and it alone decides where the brush goes. The brush is an oil brush on an ivory ground, with two palettes and three registers of stroke; it paints three tissues in the order a body is built — the flesh across the whole sheet, the seams of the skin over it, the vessels last and finest. The same day always produces the same body and the same sequence of marks. Once a day has ended, its inputs never change — its painting never changes. The work never shows the present: a day is met only once it has closed and can no longer be performed for."
+      ],
+      [
+        "The Signal",
+        "The work accepts the daily signal of a living body from any instrument able to provide the schema of Appendix A. It is bound to no maker and no device. The artist is the sole subject of the signal in this work, by his own consent. Keeping the signal flowing is the duty of its subject; an interruption is not a breach — it is silence, and silence is part of the work. Appendix A — the exact schema of the daily signal — is printed only with the signed certificate and does not appear on any public surface of the work."
+      ],
+      [
+        "Silence",
+        "Mortality is not the work’s subject but its edge — the pressure that gives a life its attention. When no new day arrives, the work does not pretend. The last painting is held. From the second silent day its colour begins to leave; by the fourteenth the image stands without colour, and it goes on dissolving into the empty ground until, by the thirtieth silent day, nothing of it remains but the ground itself. The work is then empty, not finished. Any day that arrives restores it in full at once: the work returns as many times as the days do, and no silence is final. Silence is never declared from a stored record alone — only by the living programme itself — so a sleeping machine can never show a false death, and an instrument that has stopped is never painted as a body that has. Upon the certified death of the signal’s subject, the last state is permanent and the work is complete; the artist’s obligations do not survive the artist."
+      ],
+      [
+        "Withdrawal",
+        "The subject of the signal may end his participation at any time. A declared withdrawal — a signed, dated statement, recorded in the provenance log — is written as silence from its date. The work registers absence, not its cause, and never names an undeclared silence a death. Withdrawal acts forward only: the days already written remain part of the work."
+      ],
+      [
+        "The Archive",
+        "The work keeps every day it has lived. Each state is frozen as it was written on its own day; the future never repaints the past. Recorded gaps remain visible as gaps. The archive is the work’s memory and its full body — a life made imperishable as record, and one way the work lengthens a life in the only register art can reach."
+      ],
+      [
+        "Transfer",
+        "This certificate transfers the work; re-registration of this document is the transfer. The bond to the artist’s body survives any sale: this work is not re-bound to another body. If the certificate is lost, one reissue may be made by the artist in person, recorded in the provenance log; after the artist, no reissue exists."
+      ],
+      [
+        "Care",
+        "The artist maintains the performing programme and one working signal adapter for five years from the date of transfer. Thereafter the owner holds the complete rule, the code, the seed formula, and the schema of Appendix A — sufficient for any competent technician to perform any state of the work again."
+      ],
+      [
+        "The Machine",
+        null
+      ],
+      [
+        "Edition",
+        "Unique, 1/1. Daily states are states of this one work; they are not numbered and are not sold separately."
+      ],
+      [
+        "Provenance",
+        "First recorded day {birth}. The rule was written in 2026; the record it reads begins in 2022, because the body had already been keeping it. The full provenance log accompanies the signed certificate."
+      ]
+    ],
+    "machine": [
+      "rule v1.0",
+      "rule.js · SHA-256 · 7dae032232d0487a00a4271852e4e28ad895199b6ee78914c78c33094f425507",
+      "painter.js · SHA-256 · 2419e90a8e2e71eb3571557b5b665dbd8f0da0559bdab44270a55efcf6b8469c",
+      "p5.oil.js · SHA-256 · a8cdfb490bd1a1eefa538f7cde186e0a16f8dc03460671380319f31b1e80c50a",
+      "p5 · 2.2.0 · vendor/p5.min.js · SHA-256 · 994ad50423ab4190681ba0f7539fe3f65d22011d065fdba50a5150654747522c"
+    ]
+  },
+  "96": {
+    "title": "S6-03",
+    "sections": [
+      [
+        "The Work",
+        "“S6-03” is a living work by Nikolai Grigoriev. It is made from the ground one living body crossed in a day — where it went, how it moved, how its heart worked — laid on one sheet that holds every day, and turned by the body’s nights: a night calmer than every night before it turns the sheet clockwise, a faster one against, and the turns add up. The sheet is never returned to level. Its subject is not the map but the trace: what a day leaves once the place it happened in has been taken out of it. A dated state is written “S6-03, state of [date].” The work is one; its daily states are states of one work. Medium: software, ground crossed by a living body and turned by its nights, written daily by an unchanging rule, screen."
+      ],
+      [
+        "Definition",
+        "The rule and this certificate constitute the work. Any image, screen, or print is an execution of the rule — evidence of the work, not the work itself. Whoever holds this certificate holds the work; without this certificate there is no work."
+      ],
+      [
+        "The Rule",
+        "Each day, the ground one living body crossed is laid on one sheet, oldest below, newest on top. A day is laid down only after it has closed, at 09:30 the next morning in Barcelona. Each day adds to the turn of the sheet the turn of the night that opened it: a night calmer than every night before it turns the sheet forty‑five degrees clockwise, a faster one forty‑five degrees against, the middle night not at all; a day without a recorded night does not turn it. Each day is fitted to the sheet by its own reach, and a day smaller than two hundred metres is not enlarged beyond that. The width of the stroke is the pace woven with the heart, each against that day’s own range, so that neither can be read back; the turn of a day can be read back as the rank of its night, and the path as a shape. A stop longer than a minute and a half pools the ink; the hour of the day sets its temperature, blue‑black at night and sienna by day; ground crossed on earlier days lies as a dark wet bed under the stroke. The seed of a day is its date; the same day always makes the same sheet. A day that has been painted is never repainted: it loses a twentieth of its presence each day after, and never falls below a twentieth. A day without a walk lays nothing down."
+      ],
+      [
+        "The Signal",
+        "The work accepts the daily path of a living body from any instrument able to provide the schema of Appendix A. It is bound to no maker and no device. The record is kept in the house of the subject and leaves it only in its public form: metres around a point in place of latitude and longitude, the heart as a share of that day’s own range in place of beats, the night as a turn in degrees. A circle of two hundred and fifty metres around the house is never written; no point inside it and no beat of the heart ever reaches the work. The artist is the sole subject of the signal in this work, by his own consent. Keeping the signal flowing is the duty of its subject; an interruption is not a breach — it is silence, and silence is part of the work. Appendix A — the exact schema of the daily path and of its public form — is printed only with the signed certificate and does not appear on any public surface of the work."
+      ],
+      [
+        "Silence",
+        "Mortality is not the work’s subject but its edge — the pressure that gives a life its attention. A day without a walk is not a silence: the sheet is held as it stands, and the day is counted. When the instrument sends no day at all, the work does not pretend. The last sheet is held. From the second silent day its colour begins to leave; by the fourteenth the sheet stands without colour, and it goes on dissolving into the empty ground until, by the thirtieth silent day, nothing of it remains but the ground itself. The work is then empty, not finished. Any day that arrives restores it in full at once: the work returns as many times as the days do, and no silence is final. Silence is never declared from a stored record alone — only by the living programme itself, and only once the house has not been heard for a day and a half — so a sleeping machine can never show a false death, and an instrument that has stopped is never painted as a body that has. Upon the certified death of the signal’s subject, the last state is permanent and the work is complete; the artist’s obligations do not survive the artist."
+      ],
+      [
+        "Withdrawal",
+        "The subject of the signal may end his participation at any time. A declared withdrawal — a signed, dated statement, recorded in the provenance log — is written as silence from its date. The work registers absence, not its cause, and never names an undeclared silence a death. Withdrawal acts forward only: the days already written remain part of the work."
+      ],
+      [
+        "The Archive",
+        "The work keeps every day it has lived. Each day is frozen as it was laid on its own morning; the future never repaints the past, and the fading of a day’s presence is part of the rule, not a revision of the day. Recorded gaps remain visible as gaps. The archive is the work’s memory and its full body."
+      ],
+      [
+        "Transfer",
+        "This certificate transfers the work; re-registration of this document is the transfer. The bond to the artist’s body survives any sale: this work is not re-bound to another body. If the certificate is lost, one reissue may be made by the artist in person, recorded in the provenance log; after the artist, no reissue exists."
+      ],
+      [
+        "Care",
+        "The artist maintains the performing programme and one working signal adapter — the house that reduces the path to its public form — for five years from the date of transfer of this certificate. Thereafter the owner holds the complete rule, the code, the seed formula, and the schema of Appendix A — sufficient for any competent technician to perform any state of the work again."
+      ],
+      [
+        "The Machine",
+        null
+      ],
+      [
+        "Edition",
+        "Unique, 1/1. Daily states are states of this one work; they are not numbered and are not sold separately."
+      ],
+      [
+        "Provenance",
+        "First recorded day {birth}. The rule was written in 2026, and the days it reads begin in the same month: the house began keeping the path for this work. The full provenance log accompanies the signed certificate."
+      ]
+    ],
+    "machine": [
+      "rule v1.0",
+      "painter.js · SHA-256 · f3ab29f6c0faf41ccd569afd4552c273a4cb3f113972b91d8753abcf2ddf08da",
+      "p5 · 2.2.0 · vendor/p5.min.js · SHA-256 · 994ad50423ab4190681ba0f7539fe3f65d22011d065fdba50a5150654747522c"
+    ]
+  }
 }
