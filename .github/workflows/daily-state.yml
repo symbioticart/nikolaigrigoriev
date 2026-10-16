@@ -58,16 +58,22 @@ jobs:
       # restarts on the deploy and re-syncs, and comparing the painting to a
       # record that moved underneath it failed the job on 14 August for a
       # painting that was perfectly correct.
+      #
+      # Each work against its OWN record, as smoke.js does. The works do not
+      # share one: 91 and 92 admit a day only once it is behind us, so on a
+      # morning after a night the ring did not write they stand two days behind
+      # 87 and are right. Held to the newest day of any work, they failed the
+      # job on 12 and 16 October for paintings that were correct.
       - name: Remember what the body had written when we painted
         id: wrote
         run: |
-          last=$(curl -fsS -m 60 "$SITE/state/meta.json" \
+          wrote=$(curl -fsS -m 60 "$SITE/state/meta.json" \
             | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
-                const m=JSON.parse(s);
-                const days=Object.values(m).map(w=>(w.alive||[]).slice(-1)[0]).filter(Boolean).sort();
-                console.log(days[days.length-1]||"")})')
-          echo "last=$last" >> "$GITHUB_OUTPUT"
-          echo "painted against $last"
+                const m=JSON.parse(s), out={};
+                for (const [id,w] of Object.entries(m)) { const a=w.alive||[]; if (a.length) out[id]=a[a.length-1]; }
+                console.log(JSON.stringify(out))})')
+          echo "works=$wrote" >> "$GITHUB_OUTPUT"
+          echo "painted against $wrote"
 
       - name: File the paintings
         id: file
@@ -121,12 +127,17 @@ jobs:
           health=$(fetch "$SITE/health") || { echo "the site never answered"; exit 1; }
           manifest=$(fetch "$SITE/state/index.json") || { echo "the manifest never answered"; exit 1; }
           echo "$health" | head -c 200; echo
-          WROTE='${{ steps.wrote.outputs.last }}' MANIFEST="$manifest" node - <<'JS'
+          WROTE='${{ steps.wrote.outputs.works }}' MANIFEST="$manifest" node - <<'JS'
           const man = JSON.parse(process.env.MANIFEST);
-          const wrote = process.env.WROTE;
+          const wroteBy = JSON.parse(process.env.WROTE || '{}');
           const problems = [];
+          // Every work the record knows must be in the manifest, not only the
+          // ones the manifest happens to list.
+          for (const id of Object.keys(wroteBy)) if (!(id in man)) man[id] = null;
           for (const [id, m] of Object.entries(man)) {
             if (!m || !m.last) { problems.push(`${id}: absent from the manifest entirely`); continue; }
+            const wrote = wroteBy[id];
+            if (!wrote) continue;   // no written day yet: nothing to be behind
             const behind = Math.round((Date.parse(wrote) - Date.parse(m.last)) / 86400000);
             // A day behind is the rhythm: the painter runs once a morning and the
             // record can move after it. Two days is a stall — the same tolerance
