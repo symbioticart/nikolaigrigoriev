@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="ru" class="nojs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Личная антихрупкость в эпоху искусственного интеллекта</title>
+<meta name="description" content="Стратегия развития человека, создания капитала и использования ИИ в условиях радикальной технологической неопределённости.">
+
+<style>
+@font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-display:block;src:url(/antifragile/fonts/fae92c74995.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-display:block;src:url(/antifragile/fonts/fb61f1c3b81.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'EB Garamond';font-style:italic;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/f05053afbd4.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:'EB Garamond';font-style:italic;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/f494f04400d.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'EB Garamond';font-style:normal;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/f9a904fa76d.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:'EB Garamond';font-style:normal;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/f5f1a1f1750.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Source Sans 3';font-style:normal;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/fa65c3b5330.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:'Source Sans 3';font-style:normal;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/f114a0e5e16.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+:root{--ink:#1a1a1a;--slate:#5e5e5e;--mute:#8f8f8f;--rule:#c8c8c8;--hair:#e0e0e0;--wash:#f4f4f4;--paper:#fff;--accent:#1a1a1a;--col:620px;--gap:52px;--sn:236px;--pad:22px;--fs:21px;
+--serif:"EB Garamond",Garamond,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+--sans:"Source Sans 3","Source Sans Pro","Helvetica Neue",Helvetica,Arial,sans-serif;
+--fell:"Cormorant Garamond","EB Garamond",Garamond,serif;
+--ease:cubic-bezier(.2,.7,.2,1);color-scheme:light}
+*,::before,::after{box-sizing:border-box}
+html{text-size-adjust:100%;-webkit-text-size-adjust:100%;background:var(--paper);scroll-padding-top:24px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:var(--fs);line-height:1.6;font-kerning:normal;font-variant-ligatures:common-ligatures;font-variant-numeric:lining-nums proportional-nums;-webkit-font-smoothing:antialiased;overflow-x:clip}
+::selection{background:#dadada}
+a{color:var(--ink);text-decoration:underline 1px var(--rule);text-underline-offset:.2em}
+a:hover{text-decoration-color:currentColor}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.vh{width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;position:absolute!important}
+.skip{position:absolute;left:12px;top:-64px;z-index:70;padding:12px 16px;background:var(--ink);color:#fff;font:600 15px/1 var(--sans);text-decoration:none}
+.skip:focus{top:12px;color:#fff}
+.col{width:min(var(--col),calc(100% - 2*var(--pad)));margin-left:auto;margin-right:auto}
+
+/* ---------- обложка ---------- */
+.hero{--wd:26;--T:2.75;--ih:min(36px,calc((100vw - 2*var(--pad))/var(--wd)),max(2.5vw,2.3vh,14px),max(3.15vh,14px));
+display:flex;flex-direction:column;align-items:center;min-height:max(560px,100svh);padding:max(40px,7vh) var(--pad) max(20px,3.5vh,env(safe-area-inset-bottom));text-align:center;font-size:var(--ih);font-weight:520;line-height:1.2;color:var(--ink)}
+.ih-page{margin-block:auto;display:flex;flex-direction:column;align-items:center}
+.ih-block{margin:0;font:inherit}
+.ih-l{display:block;white-space:nowrap}
+.ih-i{font-family:var(--fell);font-style:italic;font-weight:500;font-size:1.08em;letter-spacing:.005em;font-variant-caps:normal;line-height:0}
+.ih-title{font-size:calc(var(--T)*1em);line-height:1.02}
+.ih-title .ih-l{letter-spacing:.012em}
+.ih-the{margin-bottom:-.12em}
+.ih-the .ih-i{font-size:1.12em}
+.ih-sub{font-size:.4em;letter-spacing:.075em!important;margin-top:.5em;line-height:1.1}
+.ih-sub .ih-i{font-size:1.5em;letter-spacing:0;margin-right:.08em}
+.ih-sc .ih-l{font-variant-caps:small-caps;font-variant-numeric:oldstyle-nums;letter-spacing:.045em}
+.ih-sc .ih-i{font-size:1.1em;letter-spacing:0}
+.ih-def{margin-top:2em}
+.ih-names{margin-top:2.1em}
+.ih-date{margin:.35em 0 0;font-family:var(--fell);font-style:italic;font-weight:500;font-size:.98em;font-variant-numeric:oldstyle-nums}
+.ih-way{margin-top:2.4em;display:flex;align-items:baseline;justify-content:center;font-size:max(19px,1em);font-weight:500;font-variant-caps:all-small-caps;font-variant-numeric:oldstyle-nums;letter-spacing:.07em;line-height:1}
+.ih-go{padding:10px 6px;text-decoration:underline 1px transparent;text-underline-offset:.25em}
+.ih-go:hover{text-decoration-color:currentColor}
+.ih-way{gap:.45em}.ih-or{letter-spacing:0}
+.ac{font-size:.86em;letter-spacing:.04em}
+.ih-sc .ac{font-size:1em;font-variant-caps:all-small-caps;letter-spacing:.045em}.toc-sum .ac{font-size:.9em}
+@media (prefers-reduced-motion:no-preference){
+ .ih-l,.ih-date,.ih-way{animation:fadeIn .7s ease-out both}
+ .ih-i{animation:ih-write .55s cubic-bezier(.45,.05,.35,1) both}
+ .ih-l0{animation-delay:.1s}.ih-l1{animation-delay:.16s}.ih-l2{animation-delay:.22s}.ih-l3{animation-delay:.28s}.ih-l4{animation-delay:.34s}.ih-l5{animation-delay:.4s}.ih-l6{animation-delay:.46s}.ih-l8{animation-delay:.58s}
+ .ih-w0{animation-delay:1s}.ih-w0b{animation-delay:1.24s}.ih-w1{animation-delay:1.48s}.ih-w2{animation-delay:1.72s}.ih-w4{animation-delay:1.96s}
+ .ih-date{animation-delay:2.2s}.ih-way{animation-delay:2.4s}
+}
+@keyframes fadeIn{0%{opacity:0}}
+@keyframes ih-write{0%{clip-path:inset(-.6em calc(100% + .6em) -.6em -.6em)}100%{clip-path:inset(-.6em)}}
+
+/* ---------- оглавление ---------- */
+.front{padding:118px 0 30px;text-align:center}
+.toc-kicker,.ch-kicker,.toc-num,.stop-n,.stop-t b,.listen,.colo-names,a.colo-up{font-family:var(--serif);font-style:normal;font-weight:500;font-variant-caps:all-small-caps;font-variant-numeric:oldstyle-nums;letter-spacing:.07em;text-transform:none}
+.toc-kicker{margin:0 0 44px;font-size:22px;line-height:1;letter-spacing:.1em;padding-left:.1em}
+.toc-list{--rx:-28px;--name:28px;--dot-y:16px;list-style:none;margin:0 auto;padding:0;width:min(460px,100%);text-align:left}
+.toc-item{position:relative;margin:0 0 32px}
+.toc-item:last-child{margin-bottom:0}
+.toc-item:not(:last-child)::after{content:"";position:absolute;left:calc(var(--rx) - .5px);top:var(--dot-y);height:calc(100% + 32px);width:1px;background:var(--ink)}
+a.toc-link{display:block;text-decoration:none}
+.toc-name{font-size:var(--name);font-weight:500;line-height:1.3;text-decoration:underline 1px transparent;text-underline-offset:.2em}
+.toc-name::before{content:"";position:relative;z-index:1;display:inline-block;width:9px;height:9px;margin-left:-9px;left:calc(var(--rx) + 4.5px);vertical-align:middle;border:1px solid var(--ink);border-radius:50%;background:var(--paper)}
+.toc-num{position:relative;display:inline-flex;justify-content:flex-end;width:0;left:calc(var(--rx) - 16px);white-space:nowrap;font-size:18px;letter-spacing:.06em}
+a.toc-link:hover .toc-name{text-decoration-color:currentColor}
+a.toc-link:hover .toc-name::before{background:var(--ink)}
+.toc-sum{margin:6px 0 0;font-size:17px;line-height:1.45;hyphens:manual;text-wrap:pretty}
+.toc-subs{list-style:none;margin:12px 0 0;padding:0;font:italic 400 17px/1.5 var(--serif)}
+.toc-subs a{text-decoration:underline 1px transparent;text-underline-offset:.2em}
+.toc-subs a:hover{text-decoration-color:currentColor}
+
+/* ---------- части ---------- */
+.ch{position:relative;padding-top:164px}
+.ch-head{margin:0 0 58px;text-align:center}
+.ch-head::after{content:"";display:block;width:1px;height:46px;margin:32px auto 0;background:var(--ink);opacity:.3}
+.ch-h{margin:0;font-weight:500;line-height:1}
+.ch-kicker{display:block;margin:0 0 22px;font-size:21px;line-height:1;letter-spacing:.1em;padding-left:.1em}
+a.ch-title{display:block;font-size:clamp(40px,5.6vw,66px);font-weight:500;line-height:1.04;text-wrap:balance;text-decoration:none}
+.listen{display:flex;align-items:baseline;gap:.42em;width:max-content;margin:24px auto 0;padding:8px 6px;font-size:18px;line-height:1}
+.listen-d::before{content:"·";margin-right:.42em}
+
+.prose p{margin:0;hyphens:auto;-webkit-hyphens:auto;hyphenate-limit-chars:6 3 2;orphans:2;widows:2}
+.prose p+p,.prose p+.note+p{text-indent:1.5em}
+.prose p.lede,.prose p.ni,.prose p.def,.prose p.maxim,.prose p.stress{text-indent:0}
+.prose p.lede{display:flow-root}
+.prose p.lede::first-letter{float:left;font-size:4.2em;line-height:.8;font-weight:500;font-style:normal;letter-spacing:0;color:var(--accent);margin:.07em .085em 0 0}
+.li{font-variant-caps:small-caps;letter-spacing:.045em}
+.li .ac{font-size:1em;font-variant-caps:small-caps}
+.term{font-variant-caps:small-caps;letter-spacing:.04em;font-weight:500}
+.term .ac{font-size:1em}
+
+.prose .scripture{margin:0 0 1.8em;padding:0 0 0 2.2em;font-style:italic}
+.prose .scripture p{text-indent:0;text-align:left;hyphens:auto}
+
+
+.prose h3{margin:2.6em 0 1.05em;font-weight:500;font-style:italic;font-size:1.42em;line-height:1.2;text-align:center;text-wrap:balance}
+.prose h3::before{content:"";display:block;width:28px;height:1px;margin:0 auto .95em;background:var(--ink);opacity:.45}
+
+/* три состояния — короткий глоссарий с висячими терминами */
+.states{list-style:none;margin:.9em 0 .9em;padding:0 0 0 1.5em}
+.states li{margin:0 0 .3em;padding-left:1.5em;text-indent:-1.5em;hyphens:auto;text-align:left}
+.states li:last-child{margin-bottom:0}
+.states .term{font-variant-caps:normal;font-style:italic;letter-spacing:0;font-weight:500}
+
+/* капиталы и компоненты — висячая строка */
+.prose p.def{padding-left:1.5em;text-indent:-1.5em;margin:.45em 0}
+.prose p.def+p:not(.def){margin-top:.45em}
+
+.prose p.strong{font-weight:600;margin-top:.6em}
+.prose p.maxim{margin:1.1em 0;text-align:center;font-size:1.04em}
+.maxim em{font-size:1.2em;font-weight:500;letter-spacing:.01em}
+
+/* двенадцать критериев: висячие номера, капитель в начале */
+.crit{margin:1.2em 0 1.2em}
+.prose .crit p.ci{position:relative;text-indent:0;margin:0 0 .55em}
+.prose .crit p.ci:last-of-type{margin-bottom:0}
+.cn{position:absolute;left:-2.6em;width:2em;text-align:right;font-weight:500;font-variant-numeric:oldstyle-nums tabular-nums;color:var(--accent)}
+.ct{font-variant-caps:small-caps;letter-spacing:.035em;font-weight:500}
+.ct .ac{font-size:1em}
+.prose p.stress{margin:.75em 0 0}
+.prose p.stress+p:not(.stress){margin-top:.75em}
+.prose .crit+p{margin-top:0}
+
+/* маргиналии */
+.note{font-family:var(--sans);font-style:normal;font-weight:400;font-size:14.5px;line-height:1.5;text-indent:0;text-align:left;hyphens:manual;color:var(--ink);display:none}
+.nlab{font-weight:600;margin-right:.35em}
+.note .ac{font-size:1em;letter-spacing:0}
+
+/* шкала-навигация */
+.rail{display:none}
+.topline{position:fixed;left:0;top:0;width:100%;height:2px;background:var(--accent);transform-origin:0 50%;transform:scaleX(var(--p,0));z-index:30;pointer-events:none}
+
+/* колофон */
+.colophon{padding:180px 0 90px;text-align:center}
+.colo-rule{width:28px;height:1px;margin:0 auto 34px;background:var(--ink);opacity:.45}
+.colo-names{margin:0;font-size:21px;font-variant-caps:small-caps;letter-spacing:.045em;line-height:1.3}
+.colo-place{margin:6px 0 0;font:italic 500 18px/1.3 var(--fell);font-variant-numeric:oldstyle-nums}
+.colo-top{margin:40px 0 0}
+a.colo-up{display:inline-block;padding:12px 6px;font-size:17px;line-height:1;text-decoration:underline 1px transparent;text-underline-offset:.3em}
+a.colo-up:hover{text-decoration-color:currentColor}
+
+@media (min-width:760px){
+ .prose p{text-align:justify}
+ .prose .scripture p{text-align:left}
+ .prose p.maxim{text-align:center}
+}
+@media (max-width:759px){
+ :root{--fs:19px}
+ body{line-height:1.56}
+ .ch{padding-top:112px}
+ .ch-head{margin-bottom:44px}
+ a.ch-title{font-size:min(40px,9.2vw)}
+ .prose h3{font-size:1.3em}
+ .front{padding-top:96px}
+ .toc-list{--rx:-24px;--name:24px;--dot-y:14px;width:auto;padding-left:58px}
+ .toc-num{left:calc(var(--rx) - 14px);font-size:17px}
+ .prose .scripture{padding-left:1.2em}
+ .cn{position:static;width:auto;margin-right:.1em}
+ .states{padding-left:0}
+ .colophon{padding-top:max(22vh,150px)}
+}
+@media (min-width:1100px){
+ .col{margin-left:clamp(112px,calc(50% - var(--col)/2),calc(100% - var(--col) - var(--gap) - var(--sn) - 48px));margin-right:0}
+ .front.col{margin-left:auto;margin-right:auto}
+ .topline{display:none}
+ .note{display:block;float:right;clear:right;width:var(--sn);margin:.35em calc(-1*(var(--sn) + var(--gap))) 1em 0;font-size:13px;line-height:1.48}
+ .crit .note{margin-top:.2em}
+ html.js .rail{display:block;position:fixed;left:34px;top:120px;width:28px;height:min(calc(100vh - 240px),720px);z-index:20;opacity:0;visibility:hidden;transition:opacity .12s,visibility 0s linear .12s}
+ html.js .rail.on{opacity:1;visibility:visible;transition:opacity .16s,visibility 0s}
+ .rail-track{position:absolute;left:13px;top:0;bottom:0;width:1px;background:var(--hair)}
+ .rail-fill{position:absolute;left:12.5px;top:0;bottom:0;width:2px;background:var(--ink);transform-origin:50% 0;transform:scaleY(var(--p,0))}
+ a.stop{position:absolute;left:0;width:28px;height:28px;margin-top:-14px;display:flex;align-items:center;justify-content:center;color:var(--slate);text-decoration:none}
+ .stop::before{content:"";width:9px;height:9px;border-radius:50%;border:1px solid var(--mute);background:var(--paper);transition:background .16s,border-color .16s}
+ a.stop:hover::before{border-color:var(--ink)}
+ .stop.past::before{background:var(--ink);border-color:var(--ink)}
+ .stop.on::before{background:var(--ink);border-color:var(--ink);box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--ink)}
+ .stop-n{position:absolute;left:32px;top:50%;transform:translateY(-55%);font-size:15px;line-height:1;letter-spacing:.06em;white-space:nowrap}
+ .stop-t{position:absolute;left:24px;top:50%;transform:translateY(-50%);padding:6px 10px 7px;white-space:nowrap;background:var(--paper);font:italic 400 16px/1 var(--serif);opacity:0;pointer-events:none}
+ .stop-t b{margin-right:9px;font-size:16px}
+ a.stop:hover .stop-t,a.stop:focus-visible .stop-t{opacity:1}
+ .rail-play{position:absolute;left:0;top:-54px;width:28px;height:28px;display:grid;place-items:center;border:1px solid var(--ink);border-radius:50%;color:var(--ink);text-decoration:none}
+ .rail-play svg{width:12px;height:12px;fill:currentColor}
+ .rail-play:hover{background:var(--ink);color:var(--paper)}
+}
+@media (prefers-reduced-motion:reduce){*,::before,::after{transition:none!important;animation:none!important}}
+@media print{.rail,.topline,.skip,.note{display:none!important}.hero{min-height:0}.ch{padding-top:.6in}}
+/* шкала у края экрана на узких экранах — без подписей, только точки */
+@media (max-width:1099px){
+ .topline{display:none}
+ html.js .rail{display:block;position:fixed;left:8px;top:84px;width:20px;height:calc(100vh - 168px);z-index:20;opacity:0;visibility:hidden;transition:opacity .12s,visibility 0s linear .12s}
+ html.js .rail.on{opacity:1;visibility:visible;transition:opacity .16s,visibility 0s}
+ .rail-track{position:absolute;left:9.5px;top:0;bottom:0;width:1px;background:var(--hair)}
+ .rail-fill{position:absolute;left:9px;top:0;bottom:0;width:2px;background:var(--ink);transform-origin:50% 0;transform:scaleY(var(--p,0))}
+ a.stop{position:absolute;left:0;width:20px;height:24px;margin-top:-12px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+ .stop::before{content:"";width:7px;height:7px;border-radius:50%;border:1px solid var(--mute);background:var(--paper);transition:background .16s,border-color .16s}
+ .stop.past::before{background:var(--ink);border-color:var(--ink)}
+ .stop.on::before{background:var(--ink);border-color:var(--ink);box-shadow:0 0 0 2px var(--paper),0 0 0 3px var(--ink)}
+ .stop-n,.stop-t,.rail-play{display:none}
+}
+@media (min-width:760px) and (max-width:1099px){
+ html.js .rail{left:18px}
+ .stop-n{display:block;position:absolute;left:24px;top:50%;transform:translateY(-55%);font-size:13px;line-height:1;letter-spacing:.06em;color:var(--slate)}
+}
+@media (max-width:759px){
+ .col:not(.front){width:auto;margin-left:38px;margin-right:var(--pad)}
+}
+
+</style>
+<script>document.documentElement.classList.replace('nojs','js')</script>
+</head>
+<body>
+<a class="skip" href="#prolog" data-dup="1">К тексту</a>
+<div class="topline" aria-hidden="true"></div>
+<nav class="rail" aria-label="Части эссе" data-dup="1"><a class="rail-play" href="#top" aria-label="К началу"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 4.2L14.2 11H3.8Z"/></svg></a><div class="rail-track"></div><div class="rail-fill"></div><a class="stop" href="#prolog" data-for="prolog" aria-label="Основной принцип"><span class="stop-t" aria-hidden="true">Основной принцип</span></a><a class="stop" href="#part-i" data-for="part-i" aria-label="Часть I: Personal Antifragility Architecture"><span class="stop-n" aria-hidden="true">I</span><span class="stop-t" aria-hidden="true"><b>I</b>Personal Antifragility Architecture</span></a><a class="stop" href="#part-ii" data-for="part-ii" aria-label="Часть II: Scarcity Migration Investing"><span class="stop-n" aria-hidden="true">II</span><span class="stop-t" aria-hidden="true"><b>II</b>Scarcity Migration Investing</span></a><a class="stop" href="#part-iii" data-for="part-iii" aria-label="Часть III: Экономика антитрендов"><span class="stop-n" aria-hidden="true">III</span><span class="stop-t" aria-hidden="true"><b>III</b>Экономика антитрендов</span></a><a class="stop" href="#part-iv" data-for="part-iv" aria-label="Часть IV: Опциональность и положительная асимметрия"><span class="stop-n" aria-hidden="true">IV</span><span class="stop-t" aria-hidden="true"><b>IV</b>Опциональность и положительная асимметрия</span></a><a class="stop" href="#part-v" data-for="part-v" aria-label="Часть V: Двенадцать обязательных критериев AI-antifragile бизнеса"><span class="stop-n" aria-hidden="true">V</span><span class="stop-t" aria-hidden="true"><b>V</b>Двенадцать обязательных критериев AI-antifragile бизнеса</span></a><a class="stop" href="#part-vi" data-for="part-vi" aria-label="Часть VI: Практическая стратегия"><span class="stop-n" aria-hidden="true">VI</span><span class="stop-t" aria-hidden="true"><b>VI</b>Практическая стратегия</span></a><a class="stop" href="#part-vii" data-for="part-vii" aria-label="Часть VII: Личная стратегия"><span class="stop-n" aria-hidden="true">VII</span><span class="stop-t" aria-hidden="true"><b>VII</b>Личная стратегия</span></a><a class="stop" href="#coda" data-for="coda" aria-label="Заключение"><span class="stop-t" aria-hidden="true">Заключение</span></a></nav>
+<header class="hero" id="top">
+<div class="ih-page">
+<h1 class="ih-block ih-title"><span class="vh">Личная антихрупкость в эпоху искусственного интеллекта</span><span aria-hidden="true" data-dup="1"><span class="ih-l ih-l0 ih-the"><span class="ih-i ih-w0">личная</span></span><span class="ih-l ih-l1">АНТИХРУПКОСТЬ</span><span class="ih-l ih-l2 ih-sub"><span class="ih-i ih-w0b">в эпоху</span> ИСКУССТВЕННОГО ИНТЕЛЛЕКТА</span></span></h1>
+<p class="ih-block ih-def ih-sc"><span class="ih-l ih-l3">Стратегия развития <span class="ih-i ih-w1">человека</span>, создания</span><span class="ih-l ih-l4"><span class="ih-i ih-w2">капитала</span> и использования <span class="ac">ИИ</span> в условиях</span><span class="ih-l ih-l5">радикальной технологической</span><span class="ih-l ih-l6"><span class="ih-i ih-w4">неопределённости</span>.</span></p>
+<p class="ih-block ih-names ih-sc" data-dup="1"><span class="ih-l ih-l8">Николай Григорьев</span></p>
+<p class="ih-date" data-dup="1">2026</p>
+</div>
+<div class="ih-way" data-dup="1"><a class="ih-go" href="#contents">читать</a><span class="ih-or">·</span><span class="ih-min">8 мин</span></div>
+</header>
+<main id="main">
+<nav class="front col" id="contents" aria-label="Содержание" data-dup="1"><h2 class="toc-kicker">Содержание</h2><ol class="toc-list">
+<li class="toc-item"><a class="toc-link" href="#prolog"><span class="toc-name">Основной принцип</span></a><p class="toc-sum">Задача не в том, чтобы приспособиться к искусственному интеллекту. Нужна личная и экономическая система, которая крепнет от технологических перемен, в том числе от неожиданных.</p></li>
+<li class="toc-item"><a class="toc-link" href="#part-i"><span class="toc-num">I</span><span class="toc-name">Personal Antifragility Architecture</span></a><p class="toc-sum">В системе три уровня, и каждый опирается на два других.</p><ul class="toc-subs"><li><a href="#part-i-antifragile-human">Antifragile Human</a></li><li><a href="#part-i-antifragile-capital">Antifragile Capital</a></li><li><a href="#part-i-ai-leverage">AI Leverage</a></li></ul></li>
+<li class="toc-item"><a class="toc-link" href="#part-ii"><span class="toc-num">II</span><span class="toc-name">Scarcity Migration Investing</span></a><p class="toc-sum"><span class="ac">ИИ</span> перемещает экономический дефицит.</p></li>
+<li class="toc-item"><a class="toc-link" href="#part-iii"><span class="toc-num">III</span><span class="toc-name">Экономика антитрендов</span></a><p class="toc-sum"><span class="ac">ИИ</span> может рождать спрос и на противоположное: на свойства, которых у технологий нет.</p></li>
+<li class="toc-item"><a class="toc-link" href="#part-iv"><span class="toc-num">IV</span><span class="toc-name">Опциональность и положительная асимметрия</span></a><p class="toc-sum">Ни один актив не гарантирует выигрыша при любом технологическом сценарии.</p></li>
+<li class="toc-item"><a class="toc-link" href="#part-v"><span class="toc-num">V</span><span class="toc-name">Двенадцать обязательных критериев AI-antifragile бизнеса</span></a><p class="toc-sum">Каждую бизнес-гипотезу проверяем по всем двенадцати требованиям.</p><ul class="toc-subs"><li><a href="#part-v-три-стресс-теста">Три стресс-теста</a></li></ul></li>
+<li class="toc-item"><a class="toc-link" href="#part-vi"><span class="toc-num">VI</span><span class="toc-name">Практическая стратегия</span></a><p class="toc-sum">Стартовый капитал идёт на поиск и проверку асимметричных возможностей. На крупные необратимые вложения его не тратим.</p></li>
+<li class="toc-item"><a class="toc-link" href="#part-vii"><span class="toc-num">VII</span><span class="toc-name">Личная стратегия</span></a><p class="toc-sum">Экономическая антихрупкость нужна ради личной свободы.</p></li>
+<li class="toc-item"><a class="toc-link" href="#coda"><span class="toc-name">Заключение</span></a><p class="toc-sum">Personal Antifragility Architecture соединяет три процесса: развитие человека, накопление капитала и <span class="ac">ИИ</span> как универсальный инструмент, который расширяет возможности.</p></li>
+</ol></nav>
+<article class="col essay">
+<section class="ch" id="prolog" data-stop="" data-title="Основной принцип">
+<header class="ch-head"><h2 class="ch-h" id="prolog-title"><a class="self ch-title" href="#prolog">Основной принцип</a></h2><p class="listen" data-dup="1">Читать<span class="listen-d">1 мин</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>За­да­ча не в том, чтобы при­спо­со­бить­ся к ис­кус­ствен­но­му ин­тел­лек­ту. Нужна лич­ная и эко­но­ми­че­ская си­сте­ма, ко­то­рая креп­нет от тех­но­ло­ги­че­ских пе­ре­мен, в том числе от неожи­дан­ных.</p></blockquote>
+<p class="lede"><span class="li"><span class="ac">ИИ</span> удешевляет интеллектуальный</span> труд: про­грам­ми­ро­ва­ние, ана­лиз, про­ек­ти­ро­ва­ние, про­из­вод­ство кон­тен­та, при­ня­тие ре­ше­ний.</p>
+<p>Цен­ность пе­ре­рас­пре­де­ля­ет­ся. Одни на­вы­ки и ак­ти­вы обес­це­ни­ва­ют­ся, дру­гие на­хо­дят новое при­ме­не­ние, тре­тьи ста­но­вят­ся де­фи­цит­нее.</p>
+<p>Стра­те­гия: с по­мо­щью <span class="ac">ИИ</span> раз­ви­вать соб­ствен­ные спо­соб­но­сти и ко­пить ак­ти­вы, ко­то­рые не обес­це­нят­ся, когда тех­но­ло­гии ста­нут ещё силь­нее.</p>
+<p>Важно раз­ли­чать три со­сто­я­ния:</p>
+<ul class="states"><li><span class="term">AI-efficient:</span> <span class="ac">ИИ</span> де­ла­ет ра­бо­ту эф­фек­тив­нее.</li><li><span class="term">AI-resistant:</span> ра­бо­та со­хра­ня­ет цен­ность, как бы ни раз­ви­вал­ся <span class="ac">ИИ</span>.</li><li><span class="term">AI-antifragile:</span> тех­но­ло­ги­че­ские пе­ре­ме­ны от­кры­ва­ют новые воз­мож­но­сти на­рас­тить ка­пи­тал, а воз­мож­ные по­те­ри огра­ни­че­ны.</li></ul>
+<p class="ni strong">Наша цель: тре­тье со­сто­я­ние.</p>
+</div></section>
+<section class="ch" id="part-i" data-stop="I" data-title="Personal Antifragility Architecture">
+<header class="ch-head"><h2 class="ch-h" id="part-i-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Часть I</span><span class="vh">1. </span><a class="self ch-title" href="#part-i">Personal Antifragility Architecture</a></h2><p class="listen" data-dup="1">Читать<span class="listen-d">2 мин</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>В си­сте­ме три уров­ня, и каж­дый опи­ра­ет­ся на два дру­гих.</p></blockquote>
+<h3 id="part-i-antifragile-human">Antifragile Human</h3>
+<aside class="note" data-dup="1" aria-hidden="true"><b class="nlab">AI-antifragile:</b> технологические перемены открывают новые возможности нарастить капитал, а возможные потери ограничены.</aside>
+<p class="lede"><span class="li">Первый уровень:</span> че­ло­век, ко­то­рый со­хра­ня­ет са­мо­сто­я­тель­ность и умеет поль­зо­вать­ся тех­но­ло­ги­че­ской неопре­де­лён­но­стью.</p>
+<p>Для этого он копит шесть видов лич­но­го ка­пи­та­ла.</p>
+<p class="def"><span class="term">Интеллектуальный капитал:</span> си­стем­ное мыш­ле­ние, кри­ти­че­ское суж­де­ние, уме­ние фор­му­ли­ро­вать про­бле­мы, стро­ить ги­по­те­зы и при­ни­мать ре­ше­ния.</p>
+<p class="def"><span class="term">Творческий капитал:</span> вкус, ори­ги­наль­ность, уме­ние со­еди­нять раз­ные об­ла­сти зна­ний и при­ду­мы­вать новые кон­цеп­ции.</p>
+<p class="def"><span class="term">Социальный капитал:</span> до­ве­рие, ре­пу­та­ция, про­фес­си­о­наль­ные связи, со­об­ще­ства, уме­ние ор­га­ни­зо­вать сов­мест­ную ра­бо­ту.</p>
+<p class="def"><span class="term">Физический капитал:</span> здо­ро­вье, энер­гия, ясная го­ло­ва и дол­гая ак­тив­ная жизнь.</p>
+<p class="def"><span class="term">Экономический капитал:</span> лик­вид­ность, соб­ствен­ность, несколь­ко ис­точ­ни­ков до­хо­да, фи­нан­со­вая неза­ви­си­мость.</p>
+<p class="def"><span class="term">Экзистенциальный капитал:</span> внут­рен­няя ав­то­но­мия, устой­чи­вые цен­но­сти и иден­тич­ность, ко­то­рая не дер­жит­ся за одну про­фес­сию.</p>
+<p><span class="term">Главная профессиональная перемена:</span> из ис­пол­ни­те­ля задач в ар­хи­тек­то­ра ре­ше­ний. Ар­хи­тек­тор вы­би­ра­ет про­бле­мы, сво­дит людей, тех­но­ло­гии и ка­пи­тал, ста­вит экс­пе­ри­мен­ты и вла­де­ет ча­стью того, что со­зда­ёт.</p>
+<p>Ан­ти­хруп­кость че­ло­ве­ка в том, чтобы ме­нять спо­соб ра­бо­ты и не те­рять при этом са­мо­сто­я­тель­но­сти и до­сту­па к новым воз­мож­но­стям. Со­рев­но­вать­ся с <span class="ac">ИИ</span> во всём не нужно.</p>
+<h3 id="part-i-antifragile-capital">Antifragile Capital</h3>
+<p>Вто­рой уро­вень: ак­ти­вы, ко­то­рые со­хра­ня­ют цен­ность и могут вы­иг­рать от даль­ней­ше­го раз­ви­тия <span class="ac">ИИ</span>.</p>
+<p><span class="term">Основной принцип:</span> по­ку­пать, со­зда­вать или кон­тро­ли­ро­вать то, что до­ро­жа­ет, когда ин­тел­лект де­ше­ве­ет.</p>
+<p>Одной ред­ко­сти мало.</p>
+<aside class="note" data-dup="1" aria-hidden="true"><b class="nlab">Основной принцип:</b> покупать, создавать или контролировать то, что дорожает, когда интеллект дешевеет.</aside>
+<p>Невос­про­из­во­ди­мость и неза­ме­ни­мость нужно раз­ли­чать.</p>
+<p>Права на про­из­ве­де­ние ис­кус­ства за­щи­ще­ны за­ко­ном. Но более силь­ный <span class="ac">ИИ</span> может сде­лать при­вле­ка­тель­ную за­ме­ну, и спрос на ори­ги­нал упа­дёт.</p>
+<p>По­это­му ин­те­рес­нее ак­ти­вы, цен­ность ко­то­рых дер­жит­ся на свой­ствах, ко­то­рые нель­зя вос­про­из­ве­сти ав­то­ма­ти­че­ски. Ка­че­ства про­дук­та для этого мало.</p>
+<p>Это может быть уни­каль­ное место, ис­то­ри­че­ская под­лин­ность, живое при­сут­ствие че­ло­ве­ка, до­ве­рие, об­ще­ствен­ное при­зна­ние, под­твер­ждён­ное до­сти­же­ние, до­ступ к ин­фра­струк­ту­ре или юри­ди­че­ские пол­но­мо­чия.</p>
+<p>Даже невос­про­из­во­ди­мый актив не га­ран­ти­ру­ет до­хо­да. Надо до­ка­зать, что за него го­то­вы пла­тить и что ренту по­лу­чит имен­но вла­де­лец.</p>
+<h3 id="part-i-ai-leverage">AI Leverage</h3>
+<p>Тре­тий уро­вень: <span class="ac">ИИ</span>, ис­поль­зо­ван­ный по мак­си­му­му, чтобы раз­ви­вать пер­вые два.</p>
+<aside class="note" data-dup="1" aria-hidden="true"><b class="nlab">Ключевой принцип:</b> <span class="ac">AI</span> builds. You own.</aside>
+<p><span class="ac">ИИ</span> берёт на себя всё боль­шую часть ис­сле­до­ва­ний, ана­ли­ти­ки, про­из­вод­ства и опе­ра­ци­он­ной ра­бо­ты.</p>
+<p>Для этого нужна лич­ная ин­тел­лек­ту­аль­ная ин­фра­струк­ту­ра из че­ты­рёх ча­стей.</p>
+<p class="def"><span class="term">Memory:</span> соб­ствен­ные зна­ния, ре­ше­ния, ис­сле­до­ва­ния, кон­так­ты и ре­зуль­та­ты ра­бо­ты в от­кры­тых фор­ма­тах, ко­то­рые можно вы­гру­зить.</p>
+<p class="def"><span class="term">Intelligence:</span> раз­ные мо­де­ли, чтобы ис­кать воз­мож­но­сти, раз­би­рать ре­ше­ния, про­ве­рять ги­по­те­зы и на­хо­дить ошиб­ки.</p>
+<p class="def"><span class="term">Execution:</span> аген­ты ведут раз­ра­бот­ку, ис­сле­до­ва­ния и по­вто­ря­ю­щи­е­ся про­цес­сы, зна­чи­мые ре­ше­ния оста­ют­ся за че­ло­ве­ком.</p>
+<p class="def"><span class="term">Learning:</span> про­гно­зы ре­гу­ляр­но све­ря­ют­ся с ре­зуль­та­та­ми, и соб­ствен­ная мо­дель мира уточ­ня­ет­ся.</p>
+<p><span class="ac">ИИ</span> не дол­жен ре­шать за че­ло­ве­ка. Он нужен, чтобы че­ло­век думал лучше и быст­рее и до­во­дил ре­ше­ния до дела.</p>
+<p class="maxim"><span class="term">Ключевой принцип:</span> <em>AI builds. You own.</em></p>
+<p><span class="ac">ИИ</span> ста­но­вит­ся уни­вер­саль­ным ре­сур­сом про­из­вод­ства. Че­ло­век вла­де­ет ре­зуль­та­та­ми, от­но­ше­ни­я­ми, ак­ти­ва­ми и си­сте­ма­ми, ко­то­рые при­но­сят сто­и­мость на­дол­го.</p>
+</div></section>
+<section class="ch" id="part-ii" data-stop="II" data-title="Scarcity Migration Investing">
+<header class="ch-head"><h2 class="ch-h" id="part-ii-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Часть II</span><span class="vh">2. </span><a class="self ch-title" href="#part-ii">Scarcity Migration Investing</a></h2><p class="listen" data-dup="1">Читать<span class="listen-d">1 мин</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p><span class="ac">ИИ</span> пе­ре­ме­ща­ет эко­но­ми­че­ский де­фи­цит.</p></blockquote>
+<p class="lede"><span class="li">Когда технология радикально</span> уде­шев­ля­ет один про­из­вод­ствен­ный ре­сурс, огра­ни­че­ни­ем ста­но­вит­ся сле­ду­ю­щий.</p>
+<p>Если де­ше­ве­ет про­грам­ми­ро­ва­ние, на пер­вый план может выйти до­ступ к кли­ен­там, ин­фра­струк­ту­ре и ре­аль­ным дан­ным.</p>
+<p>Если кон­тент почти ни­че­го не стоит, цен­ность может уйти к до­ве­рию, при­зна­нию и вни­ма­нию ауди­то­рии.</p>
+<p>Если про­ек­ти­ро­ва­ние фи­зи­че­ских объ­ек­тов ав­то­ма­ти­зи­ру­ет­ся, узким ме­стом ста­нут про­из­вод­ствен­ные мощ­но­сти, ма­те­ри­а­лы, раз­ре­ше­ния и до­ступ к пло­щад­кам.</p>
+<p>От­сю­да ин­ве­сти­ци­он­ная стра­те­гия: пред­ска­зать, куда сдви­нет­ся де­фи­цит, и взять под кон­троль новые ис­точ­ни­ки ренты, пока рынок их не пе­ре­оце­нил.</p>
+<p>По­ку­пать сам актив не обя­за­тель­но.</p>
+<aside class="note" data-dup="1" aria-hidden="true">Но контроль над дефицитом не гарантирует прибыль.</aside>
+<p>Можно по­лу­чать доли, ли­цен­зии, экс­клю­зив­ные права, до­го­во­ры управ­ле­ния или оп­ци­о­ны на бу­ду­щие сдел­ки.</p>
+<p>Но кон­троль над де­фи­ци­том не га­ран­ти­ру­ет при­быль. Нужно по­ни­мать, кто за­пла­тит, по­че­му день­ги по­лу­чит имен­но вла­де­лец этого права и как быст­ро кон­ку­рен­ты сни­мут огра­ни­че­ние.</p>
+<p>Ин­те­рес­нее всего слу­чаи, когда <span class="ac">ИИ</span> ме­ня­ет спрос быст­рее, чем фи­зи­че­ский мир и ин­сти­ту­ты успе­ва­ют под­стро­ить пред­ло­же­ние.</p>
+</div></section>
+<section class="ch" id="part-iii" data-stop="III" data-title="Экономика антитрендов">
+<header class="ch-head"><h2 class="ch-h" id="part-iii-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Часть III</span><span class="vh">3. </span><a class="self ch-title" href="#part-iii">Экономика антитрендов</a></h2><p class="listen" data-dup="1">Читать<span class="listen-d">1 мин</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p><span class="ac">ИИ</span> может рож­дать спрос и на про­ти­во­по­лож­ное: на свой­ства, ко­то­рых у тех­но­ло­гий нет.</p></blockquote>
+<aside class="note" data-dup="1" aria-hidden="true">Это гипотезы, а не гарантированные прогнозы. Подтвердить их может только поведение покупателей.</aside>
+<p class="lede"><span class="li">Чем больше синтетического</span> кон­тен­та, тем до­ро­же может стать под­твер­ждён­ная под­лин­ность.</p>
+<p>Вир­ту­аль­ное об­ще­ние рас­про­стра­ня­ет­ся, и живое при­сут­ствие че­ло­ве­ка может стать при­вле­ка­тель­нее.</p>
+<p>Когда ре­зуль­тат про­из­во­дит ма­ши­на, рас­тёт сим­во­ли­че­ская цена соб­ствен­но­го уси­лия и ма­стер­ства.</p>
+<p>При изоби­лии хо­ро­ших про­дук­тов боль­ше весят до­ве­рие, ста­тус и при­зна­ние.</p>
+<p>Чем боль­ше ре­ше­ний при­ни­ма­ют ма­ши­ны, тем нуж­нее неза­ви­си­мая про­вер­ка, пол­но­мо­чия и от­вет­ствен­ность за по­след­ствия.</p>
+<p>Это ги­по­те­зы, а не га­ран­ти­ро­ван­ные про­гно­зы. Под­твер­дить их может толь­ко по­ве­де­ние по­ку­па­те­лей.</p>
+<p>Но они по­ка­зы­ва­ют, где ис­кать: в че­ло­ве­че­ских по­треб­но­стях, ко­то­рые не за­крыть ро­стом вы­чис­ли­тель­ной мощ­но­сти.</p>
+<p>В при­о­ри­те­те ре­сур­сы, ко­то­рые труд­но вос­про­из­ве­сти, труд­но за­ме­нить эко­но­ми­че­ски и ко­то­рые до­ро­жа­ют по мере рас­про­стра­не­ния <span class="ac">ИИ</span>.</p>
+</div></section>
+<section class="ch" id="part-iv" data-stop="IV" data-title="Опциональность и положительная асимметрия">
+<header class="ch-head"><h2 class="ch-h" id="part-iv-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Часть IV</span><span class="vh">4. </span><a class="self ch-title" href="#part-iv">Опциональность и положительная асимметрия</a></h2><p class="listen" data-dup="1">Читать<span class="listen-d">1 мин</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>Ни один актив не га­ран­ти­ру­ет вы­иг­ры­ша при любом тех­но­ло­ги­че­ском сце­на­рии.</p></blockquote>
+<p class="lede"><span class="li">Поэтому антихрупкой должна</span> быть вся си­сте­ма: как при­ни­ма­ют­ся ре­ше­ния и как рас­пре­де­ля­ет­ся ка­пи­тал. Одной ком­па­нии мало.</p>
+<p>Нужно право вос­поль­зо­вать­ся удач­ным бу­ду­щим без обя­зан­но­сти опла­чи­вать неудач­ное.</p>
+<p>На прак­ти­ке это неболь­шие экс­пе­ри­мен­ты, скром­ные обя­за­тель­ства на стар­те, за­ра­нее ого­во­рён­ные усло­вия вы­хо­да, оп­ци­о­ны и рост вло­же­ний толь­ко после того, как ги­по­те­за под­твер­ди­лась.</p>
+<aside class="note" data-dup="1" aria-hidden="true">Нужно право воспользоваться удачным будущим без обязанности оплачивать неудачное.</aside>
+<p>Здесь под­хо­дит стра­те­гия Bar­bell.</p>
+<p>Одна часть лич­ных ре­сур­сов обес­пе­чи­ва­ет устой­чи­вость: здо­ро­вье, лик­вид­ность, на­дёж­ный доход и со­ци­аль­ный ка­пи­тал.</p>
+<p>Дру­гая идёт в асим­мет­рич­ные став­ки, где воз­мож­ный вы­иг­рыш на­мно­го боль­ше воз­мож­ных по­терь.</p>
+<p>Так без­опас­ность ужи­ва­ет­ся с экс­пе­ри­мен­та­ми, и всё не дер­жит­ся на одном про­гно­зе.</p>
+</div></section>
+<section class="ch" id="part-v" data-stop="V" data-title="Двенадцать обязательных критериев AI-antifragile бизнеса">
+<header class="ch-head"><h2 class="ch-h" id="part-v-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Часть V</span><span class="vh">5. </span><a class="self ch-title" href="#part-v">Двенадцать обязательных критериев AI-antifragile бизнеса</a></h2><p class="listen" data-dup="1">Читать<span class="listen-d">2 мин</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>Каж­дую биз­нес-ги­по­те­зу про­ве­ря­ем по всем две­на­дца­ти тре­бо­ва­ни­ям.</p></blockquote>
+<div class="crit"><aside class="note" data-dup="1" aria-hidden="true">Все критерии обязательны. Сильные пункты не компенсируют провал в остальных.</aside><p class="ci"><span class="cn">1.</span> <span class="ct">Положительная зависимость от развития <span class="ac">ИИ</span>.</span> Чем силь­нее и де­шев­ле <span class="ac">ИИ</span>, тем боль­ше эко­но­ми­че­ских воз­мож­но­стей у ком­па­нии. Од­но­го сни­же­ния опе­ра­ци­он­ных за­трат мало.</p><p class="ci"><span class="cn">2.</span> <span class="ct">Выигрыш относительно конкурентов.</span> При оди­на­ко­вом до­сту­пе к <span class="ac">AI</span>-мо­де­лям кон­ку­рент­ное пре­иму­ще­ство ком­па­нии со­хра­ня­ет­ся или уси­ли­ва­ет­ся.</p><p class="ci"><span class="cn">3.</span> <span class="ct">Устойчивость к смене технологических парадигм.</span> Биз­нес не дер­жит­ся на одной <span class="ac">AI</span>-мо­де­ли, плат­фор­ме или ар­хи­тек­ту­ре. Рез­кая смена тех­но­ло­гий не уни­что­жа­ет его глав­ный ис­точ­ник цен­но­сти.</p><p class="ci"><span class="cn">4.</span> <span class="ct">Положительная асимметрия неопределённости.</span> Неожи­дан­ные тех­но­ло­ги­че­ские пе­ре­ме­ны могут дать непро­пор­ци­о­наль­но боль­шой вы­иг­рыш, а по­те­ри огра­ни­че­ны.</p><p class="ci"><span class="cn">5.</span> <span class="ct">Защищённое экономическое преимущество.</span> Ком­па­ния кон­тро­ли­ру­ет ре­сурс или си­сте­му, ко­то­рые кон­ку­рент не может быст­ро вос­про­из­ве­сти даже при почти бес­плат­ном ин­тел­лек­те.</p><p class="ci"><span class="cn">6.</span> <span class="ct">Собственность на создаваемую стоимость.</span> Ос­но­ва­те­ли вла­де­ют ак­ти­ва­ми, до­ля­ми, IP или эко­но­ми­че­ски­ми пра­ва­ми, ко­то­рые дают долю бу­ду­щей при­бы­ли. Биз­нес не сво­дит­ся к про­да­же соб­ствен­но­го вре­ме­ни.</p><aside class="note" data-dup="1" aria-hidden="true">Каждому пункту присваивается статус: подтверждён, не подтверждён или опровергнут.</aside><p class="ci"><span class="cn">7.</span> <span class="ct">Накопительный эффект.</span> Каж­дый успеш­ный цикл укреп­ля­ет кон­ку­рент­ную по­зи­цию, уве­ли­чи­ва­ет сто­и­мость ак­ти­вов или рас­ши­ря­ет бу­ду­щие воз­мож­но­сти ком­па­нии.</p><p class="ci"><span class="cn">8.</span> <span class="ct">Присвоение экономической ренты.</span> Есть кон­крет­ный за­щи­щён­ный ме­ха­низм, ко­то­рый удер­жи­ва­ет со­здан­ную сто­и­мость в ком­па­нии и не от­да­ёт её кон­ку­рен­там, кли­ен­там, по­став­щи­кам или <span class="ac">AI</span>-плат­фор­мам.</p><p class="ci"><span class="cn">9.</span> <span class="ct">Реальный платёжеспособный спрос.</span> Ком­па­ния ре­ша­ет про­бле­му, за ко­то­рую кли­ен­ты го­то­вы пла­тить. Эко­но­ми­ка не дер­жит­ся толь­ко на ожи­да­нии, что ак­ти­вы по­до­ро­жа­ют.</p><p class="ci"><span class="cn">10.</span> <span class="ct">Непропорциональное масштабирование.</span> Вы­руч­ка, при­быль или сто­и­мость ак­ти­вов рас­тут на­мно­го быст­рее за­трат, чис­лен­но­сти ко­ман­ды и ра­бо­че­го вре­ме­ни ос­но­ва­те­лей.</p><p class="ci"><span class="cn">11.</span> <span class="ct">Самостоятельный запуск до €20 000.</span> Ос­нов­ную ги­по­те­зу можно про­ве­рить, по­лу­чить пер­вый цен­ный актив или пла­тя­ще­го кли­ен­та без обя­за­тель­но­го внеш­не­го фи­нан­си­ро­ва­ния.</p><p class="ci"><span class="cn">12.</span> <span class="ct">Ограниченный риск и высокая опциональность.</span> Неудач­ный экс­пе­ри­мент не уни­что­жа­ет ка­пи­тал. Обя­за­тель­ства под кон­тро­лем, про­ект можно оста­но­вить, у ре­зуль­та­тов есть дру­гое при­ме­не­ние.</p></div>
+<p class="lede"><span class="li">Все критерии обязательны.</span> Силь­ные пунк­ты не ком­пен­си­ру­ют про­вал в осталь­ных.</p>
+<p>Каж­до­му пунк­ту при­сва­и­ва­ет­ся ста­тус: под­твер­ждён, не под­твер­ждён или опро­верг­нут.</p>
+<p>Отбор прой­ден, толь­ко когда под­твер­жде­ны все две­на­дцать.</p>
+<h3 id="part-v-три-стресс-теста">Три стресс-теста</h3>
+<p>Кроме того, каж­дая мо­дель про­хо­дит три про­вер­ки.</p>
+<aside class="note" data-dup="1" aria-hidden="true">Бизнес, который не выдержал хотя бы одного теста, переделываем или исключаем.</aside>
+<p class="stress"><span class="term">Первая:</span> <span class="ac">ИИ</span> стал в сто раз мощ­нее и де­шев­ле. <em>По­че­му наш биз­нес от этого до­ро­жа­ет, а не де­ше­ве­ет?</em></p>
+<p class="stress"><span class="term">Вторая:</span> кон­ку­рен­ты по­лу­чи­ли до­ступ к та­ко­му же <span class="ac">ИИ</span>. <em>По­че­му они не могут по­вто­рить наше пре­иму­ще­ство и съесть маржу?</em></p>
+<p class="stress"><span class="term">Третья:</span> тех­но­ло­гии пошли по со­всем неожи­дан­но­му сце­на­рию. <em>Какие ак­ти­вы оста­ют­ся, какие воз­мож­но­сти по­яв­ля­ют­ся и на­сколь­ко огра­ни­че­ны по­те­ри?</em></p>
+<p>Биз­нес, ко­то­рый не вы­дер­жал хотя бы од­но­го теста, пе­ре­де­лы­ва­ем или ис­клю­ча­ем.</p>
+</div></section>
+<section class="ch" id="part-vi" data-stop="VI" data-title="Практическая стратегия">
+<header class="ch-head"><h2 class="ch-h" id="part-vi-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Часть VI</span><span class="vh">6. </span><a class="self ch-title" href="#part-vi">Практическая стратегия</a></h2><p class="listen" data-dup="1">Читать<span class="listen-d">1 мин</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>Стар­то­вый ка­пи­тал идёт на поиск и про­вер­ку асим­мет­рич­ных воз­мож­но­стей. На круп­ные необ­ра­ти­мые вло­же­ния его не тра­тим.</p></blockquote>
+<p class="lede"><span class="li">Рабочий цикл:</span> изу­чить струк­тур­ные сдви­ги, найти новый спрос или де­фи­цит, сфор­му­ли­ро­вать биз­нес-ги­по­те­зу, про­ве­рить её по две­на­дца­ти кри­те­ри­ям, по­ста­вить неболь­шой экс­пе­ри­мент на рынке, за­кре­пить права и толь­ко потом мас­шта­би­ро­вать.</p>
+<p>Впе­ре­ди про­ек­ты, где сна­ча­ла можно под­твер­дить спрос или по­лу­чить право на воз­мож­ность, а уже потом при­влечь под неё ка­пи­тал.</p>
+<aside class="note" data-dup="1" aria-hidden="true"><b class="nlab">AI-resistant:</b> работа сохраняет ценность, как бы ни развивался <span class="ac">ИИ</span>.</aside>
+<p><span class="term">Главные показатели прогресса:</span> доля до­хо­да, не свя­зан­ная на­пря­мую с лич­ным вре­ме­нем; сто­и­мость эко­но­ми­че­ских ак­ти­вов под кон­тро­лем; ка­че­ство и ско­рость про­вер­ки ги­по­тез; риск на один экс­пе­ри­мент; спо­соб­ность си­сте­мы со­хра­нять и рас­ши­рять воз­мож­но­сти при тех­но­ло­ги­че­ских пе­ре­ме­нах.</p>
+<p>На го­ри­зон­те де­ся­ти лет нужен порт­фель неза­ви­си­мых ак­ти­вов и биз­нес-си­стем с по­ло­жи­тель­ной асим­мет­ри­ей. Одна круп­ная ком­па­ния для этого не обя­за­тель­на.</p>
+</div></section>
+<section class="ch" id="part-vii" data-stop="VII" data-title="Личная стратегия">
+<header class="ch-head"><h2 class="ch-h" id="part-vii-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Часть VII</span><span class="vh">7. </span><a class="self ch-title" href="#part-vii">Личная стратегия</a></h2><p class="listen" data-dup="1">Читать<span class="listen-d">1 мин</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>Эко­но­ми­че­ская ан­ти­хруп­кость нужна ради лич­ной сво­бо­ды.</p></blockquote>
+<p class="lede"><span class="li">Нужно меньше зависеть</span> от одной про­фес­сии, ра­бо­то­да­те­ля, тех­но­ло­ги­че­ской плат­фор­мы и от необ­хо­ди­мо­сти по­сто­ян­но про­да­вать своё время.</p>
+<p>Вечно со­хра­нять ак­ту­аль­ность от­дель­ных на­вы­ков не по­лу­чит­ся. По­лез­нее на­учить­ся по­ни­мать пе­ре­ме­ны, вы­би­рать на­прав­ле­ние, со­би­рать ре­сур­сы и вла­деть ре­зуль­та­та­ми.</p>
+<aside class="note" data-dup="1" aria-hidden="true"><b class="nlab">Цель:</b> больше свободы, больше капитала и умение превращать неопределённость в новые возможности.</aside>
+<p>Здо­ро­вье, от­но­ше­ния, твор­че­ство и лич­ный опыт ценны сами по себе, а не как ин­стру­мен­ты про­из­во­ди­тель­но­сти. Они дают сво­бо­ду вы­би­рать соб­ствен­ные цели.</p>
+</div></section>
+<section class="ch" id="coda" data-stop="" data-title="Заключение">
+<header class="ch-head"><h2 class="ch-h" id="coda-title"><a class="self ch-title" href="#coda">Заключение</a></h2><p class="listen" data-dup="1">Читать<span class="listen-d">1 мин</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>Per­son­al An­tifragili­ty Ar­chi­tec­ture со­еди­ня­ет три про­цес­са: раз­ви­тие че­ло­ве­ка, на­коп­ле­ние ка­пи­та­ла и <span class="ac">ИИ</span> как уни­вер­саль­ный ин­стру­мент, ко­то­рый рас­ши­ря­ет воз­мож­но­сти.</p></blockquote>
+<p class="lede"><span class="li">Главный принцип:</span> не со­рев­но­вать­ся с <span class="ac">ИИ</span> в том, что он де­ла­ет всё лучше и де­шев­ле, а ис­поль­зо­вать его рост, чтобы по­ку­пать и со­зда­вать цен­ные ак­ти­вы, ко­то­рые труд­но вос­про­из­ве­сти и за­ме­нить.</p>
+<p>Ста­вить всё на один про­гноз нель­зя. Нужен порт­фель воз­мож­но­стей с огра­ни­чен­ным риском, ко­то­рые вы­иг­ры­ва­ют при раз­ных тех­но­ло­ги­че­ских сце­на­ри­ях.</p>
+<p>Ко­неч­ная цель не мак­си­маль­ная ав­то­ма­ти­за­ция и даже не мак­си­маль­ный доход.</p>
+<p class="ni strong">Цель: боль­ше сво­бо­ды, боль­ше ка­пи­та­ла и уме­ние пре­вра­щать неопре­де­лён­ность в новые воз­мож­но­сти.</p>
+</div></section>
+</article>
+<footer class="colophon col" data-dup="1"><div class="colo-rule"></div><p class="colo-names">Николай Григорьев</p><p class="colo-place">2026</p><p class="colo-top"><a class="colo-up" href="#top">наверх</a></p></footer>
+</main>
+<script>
+(function(){
+  var rail=document.querySelector('.rail'),fill=rail&&rail.querySelector('.rail-fill'),
+      top=document.querySelector('.topline'),hero=document.querySelector('.hero'),
+      secs=[].slice.call(document.querySelectorAll('.ch')),
+      stops=[].slice.call(document.querySelectorAll('.stop')),
+      first=secs[0],last=secs[secs.length-1],start=0,span=1,ticking=false;
+  function layout(){
+    start=first.offsetTop; var end=last.offsetTop+last.offsetHeight;
+    span=Math.max(1,end-start-innerHeight*0.5);
+    stops.forEach(function(a,i){a.style.top=((secs[i].offsetTop-start)/(end-start)*100).toFixed(3)+'%';});
+    update();
+  }
+  function update(){
+    ticking=false;
+    var y=scrollY,p=Math.min(1,Math.max(0,(y-start+innerHeight*0.4)/span));
+    var docP=Math.min(1,Math.max(0,y/Math.max(1,document.documentElement.scrollHeight-innerHeight)));
+    if(top)top.style.setProperty('--p',docP);
+    if(!rail)return;
+    rail.classList.toggle('on',y>hero.offsetHeight*0.6);
+    var mark=y+innerHeight*0.4,cur=-1;
+    secs.forEach(function(s,i){if(s.offsetTop<=mark)cur=i;});
+    stops.forEach(function(a,i){a.classList.toggle('on',i===cur);a.classList.toggle('past',i<cur);
+      if(i===cur)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current');});
+    var curTop=cur>=0?parseFloat(stops[cur].style.top)/100:0,
+        nxtTop=cur+1<stops.length?parseFloat(stops[cur+1].style.top)/100:1,
+        sec=secs[Math.max(cur,0)],f=cur<0?0:Math.min(1,Math.max(0,(mark-sec.offsetTop)/sec.offsetHeight));
+    fill.style.setProperty('--p',cur<0?0:(curTop+(nxtTop-curTop)*f).toFixed(4));
+  }
+  addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(update);}},{passive:true});
+  addEventListener('resize',layout);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layout);
+  addEventListener('load',layout);
+  layout();
+})();
+
+</script>
+</body>
+</html>
