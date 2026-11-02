@@ -1846,6 +1846,7 @@ http.createServer((req, res) => {
   if (url === '/89' || url === '/89/') url = '/89/index.html';
   if (url === '/lab' || url === '/lab/') url = '/lab/index.html';
   if (url === '/antifragile' || url === '/antifragile/') url = '/antifragile/index.html';
+  if (url === '/antifragile/en' || url === '/antifragile/en/') url = '/antifragile/en/index.html';
   // Sibling works keep their own files; only safe extensions, no data files.
   if (url === '/wit36/build-es.js') { res.writeHead(404, head({})); res.end('Not found'); return; }
   if (/^\/(89|lab|wit36|antifragile)\//.test(url)) {

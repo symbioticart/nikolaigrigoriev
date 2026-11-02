@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Личная антихрупкость в эпоху искусственного интеллекта</title>
+<link rel="alternate" hreflang="ru" href="https://nikolaigrigoriev.com/antifragile"><link rel="alternate" hreflang="en" href="https://nikolaigrigoriev.com/antifragile/en">
 <meta name="description" content="Стратегия развития человека, создания капитала и использования ИИ в условиях радикальной технологической неопределённости.">
 
 <style>
@@ -221,6 +222,15 @@ a.colo-up:hover{text-decoration-color:currentColor}
 @media (max-width:759px){
  .col:not(.front){width:auto;margin-left:38px;margin-right:var(--pad)}
 }
+/* переключатель языка */
+.lang{position:fixed;top:14px;right:18px;z-index:40;display:flex;align-items:center;gap:2px;padding:4px 6px;background:var(--paper);font-family:var(--serif);font-size:15px;line-height:1;letter-spacing:.08em;font-variant-caps:all-small-caps}
+.lang a{display:inline-block;padding:6px 5px;color:var(--mute);text-decoration:none}
+.lang a:hover{color:var(--ink)}
+.lang a[aria-current="page"]{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.32em}
+.lang-sep{color:var(--rule)}
+@media print{.lang{display:none}}
+html[lang="en"] .ih-l0{padding-bottom:.16em}
+@media (max-width:759px){.lang{position:absolute;top:10px;right:10px}}
 
 </style>
 <script>document.documentElement.classList.replace('nojs','js')</script>
@@ -228,6 +238,7 @@ a.colo-up:hover{text-decoration-color:currentColor}
 <body>
 <a class="skip" href="#prolog" data-dup="1">К тексту</a>
 <div class="topline" aria-hidden="true"></div>
+<nav class="lang" data-dup="1" aria-label="Язык"><a href="/antifragile" lang="ru" hreflang="ru" aria-current="page">RU</a><span class="lang-sep" aria-hidden="true">/</span><a href="/antifragile/en" lang="en" hreflang="en">EN</a></nav>
 <nav class="rail" aria-label="Части эссе" data-dup="1"><a class="rail-play" href="#top" aria-label="К началу"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 4.2L14.2 11H3.8Z"/></svg></a><div class="rail-track"></div><div class="rail-fill"></div><a class="stop" href="#prolog" data-for="prolog" aria-label="Основной принцип"><span class="stop-t" aria-hidden="true">Основной принцип</span></a><a class="stop" href="#part-i" data-for="part-i" aria-label="Часть I: Personal Antifragility Architecture"><span class="stop-n" aria-hidden="true">I</span><span class="stop-t" aria-hidden="true"><b>I</b>Personal Antifragility Architecture</span></a><a class="stop" href="#part-ii" data-for="part-ii" aria-label="Часть II: Scarcity Migration Investing"><span class="stop-n" aria-hidden="true">II</span><span class="stop-t" aria-hidden="true"><b>II</b>Scarcity Migration Investing</span></a><a class="stop" href="#part-iii" data-for="part-iii" aria-label="Часть III: Экономика антитрендов"><span class="stop-n" aria-hidden="true">III</span><span class="stop-t" aria-hidden="true"><b>III</b>Экономика антитрендов</span></a><a class="stop" href="#part-iv" data-for="part-iv" aria-label="Часть IV: Опциональность и положительная асимметрия"><span class="stop-n" aria-hidden="true">IV</span><span class="stop-t" aria-hidden="true"><b>IV</b>Опциональность и положительная асимметрия</span></a><a class="stop" href="#part-v" data-for="part-v" aria-label="Часть V: Двенадцать обязательных критериев AI-antifragile бизнеса"><span class="stop-n" aria-hidden="true">V</span><span class="stop-t" aria-hidden="true"><b>V</b>Двенадцать обязательных критериев AI-antifragile бизнеса</span></a><a class="stop" href="#part-vi" data-for="part-vi" aria-label="Часть VI: Практическая стратегия"><span class="stop-n" aria-hidden="true">VI</span><span class="stop-t" aria-hidden="true"><b>VI</b>Практическая стратегия</span></a><a class="stop" href="#part-vii" data-for="part-vii" aria-label="Часть VII: Личная стратегия"><span class="stop-n" aria-hidden="true">VII</span><span class="stop-t" aria-hidden="true"><b>VII</b>Личная стратегия</span></a><a class="stop" href="#coda" data-for="coda" aria-label="Заключение"><span class="stop-t" aria-hidden="true">Заключение</span></a></nav>
 <header class="hero" id="top">
 <div class="ih-page">
