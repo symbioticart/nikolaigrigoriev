@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en" class="nojs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Personal Antifragility in the Age of Artificial Intelligence</title>
+<link rel="alternate" hreflang="ru" href="https://nikolaigrigoriev.com/antifragile"><link rel="alternate" hreflang="en" href="https://nikolaigrigoriev.com/antifragile/en">
+<meta name="description" content="A strategy for personal development, capital formation and the use of AI under radical technological uncertainty.">
+
+<style>
+@font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-display:block;src:url(/antifragile/fonts/fae92c74995.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:'Cormorant Garamond';font-style:italic;font-weight:500;font-display:block;src:url(/antifragile/fonts/fb61f1c3b81.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'EB Garamond';font-style:italic;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/f05053afbd4.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:'EB Garamond';font-style:italic;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/f494f04400d.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'EB Garamond';font-style:normal;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/f9a904fa76d.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:'EB Garamond';font-style:normal;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/f5f1a1f1750.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Source Sans 3';font-style:normal;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/fa65c3b5330.woff2) format('woff2');unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
+@font-face{font-family:'Source Sans 3';font-style:normal;font-weight:400 600;font-display:block;src:url(/antifragile/fonts/f114a0e5e16.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+:root{--ink:#1a1a1a;--slate:#5e5e5e;--mute:#8f8f8f;--rule:#c8c8c8;--hair:#e0e0e0;--wash:#f4f4f4;--paper:#fff;--accent:#1a1a1a;--col:620px;--gap:52px;--sn:236px;--pad:22px;--fs:21px;
+--serif:"EB Garamond",Garamond,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+--sans:"Source Sans 3","Source Sans Pro","Helvetica Neue",Helvetica,Arial,sans-serif;
+--fell:"Cormorant Garamond","EB Garamond",Garamond,serif;
+--ease:cubic-bezier(.2,.7,.2,1);color-scheme:light}
+*,::before,::after{box-sizing:border-box}
+html{text-size-adjust:100%;-webkit-text-size-adjust:100%;background:var(--paper);scroll-padding-top:24px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:var(--fs);line-height:1.6;font-kerning:normal;font-variant-ligatures:common-ligatures;font-variant-numeric:lining-nums proportional-nums;-webkit-font-smoothing:antialiased;overflow-x:clip}
+::selection{background:#dadada}
+a{color:var(--ink);text-decoration:underline 1px var(--rule);text-underline-offset:.2em}
+a:hover{text-decoration-color:currentColor}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.vh{width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;position:absolute!important}
+.skip{position:absolute;left:12px;top:-64px;z-index:70;padding:12px 16px;background:var(--ink);color:#fff;font:600 15px/1 var(--sans);text-decoration:none}
+.skip:focus{top:12px;color:#fff}
+.col{width:min(var(--col),calc(100% - 2*var(--pad)));margin-left:auto;margin-right:auto}
+
+/* ---------- обложка ---------- */
+.hero{--wd:26;--T:2.75;--ih:min(36px,calc((100vw - 2*var(--pad))/var(--wd)),max(2.5vw,2.3vh,14px),max(3.15vh,14px));
+display:flex;flex-direction:column;align-items:center;min-height:max(560px,100svh);padding:max(40px,7vh) var(--pad) max(20px,3.5vh,env(safe-area-inset-bottom));text-align:center;font-size:var(--ih);font-weight:520;line-height:1.2;color:var(--ink)}
+.ih-page{margin-block:auto;display:flex;flex-direction:column;align-items:center}
+.ih-block{margin:0;font:inherit}
+.ih-l{display:block;white-space:nowrap}
+.ih-i{font-family:var(--fell);font-style:italic;font-weight:500;font-size:1.08em;letter-spacing:.005em;font-variant-caps:normal;line-height:0}
+.ih-title{font-size:calc(var(--T)*1em);line-height:1.02}
+.ih-title .ih-l{letter-spacing:.012em}
+.ih-the{margin-bottom:-.12em}
+.ih-the .ih-i{font-size:1.12em}
+.ih-sub{font-size:.4em;letter-spacing:.075em!important;margin-top:.5em;line-height:1.1}
+.ih-sub .ih-i{font-size:1.5em;letter-spacing:0;margin-right:.08em}
+.ih-sc .ih-l{font-variant-caps:small-caps;font-variant-numeric:oldstyle-nums;letter-spacing:.045em}
+.ih-sc .ih-i{font-size:1.1em;letter-spacing:0}
+.ih-def{margin-top:2em}
+.ih-names{margin-top:2.1em}
+.ih-date{margin:.35em 0 0;font-family:var(--fell);font-style:italic;font-weight:500;font-size:.98em;font-variant-numeric:oldstyle-nums}
+.ih-way{margin-top:2.4em;display:flex;align-items:baseline;justify-content:center;font-size:max(19px,1em);font-weight:500;font-variant-caps:all-small-caps;font-variant-numeric:oldstyle-nums;letter-spacing:.07em;line-height:1}
+.ih-go{padding:10px 6px;text-decoration:underline 1px transparent;text-underline-offset:.25em}
+.ih-go:hover{text-decoration-color:currentColor}
+.ih-way{gap:.45em}.ih-or{letter-spacing:0}
+.ac{font-size:.86em;letter-spacing:.04em}
+.ih-sc .ac{font-size:1em;font-variant-caps:all-small-caps;letter-spacing:.045em}.toc-sum .ac{font-size:.9em}
+@media (prefers-reduced-motion:no-preference){
+ .ih-l,.ih-date,.ih-way{animation:fadeIn .7s ease-out both}
+ .ih-i{animation:ih-write .55s cubic-bezier(.45,.05,.35,1) both}
+ .ih-l0{animation-delay:.1s}.ih-l1{animation-delay:.16s}.ih-l2{animation-delay:.22s}.ih-l3{animation-delay:.28s}.ih-l4{animation-delay:.34s}.ih-l5{animation-delay:.4s}.ih-l6{animation-delay:.46s}.ih-l8{animation-delay:.58s}
+ .ih-w0{animation-delay:1s}.ih-w0b{animation-delay:1.24s}.ih-w1{animation-delay:1.48s}.ih-w2{animation-delay:1.72s}.ih-w4{animation-delay:1.96s}
+ .ih-date{animation-delay:2.2s}.ih-way{animation-delay:2.4s}
+}
+@keyframes fadeIn{0%{opacity:0}}
+@keyframes ih-write{0%{clip-path:inset(-.6em calc(100% + .6em) -.6em -.6em)}100%{clip-path:inset(-.6em)}}
+
+/* ---------- оглавление ---------- */
+.front{padding:118px 0 30px;text-align:center}
+.toc-kicker,.ch-kicker,.toc-num,.stop-n,.stop-t b,.listen,.colo-names,a.colo-up{font-family:var(--serif);font-style:normal;font-weight:500;font-variant-caps:all-small-caps;font-variant-numeric:oldstyle-nums;letter-spacing:.07em;text-transform:none}
+.toc-kicker{margin:0 0 44px;font-size:22px;line-height:1;letter-spacing:.1em;padding-left:.1em}
+.toc-list{--rx:-28px;--name:28px;--dot-y:16px;list-style:none;margin:0 auto;padding:0;width:min(460px,100%);text-align:left}
+.toc-item{position:relative;margin:0 0 32px}
+.toc-item:last-child{margin-bottom:0}
+.toc-item:not(:last-child)::after{content:"";position:absolute;left:calc(var(--rx) - .5px);top:var(--dot-y);height:calc(100% + 32px);width:1px;background:var(--ink)}
+a.toc-link{display:block;text-decoration:none}
+.toc-name{font-size:var(--name);font-weight:500;line-height:1.3;text-decoration:underline 1px transparent;text-underline-offset:.2em}
+.toc-name::before{content:"";position:relative;z-index:1;display:inline-block;width:9px;height:9px;margin-left:-9px;left:calc(var(--rx) + 4.5px);vertical-align:middle;border:1px solid var(--ink);border-radius:50%;background:var(--paper)}
+.toc-num{position:relative;display:inline-flex;justify-content:flex-end;width:0;left:calc(var(--rx) - 16px);white-space:nowrap;font-size:18px;letter-spacing:.06em}
+a.toc-link:hover .toc-name{text-decoration-color:currentColor}
+a.toc-link:hover .toc-name::before{background:var(--ink)}
+.toc-sum{margin:6px 0 0;font-size:17px;line-height:1.45;hyphens:manual;text-wrap:pretty}
+.toc-subs{list-style:none;margin:12px 0 0;padding:0;font:italic 400 17px/1.5 var(--serif)}
+.toc-subs a{text-decoration:underline 1px transparent;text-underline-offset:.2em}
+.toc-subs a:hover{text-decoration-color:currentColor}
+
+/* ---------- части ---------- */
+.ch{position:relative;padding-top:164px}
+.ch-head{margin:0 0 58px;text-align:center}
+.ch-head::after{content:"";display:block;width:1px;height:46px;margin:32px auto 0;background:var(--ink);opacity:.3}
+.ch-h{margin:0;font-weight:500;line-height:1}
+.ch-kicker{display:block;margin:0 0 22px;font-size:21px;line-height:1;letter-spacing:.1em;padding-left:.1em}
+a.ch-title{display:block;font-size:clamp(40px,5.6vw,66px);font-weight:500;line-height:1.04;text-wrap:balance;text-decoration:none}
+.listen{display:flex;align-items:baseline;gap:.42em;width:max-content;margin:24px auto 0;padding:8px 6px;font-size:18px;line-height:1}
+.listen-d::before{content:"·";margin-right:.42em}
+
+.prose p{margin:0;hyphens:auto;-webkit-hyphens:auto;hyphenate-limit-chars:6 3 2;orphans:2;widows:2}
+.prose p+p,.prose p+.note+p{text-indent:1.5em}
+.prose p.lede,.prose p.ni,.prose p.def,.prose p.maxim,.prose p.stress{text-indent:0}
+.prose p.lede{display:flow-root}
+.prose p.lede::first-letter{float:left;font-size:4.2em;line-height:.8;font-weight:500;font-style:normal;letter-spacing:0;color:var(--accent);margin:.07em .085em 0 0}
+.li{font-variant-caps:small-caps;letter-spacing:.045em}
+.li .ac{font-size:1em;font-variant-caps:small-caps}
+.term{font-variant-caps:small-caps;letter-spacing:.04em;font-weight:500}
+.term .ac{font-size:1em}
+
+.prose .scripture{margin:0 0 1.8em;padding:0 0 0 2.2em;font-style:italic}
+.prose .scripture p{text-indent:0;text-align:left;hyphens:auto}
+
+
+.prose h3{margin:2.6em 0 1.05em;font-weight:500;font-style:italic;font-size:1.42em;line-height:1.2;text-align:center;text-wrap:balance}
+.prose h3::before{content:"";display:block;width:28px;height:1px;margin:0 auto .95em;background:var(--ink);opacity:.45}
+
+/* три состояния — короткий глоссарий с висячими терминами */
+.states{list-style:none;margin:.9em 0 .9em;padding:0 0 0 1.5em}
+.states li{margin:0 0 .3em;padding-left:1.5em;text-indent:-1.5em;hyphens:auto;text-align:left}
+.states li:last-child{margin-bottom:0}
+.states .term{font-variant-caps:normal;font-style:italic;letter-spacing:0;font-weight:500}
+
+/* капиталы и компоненты — висячая строка */
+.prose p.def{padding-left:1.5em;text-indent:-1.5em;margin:.45em 0}
+.prose p.def+p:not(.def){margin-top:.45em}
+
+.prose p.strong{font-weight:600;margin-top:.6em}
+.prose p.maxim{margin:1.1em 0;text-align:center;font-size:1.04em}
+.maxim em{font-size:1.2em;font-weight:500;letter-spacing:.01em}
+
+/* двенадцать критериев: висячие номера, капитель в начале */
+.crit{margin:1.2em 0 1.2em}
+.prose .crit p.ci{position:relative;text-indent:0;margin:0 0 .55em}
+.prose .crit p.ci:last-of-type{margin-bottom:0}
+.cn{position:absolute;left:-2.6em;width:2em;text-align:right;font-weight:500;font-variant-numeric:oldstyle-nums tabular-nums;color:var(--accent)}
+.ct{font-variant-caps:small-caps;letter-spacing:.035em;font-weight:500}
+.ct .ac{font-size:1em}
+.prose p.stress{margin:.75em 0 0}
+.prose p.stress+p:not(.stress){margin-top:.75em}
+.prose .crit+p{margin-top:0}
+
+/* маргиналии */
+.note{font-family:var(--sans);font-style:normal;font-weight:400;font-size:14.5px;line-height:1.5;text-indent:0;text-align:left;hyphens:manual;color:var(--ink);display:none}
+.nlab{font-weight:600;margin-right:.35em}
+.note .ac{font-size:1em;letter-spacing:0}
+
+/* шкала-навигация */
+.rail{display:none}
+.topline{position:fixed;left:0;top:0;width:100%;height:2px;background:var(--accent);transform-origin:0 50%;transform:scaleX(var(--p,0));z-index:30;pointer-events:none}
+
+/* колофон */
+.colophon{padding:180px 0 90px;text-align:center}
+.colo-rule{width:28px;height:1px;margin:0 auto 34px;background:var(--ink);opacity:.45}
+.colo-names{margin:0;font-size:21px;font-variant-caps:small-caps;letter-spacing:.045em;line-height:1.3}
+.colo-place{margin:6px 0 0;font:italic 500 18px/1.3 var(--fell);font-variant-numeric:oldstyle-nums}
+.colo-top{margin:40px 0 0}
+a.colo-up{display:inline-block;padding:12px 6px;font-size:17px;line-height:1;text-decoration:underline 1px transparent;text-underline-offset:.3em}
+a.colo-up:hover{text-decoration-color:currentColor}
+
+@media (min-width:760px){
+ .prose p{text-align:justify}
+ .prose .scripture p{text-align:left}
+ .prose p.maxim{text-align:center}
+}
+@media (max-width:759px){
+ :root{--fs:19px}
+ body{line-height:1.56}
+ .ch{padding-top:112px}
+ .ch-head{margin-bottom:44px}
+ a.ch-title{font-size:min(40px,9.2vw)}
+ .prose h3{font-size:1.3em}
+ .front{padding-top:96px}
+ .toc-list{--rx:-24px;--name:24px;--dot-y:14px;width:auto;padding-left:58px}
+ .toc-num{left:calc(var(--rx) - 14px);font-size:17px}
+ .prose .scripture{padding-left:1.2em}
+ .cn{position:static;width:auto;margin-right:.1em}
+ .states{padding-left:0}
+ .colophon{padding-top:max(22vh,150px)}
+}
+@media (min-width:1100px){
+ .col{margin-left:clamp(112px,calc(50% - var(--col)/2),calc(100% - var(--col) - var(--gap) - var(--sn) - 48px));margin-right:0}
+ .front.col{margin-left:auto;margin-right:auto}
+ .topline{display:none}
+ .note{display:block;float:right;clear:right;width:var(--sn);margin:.35em calc(-1*(var(--sn) + var(--gap))) 1em 0;font-size:13px;line-height:1.48}
+ .crit .note{margin-top:.2em}
+ html.js .rail{display:block;position:fixed;left:34px;top:120px;width:28px;height:min(calc(100vh - 240px),720px);z-index:20;opacity:0;visibility:hidden;transition:opacity .12s,visibility 0s linear .12s}
+ html.js .rail.on{opacity:1;visibility:visible;transition:opacity .16s,visibility 0s}
+ .rail-track{position:absolute;left:13px;top:0;bottom:0;width:1px;background:var(--hair)}
+ .rail-fill{position:absolute;left:12.5px;top:0;bottom:0;width:2px;background:var(--ink);transform-origin:50% 0;transform:scaleY(var(--p,0))}
+ a.stop{position:absolute;left:0;width:28px;height:28px;margin-top:-14px;display:flex;align-items:center;justify-content:center;color:var(--slate);text-decoration:none}
+ .stop::before{content:"";width:9px;height:9px;border-radius:50%;border:1px solid var(--mute);background:var(--paper);transition:background .16s,border-color .16s}
+ a.stop:hover::before{border-color:var(--ink)}
+ .stop.past::before{background:var(--ink);border-color:var(--ink)}
+ .stop.on::before{background:var(--ink);border-color:var(--ink);box-shadow:0 0 0 3px var(--paper),0 0 0 4px var(--ink)}
+ .stop-n{position:absolute;left:32px;top:50%;transform:translateY(-55%);font-size:15px;line-height:1;letter-spacing:.06em;white-space:nowrap}
+ .stop-t{position:absolute;left:24px;top:50%;transform:translateY(-50%);padding:6px 10px 7px;white-space:nowrap;background:var(--paper);font:italic 400 16px/1 var(--serif);opacity:0;pointer-events:none}
+ .stop-t b{margin-right:9px;font-size:16px}
+ a.stop:hover .stop-t,a.stop:focus-visible .stop-t{opacity:1}
+ .rail-play{position:absolute;left:0;top:-54px;width:28px;height:28px;display:grid;place-items:center;border:1px solid var(--ink);border-radius:50%;color:var(--ink);text-decoration:none}
+ .rail-play svg{width:12px;height:12px;fill:currentColor}
+ .rail-play:hover{background:var(--ink);color:var(--paper)}
+}
+@media (prefers-reduced-motion:reduce){*,::before,::after{transition:none!important;animation:none!important}}
+@media print{.rail,.topline,.skip,.note{display:none!important}.hero{min-height:0}.ch{padding-top:.6in}}
+/* шкала у края экрана на узких экранах — без подписей, только точки */
+@media (max-width:1099px){
+ .topline{display:none}
+ html.js .rail{display:block;position:fixed;left:8px;top:84px;width:20px;height:calc(100vh - 168px);z-index:20;opacity:0;visibility:hidden;transition:opacity .12s,visibility 0s linear .12s}
+ html.js .rail.on{opacity:1;visibility:visible;transition:opacity .16s,visibility 0s}
+ .rail-track{position:absolute;left:9.5px;top:0;bottom:0;width:1px;background:var(--hair)}
+ .rail-fill{position:absolute;left:9px;top:0;bottom:0;width:2px;background:var(--ink);transform-origin:50% 0;transform:scaleY(var(--p,0))}
+ a.stop{position:absolute;left:0;width:20px;height:24px;margin-top:-12px;display:flex;align-items:center;justify-content:center;text-decoration:none}
+ .stop::before{content:"";width:7px;height:7px;border-radius:50%;border:1px solid var(--mute);background:var(--paper);transition:background .16s,border-color .16s}
+ .stop.past::before{background:var(--ink);border-color:var(--ink)}
+ .stop.on::before{background:var(--ink);border-color:var(--ink);box-shadow:0 0 0 2px var(--paper),0 0 0 3px var(--ink)}
+ .stop-n,.stop-t,.rail-play{display:none}
+}
+@media (min-width:760px) and (max-width:1099px){
+ html.js .rail{left:18px}
+ .stop-n{display:block;position:absolute;left:24px;top:50%;transform:translateY(-55%);font-size:13px;line-height:1;letter-spacing:.06em;color:var(--slate)}
+}
+@media (max-width:759px){
+ .col:not(.front){width:auto;margin-left:38px;margin-right:var(--pad)}
+}
+/* переключатель языка */
+.lang{position:fixed;top:14px;right:18px;z-index:40;display:flex;align-items:center;gap:2px;padding:4px 6px;background:var(--paper);font-family:var(--serif);font-size:15px;line-height:1;letter-spacing:.08em;font-variant-caps:all-small-caps}
+.lang a{display:inline-block;padding:6px 5px;color:var(--mute);text-decoration:none}
+.lang a:hover{color:var(--ink)}
+.lang a[aria-current="page"]{color:var(--ink);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.32em}
+.lang-sep{color:var(--rule)}
+@media print{.lang{display:none}}
+html[lang="en"] .ih-l0{padding-bottom:.16em}
+@media (max-width:759px){.lang{position:absolute;top:10px;right:10px}}
+
+</style>
+<script>document.documentElement.classList.replace('nojs','js')</script>
+</head>
+<body>
+<a class="skip" href="#prolog" data-dup="1">Skip to the essay</a>
+<div class="topline" aria-hidden="true"></div>
+<nav class="lang" data-dup="1" aria-label="Language"><a href="/antifragile" lang="ru" hreflang="ru">RU</a><span class="lang-sep" aria-hidden="true">/</span><a href="/antifragile/en" lang="en" hreflang="en" aria-current="page">EN</a></nav>
+<nav class="rail" aria-label="Parts of the essay" data-dup="1"><a class="rail-play" href="#top" aria-label="To the top"><svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 4.2L14.2 11H3.8Z"/></svg></a><div class="rail-track"></div><div class="rail-fill"></div><a class="stop" href="#prolog" data-for="prolog" aria-label="The Core Principle"><span class="stop-t" aria-hidden="true">The Core Principle</span></a><a class="stop" href="#part-i" data-for="part-i" aria-label="Part I: Personal Antifragility Architecture"><span class="stop-n" aria-hidden="true">I</span><span class="stop-t" aria-hidden="true"><b>I</b>Personal Antifragility Architecture</span></a><a class="stop" href="#part-ii" data-for="part-ii" aria-label="Part II: Scarcity Migration Investing"><span class="stop-n" aria-hidden="true">II</span><span class="stop-t" aria-hidden="true"><b>II</b>Scarcity Migration Investing</span></a><a class="stop" href="#part-iii" data-for="part-iii" aria-label="Part III: The Economics of Countertrends"><span class="stop-n" aria-hidden="true">III</span><span class="stop-t" aria-hidden="true"><b>III</b>The Economics of Countertrends</span></a><a class="stop" href="#part-iv" data-for="part-iv" aria-label="Part IV: Optionality and Positive Asymmetry"><span class="stop-n" aria-hidden="true">IV</span><span class="stop-t" aria-hidden="true"><b>IV</b>Optionality and Positive Asymmetry</span></a><a class="stop" href="#part-v" data-for="part-v" aria-label="Part V: Twelve Mandatory Criteria of an AI-Antifragile Business"><span class="stop-n" aria-hidden="true">V</span><span class="stop-t" aria-hidden="true"><b>V</b>Twelve Mandatory Criteria of an AI-Antifragile Business</span></a><a class="stop" href="#part-vi" data-for="part-vi" aria-label="Part VI: Practical Strategy"><span class="stop-n" aria-hidden="true">VI</span><span class="stop-t" aria-hidden="true"><b>VI</b>Practical Strategy</span></a><a class="stop" href="#part-vii" data-for="part-vii" aria-label="Part VII: Personal Strategy"><span class="stop-n" aria-hidden="true">VII</span><span class="stop-t" aria-hidden="true"><b>VII</b>Personal Strategy</span></a><a class="stop" href="#coda" data-for="coda" aria-label="Conclusion"><span class="stop-t" aria-hidden="true">Conclusion</span></a></nav>
+<header class="hero" id="top">
+<div class="ih-page">
+<h1 class="ih-block ih-title"><span class="vh">Personal Antifragility in the Age of Artificial Intelligence</span><span aria-hidden="true" data-dup="1"><span class="ih-l ih-l0 ih-the"><span class="ih-i ih-w0">personal</span></span><span class="ih-l ih-l1">ANTIFRAGILITY</span><span class="ih-l ih-l2 ih-sub"><span class="ih-i ih-w0b">in the age of</span> ARTIFICIAL INTELLIGENCE</span></span></h1>
+<p class="ih-block ih-def ih-sc"><span class="ih-l ih-l3">A strategy for personal <span class="ih-i ih-w1">development</span>,</span><span class="ih-l ih-l4"><span class="ih-i ih-w2">capital</span> formation and the use of <span class="ac">AI</span></span><span class="ih-l ih-l5">under radical technological</span><span class="ih-l ih-l6"><span class="ih-i ih-w4">uncertainty</span>.</span></p>
+<p class="ih-block ih-names ih-sc" data-dup="1"><span class="ih-l ih-l8">Nikolai Grigoriev</span></p>
+<p class="ih-date" data-dup="1">2026</p>
+</div>
+<div class="ih-way" data-dup="1"><a class="ih-go" href="#contents">read</a><span class="ih-or">·</span><span class="ih-min">9 min</span></div>
+</header>
+<main id="main">
+<nav class="front col" id="contents" aria-label="Contents" data-dup="1"><h2 class="toc-kicker">Contents</h2><ol class="toc-list">
+<li class="toc-item"><a class="toc-link" href="#prolog"><span class="toc-name">The Core Principle</span></a><p class="toc-sum">Our task is not simply to adapt to the development of artificial intelligence, but to build a personal and economic system that grows stronger because of technological change, including unexpected change.</p></li>
+<li class="toc-item"><a class="toc-link" href="#part-i"><span class="toc-num">I</span><span class="toc-name">Personal Antifragility Architecture</span></a><p class="toc-sum">The system consists of three interconnected levels.</p><ul class="toc-subs"><li><a href="#part-i-antifragile-human">Antifragile Human</a></li><li><a href="#part-i-antifragile-capital">Antifragile Capital</a></li><li><a href="#part-i-ai-leverage">AI Leverage</a></li></ul></li>
+<li class="toc-item"><a class="toc-link" href="#part-ii"><span class="toc-num">II</span><span class="toc-name">Scarcity Migration Investing</span></a><p class="toc-sum">One of the fundamental effects of <span class="ac">AI</span>: the migration of economic scarcity.</p></li>
+<li class="toc-item"><a class="toc-link" href="#part-iii"><span class="toc-num">III</span><span class="toc-name">The Economics of Countertrends</span></a><p class="toc-sum">The development of <span class="ac">AI</span> may create demand not only for new technologies but also for the qualities opposite to them.</p></li>
+<li class="toc-item"><a class="toc-link" href="#part-iv"><span class="toc-num">IV</span><span class="toc-name">Optionality and Positive Asymmetry</span></a><p class="toc-sum">No asset guarantees a win under every technological scenario.</p></li>
+<li class="toc-item"><a class="toc-link" href="#part-v"><span class="toc-num">V</span><span class="toc-name">Twelve Mandatory Criteria of an AI-Antifragile Business</span></a><p class="toc-sum">Every business hypothesis must be tested against all twelve requirements.</p><ul class="toc-subs"><li><a href="#part-v-three-stress-tests">Three Stress Tests</a></li></ul></li>
+<li class="toc-item"><a class="toc-link" href="#part-vi"><span class="toc-num">VI</span><span class="toc-name">Practical Strategy</span></a><p class="toc-sum">Initial capital is used above all to find and test asymmetric opportunities, not for large irreversible investments.</p></li>
+<li class="toc-item"><a class="toc-link" href="#part-vii"><span class="toc-num">VII</span><span class="toc-name">Personal Strategy</span></a><p class="toc-sum">Ultimately, economic antifragility should serve personal freedom.</p></li>
+<li class="toc-item"><a class="toc-link" href="#coda"><span class="toc-name">Conclusion</span></a><p class="toc-sum">Personal Antifragility Architecture brings together three interconnected processes: human development, the accumulation of capital, and the use of <span class="ac">AI</span> as a universal tool for expanding possibilities.</p></li>
+</ol></nav>
+<article class="col essay">
+<section class="ch" id="prolog" data-stop="" data-title="The Core Principle">
+<header class="ch-head"><h2 class="ch-h" id="prolog-title"><a class="self ch-title" href="#prolog">The Core Principle</a></h2><p class="listen" data-dup="1">Read<span class="listen-d">1 min</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>Our task is not sim­ply to adapt to the de­vel­op­ment of ar­ti­fi­cial in­tel­li­gence, but to build a per­son­al and eco­nom­ic sys­tem that grows stronger be­cause of tech­no­log­i­cal change, in­clud­ing un­ex­pect­ed change.</p></blockquote>
+<p class="lede"><span class="li">The development of</span> <span class="ac">AI</span> is steadi­ly low­er­ing the cost of in­tel­lec­tu­al work: pro­gram­ming, analy­sis, de­sign, con­tent pro­duc­tion and de­ci­sion-mak­ing.</p>
+<p>This changes how eco­nom­ic value is dis­trib­uted. Some skills and as­sets lose value, oth­ers find new ap­pli­ca­tions, and still oth­ers be­come rel­a­tive­ly scarcer.</p>
+<p>The strat­e­gy is to use <span class="ac">AI</span> to de­vel­op our own ca­pa­bil­i­ties and to ac­cu­mu­late as­sets whose value does not dis­ap­pear as tech­nol­o­gy con­tin­ues to im­prove.</p>
+<p>Here we need to dis­tin­guish be­tween three states:</p>
+<ul class="states"><li><span class="term">AI-efficient:</span> <span class="ac">AI</span> makes an ac­tiv­i­ty more ef­fi­cient.</li><li><span class="term">AI-resistant:</span> an ac­tiv­i­ty re­tains its value as <span class="ac">AI</span> de­vel­ops.</li><li><span class="term">AI-antifragile:</span> tech­no­log­i­cal change cre­ates ad­di­tion­al op­por­tu­ni­ties to grow cap­i­tal, with lim­it­ed po­ten­tial loss­es.</li></ul>
+<p class="ni strong">Our goal: the third state.</p>
+</div></section>
+<section class="ch" id="part-i" data-stop="I" data-title="Personal Antifragility Architecture">
+<header class="ch-head"><h2 class="ch-h" id="part-i-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Part I</span><span class="vh">1. </span><a class="self ch-title" href="#part-i">Personal Antifragility Architecture</a></h2><p class="listen" data-dup="1">Read<span class="listen-d">2 min</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>The sys­tem con­sists of three in­ter­con­nect­ed lev­els.</p></blockquote>
+<h3 id="part-i-antifragile-human">Antifragile Human</h3>
+<aside class="note" data-dup="1" aria-hidden="true"><b class="nlab">AI-antifragile:</b> technological change creates additional opportunities to grow capital, with limited potential losses.</aside>
+<p class="lede"><span class="li">The first level:</span> de­vel­op­ing a per­son who can re­main in­de­pen­dent and make use of tech­no­log­i­cal un­cer­tain­ty.</p>
+<p>This re­quires ac­cu­mu­lat­ing six kinds of per­son­al cap­i­tal.</p>
+<p class="def"><span class="term">Intellectual capital:</span> sys­tems think­ing, crit­i­cal judg­ment, the abil­i­ty to frame prob­lems, form hy­pothe­ses and make de­ci­sions.</p>
+<p class="def"><span class="term">Creative capital:</span> taste, orig­i­nal­i­ty, the abil­i­ty to con­nect dif­fer­ent fields of knowl­edge and cre­ate new con­cepts.</p>
+<p class="def"><span class="term">Social capital:</span> trust, rep­u­ta­tion, pro­fes­sion­al net­works, com­mu­ni­ties and the abil­i­ty to or­ga­nize col­lec­tive work.</p>
+<p class="def"><span class="term">Physical capital:</span> health, en­er­gy, cog­ni­tive per­for­mance and the length of ac­tive life.</p>
+<p class="def"><span class="term">Economic capital:</span> liq­uid­i­ty, own­er­ship, di­ver­si­fied in­come and fi­nan­cial in­de­pen­dence.</p>
+<p class="def"><span class="term">Existential capital:</span> inner au­ton­o­my, sta­ble val­ues and an iden­ti­ty that does not de­pend on any par­tic­u­lar pro­fes­sion.</p>
+<p><span class="term">The key professional transformation:</span> from a spe­cial­ist who car­ries out tasks to an ar­chi­tect of so­lu­tions who choos­es the prob­lems, brings to­geth­er peo­ple, tech­nol­o­gy and cap­i­tal, or­ga­nizes ex­per­i­ments and owns part of the value cre­at­ed.</p>
+<p>Human an­tifragili­ty lies not in a uni­ver­sal abil­i­ty to com­pete with <span class="ac">AI</span>, but in the ca­pac­i­ty to change one’s ways of work­ing with­out los­ing in­de­pen­dence or ac­cess to new op­por­tu­ni­ties.</p>
+<h3 id="part-i-antifragile-capital">Antifragile Capital</h3>
+<p>The sec­ond level: ac­cu­mu­lat­ing eco­nom­ic as­sets that hold their value and may ben­e­fit from the fur­ther de­vel­op­ment of <span class="ac">AI</span>.</p>
+<p><span class="term">The core principle:</span> buy, cre­ate or con­trol what be­comes more valu­able as in­tel­li­gence be­comes cheap­er.</p>
+<p>But scarci­ty alone is not enough.</p>
+<aside class="note" data-dup="1" aria-hidden="true"><b class="nlab">The core principle:</b> buy, create or control what becomes more valuable as intelligence becomes cheaper.</aside>
+<p>We need to dis­tin­guish be­tween ir­re­pro­ducibil­i­ty and ir­re­place­abil­i­ty.</p>
+<p>For ex­am­ple, the rights to a work of art are legal­ly pro­tect­ed. Yet a more ca­pa­ble <span class="ac">AI</span> can cre­ate an at­trac­tive al­ter­na­tive and re­duce de­mand for the orig­i­nal.</p>
+<p>That is why as­sets are es­pe­cial­ly in­ter­est­ing when their value is de­ter­mined not only by the qual­i­ty of the prod­uct but also by char­ac­ter­is­tics that can­not be re­pro­duced au­to­mat­i­cal­ly.</p>
+<p>Such char­ac­ter­is­tics may in­clude a unique phys­i­cal lo­ca­tion, his­tor­i­cal au­then­tic­i­ty, real human pres­ence, trust, so­cial recog­ni­tion, proven achieve­ment, ac­cess to in­fra­struc­ture or legal au­thor­i­ty.</p>
+<p>Even an asset that is fun­da­men­tal­ly ir­re­pro­ducible does not guar­an­tee re­turns. One must prove that there is sol­vent de­mand and that the owner is able to cap­ture eco­nom­ic rent.</p>
+<h3 id="part-i-ai-leverage">AI Leverage</h3>
+<p>The third level: using ar­ti­fi­cial in­tel­li­gence to the fullest to de­vel­op the first two.</p>
+<aside class="note" data-dup="1" aria-hidden="true"><b class="nlab">Key principle:</b> <span class="ac">AI</span> builds. You own.</aside>
+<p><span class="ac">AI</span> should carry out a grow­ing share of re­search, an­a­lyt­i­cal, pro­duc­tion and op­er­a­tional work.</p>
+<p>This re­quires a per­son­al in­tel­li­gence in­fra­struc­ture of four in­ter­con­nect­ed com­po­nents.</p>
+<p class="def"><span class="term">Memory:</span> ac­cu­mu­lat­ing your own knowl­edge, de­ci­sions, re­search, con­tacts and re­sults in ac­ces­si­ble, ex­portable for­mats.</p>
+<p class="def"><span class="term">Intelligence:</span> using dif­fer­ent mod­els to ex­plore op­por­tu­ni­ties, an­a­lyze de­ci­sions, test hy­pothe­ses and find er­rors.</p>
+<p class="def"><span class="term">Execution:</span> del­e­gat­ing de­vel­op­ment, re­search and re­cur­ring process­es to agents while keep­ing con­trol of sig­nif­i­cant de­ci­sions.</p>
+<p class="def"><span class="term">Learning:</span> sys­tem­at­i­cal­ly com­par­ing fore­casts with ac­tu­al re­sults and re­fin­ing your own model of the world.</p>
+<p>The aim is not for <span class="ac">AI</span> to make every de­ci­sion for a per­son. The aim is to raise the qual­i­ty and speed of human think­ing, as well as the abil­i­ty to turn de­ci­sions into re­al­i­ty.</p>
+<p class="maxim"><span class="term">Key principle:</span> <em>AI builds. You own.</em></p>
+<p><span class="ac">AI</span> is be­com­ing a uni­ver­sal re­source of pro­duc­tion. A per­son seeks to own the re­sults, re­la­tion­ships, as­sets and sys­tems that cre­ate long-term value.</p>
+</div></section>
+<section class="ch" id="part-ii" data-stop="II" data-title="Scarcity Migration Investing">
+<header class="ch-head"><h2 class="ch-h" id="part-ii-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Part II</span><span class="vh">2. </span><a class="self ch-title" href="#part-ii">Scarcity Migration Investing</a></h2><p class="listen" data-dup="1">Read<span class="listen-d">1 min</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>One of the fun­da­men­tal ef­fects of <span class="ac">AI</span>: the mi­gra­tion of eco­nom­ic scarci­ty.</p></blockquote>
+<p class="lede"><span class="li">When technology radically</span> cheap­ens one fac­tor of pro­duc­tion, the next one be­comes the con­straint.</p>
+<p>If pro­gram­ming gets cheap­er, ac­cess to cus­tomers, in­fra­struc­ture and real-world data may be­come more im­por­tant.</p>
+<p>If con­tent pro­duc­tion be­comes prac­ti­cal­ly free, value may shift to trust, recog­ni­tion and au­di­ence at­ten­tion.</p>
+<p>If the de­sign of phys­i­cal ob­jects is au­to­mat­ed, the con­straints may be­come pro­duc­tion ca­pac­i­ty, ma­te­ri­als, per­mits and ac­cess to sites.</p>
+<p>Hence the in­vest­ment strat­e­gy: an­tic­i­pate where scarci­ty will mi­grate and gain con­trol of emerg­ing sources of eco­nom­ic rent be­fore the mar­ket fully reprices them.</p>
+<p>It is not nec­es­sary to ac­quire the asset it­self.</p>
+<aside class="note" data-dup="1" aria-hidden="true">But control over scarcity does not guarantee profit.</aside>
+<p>One can ob­tain eq­ui­ty stakes, li­cens­es, ex­clu­sive rights, man­age­ment con­tracts or op­tions on fu­ture deals.</p>
+<p>But con­trol over scarci­ty does not guar­an­tee prof­it. One has to un­der­stand who will pay, why the hold­er of that par­tic­u­lar right will get the money, and how quick­ly com­peti­tors can re­move the con­straint.</p>
+<p>Sit­u­a­tions are es­pe­cial­ly in­ter­est­ing when <span class="ac">AI</span> changes de­mand faster than phys­i­cal or in­sti­tu­tion­al sys­tems can ad­just sup­ply.</p>
+</div></section>
+<section class="ch" id="part-iii" data-stop="III" data-title="The Economics of Countertrends">
+<header class="ch-head"><h2 class="ch-h" id="part-iii-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Part III</span><span class="vh">3. </span><a class="self ch-title" href="#part-iii">The Economics of Countertrends</a></h2><p class="listen" data-dup="1">Read<span class="listen-d">1 min</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>The de­vel­op­ment of <span class="ac">AI</span> may cre­ate de­mand not only for new tech­nolo­gies but also for the qual­i­ties op­po­site to them.</p></blockquote>
+<aside class="note" data-dup="1" aria-hidden="true">These countertrends are not guaranteed forecasts. They have to be confirmed by the behavior of buyers.</aside>
+<p class="lede"><span class="li">The growth of</span> syn­thet­ic con­tent may raise the value of ver­i­fied au­then­tic­i­ty.</p>
+<p>The spread of vir­tu­al in­ter­ac­tion may make real human pres­ence more at­trac­tive.</p>
+<p>The au­toma­tion of out­put may in­crease the sym­bol­ic value of per­son­al ef­fort and crafts­man­ship.</p>
+<p>An abun­dance of high-qual­i­ty prod­ucts may strength­en the role of trust, sta­tus and so­cial recog­ni­tion.</p>
+<p>Au­to­mat­ed de­ci­sion-mak­ing may in­crease the need for in­de­pen­dent ver­i­fi­ca­tion, au­thor­i­ty and ac­count­abil­i­ty for real-world con­se­quences.</p>
+<p>These coun­tertrends are not guar­an­teed fore­casts. They have to be con­firmed by the be­hav­ior of buy­ers.</p>
+<p>But they set an im­por­tant di­rec­tion for the search: study­ing human needs that can­not be fully met sim­ply by adding more com­put­ing power.</p>
+<p>Pri­or­i­ty goes to re­sources that are hard to re­pro­duce, hard to re­place eco­nom­i­cal­ly, and whose value grows as <span class="ac">AI</span> spreads.</p>
+</div></section>
+<section class="ch" id="part-iv" data-stop="IV" data-title="Optionality and Positive Asymmetry">
+<header class="ch-head"><h2 class="ch-h" id="part-iv-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Part IV</span><span class="vh">4. </span><a class="self ch-title" href="#part-iv">Optionality and Positive Asymmetry</a></h2><p class="listen" data-dup="1">Read<span class="listen-d">1 min</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>No asset guar­an­tees a win under every tech­no­log­i­cal sce­nario.</p></blockquote>
+<p class="lede"><span class="li">That is why</span> an­tifragili­ty must be a prop­er­ty not only of an in­di­vid­ual com­pa­ny but of the whole sys­tem of de­ci­sion-mak­ing and cap­i­tal al­lo­ca­tion.</p>
+<p>We should seek the right to take ad­van­tage of a fa­vor­able fu­ture with­out the oblig­a­tion to fi­nance an un­fa­vor­able one.</p>
+<p>In prac­tice this means small ex­per­i­ments, lim­it­ed ini­tial com­mit­ments, exit terms de­fined in ad­vance, the ac­qui­si­tion of op­tions, and in­creas­ing in­vest­ment grad­u­al­ly, only after hy­pothe­ses are con­firmed.</p>
+<aside class="note" data-dup="1" aria-hidden="true">We should seek the right to take advantage of a favorable future without the obligation to finance an unfavorable one.</aside>
+<p>This is where the Bar­bell strat­e­gy ap­plies.</p>
+<p>One part of per­son­al re­sources pro­vides sta­bil­i­ty: health, liq­uid­i­ty, re­li­able in­come and so­cial cap­i­tal.</p>
+<p>The other goes to asym­met­ric op­por­tu­ni­ties, where the po­ten­tial gain sub­stan­tial­ly ex­ceeds the pos­si­ble loss­es.</p>
+<p>This makes it pos­si­ble to com­bine fi­nan­cial se­cu­ri­ty with ex­per­i­men­ta­tion and not de­pend on any sin­gle fore­cast being right.</p>
+</div></section>
+<section class="ch" id="part-v" data-stop="V" data-title="Twelve Mandatory Criteria of an AI-Antifragile Business">
+<header class="ch-head"><h2 class="ch-h" id="part-v-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Part V</span><span class="vh">5. </span><a class="self ch-title" href="#part-v">Twelve Mandatory Criteria of an AI-Antifragile Business</a></h2><p class="listen" data-dup="1">Read<span class="listen-d">2 min</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>Every busi­ness hy­poth­e­sis must be test­ed against all twelve re­quire­ments.</p></blockquote>
+<div class="crit"><aside class="note" data-dup="1" aria-hidden="true">All criteria are mandatory. Strong results on some points do not compensate for failing others.</aside><p class="ci"><span class="cn">1.</span> <span class="ct">Positive dependence on the development of <span class="ac">AI</span>.</span> As <span class="ac">AI</span> im­proves and gets cheap­er, the com­pa­ny’s eco­nom­ic op­por­tu­ni­ties grow. Sim­ply cut­ting op­er­at­ing costs is not enough.</p><p class="ci"><span class="cn">2.</span> <span class="ct">Advantage over competitors.</span> With equal ac­cess to <span class="ac">AI</span> mod­els, the com­pa­ny’s com­pet­i­tive ad­van­tage is pre­served or strength­ened.</p><p class="ci"><span class="cn">3.</span> <span class="ct">Resilience to technological paradigm shifts.</span> The busi­ness does not crit­i­cal­ly de­pend on a spe­cif­ic <span class="ac">AI</span> model, plat­form or tech­no­log­i­cal ar­chi­tec­ture. Rad­i­cal change does not au­to­mat­i­cal­ly de­stroy its core source of value.</p><p class="ci"><span class="cn">4.</span> <span class="ct">Positive asymmetry under uncertainty.</span> Un­ex­pect­ed tech­no­log­i­cal change can pro­duce dis­pro­por­tion­ate­ly large gains with lim­it­ed po­ten­tial loss­es.</p><p class="ci"><span class="cn">5.</span> <span class="ct">A protected economic advantage.</span> The com­pa­ny con­trols a re­source or sys­tem that a com­peti­tor can­not quick­ly re­pro­duce, even with prac­ti­cal­ly free in­tel­li­gence.</p><p class="ci"><span class="cn">6.</span> <span class="ct">Ownership of the value created.</span> The founders own as­sets, eq­ui­ty, IP or eco­nom­ic rights that give them a share in fu­ture prof­its. The busi­ness is not re­duced to sell­ing their own time.</p><aside class="note" data-dup="1" aria-hidden="true">Each point is given a status: confirmed, unconfirmed or refuted.</aside><p class="ci"><span class="cn">7.</span> <span class="ct">Compounding effect.</span> Each suc­cess­ful cycle of ac­tiv­i­ty strength­ens the com­pet­i­tive po­si­tion, in­creas­es the value of as­sets or ex­pands the com­pa­ny’s fu­ture op­por­tu­ni­ties.</p><p class="ci"><span class="cn">8.</span> <span class="ct">Capture of economic rent.</span> There is a spe­cif­ic, pro­tect­ed mech­a­nism that lets the com­pa­ny re­tain the value it cre­ates rather than pass it on to com­peti­tors, cus­tomers, sup­pli­ers or <span class="ac">AI</span> plat­forms.</p><p class="ci"><span class="cn">9.</span> <span class="ct">Real, solvent demand.</span> The com­pa­ny solves a prob­lem that cus­tomers are will­ing to pay for. Its eco­nom­ics do not rest sole­ly on ex­pec­ta­tions that asset val­ues will rise.</p><p class="ci"><span class="cn">10.</span> <span class="ct">Disproportionate scaling.</span> Rev­enue, prof­it or asset value can grow sub­stan­tial­ly faster than costs, head­count and the founders’ work­ing time.</p><p class="ci"><span class="cn">11.</span> <span class="ct">Self-funded launch for under €20,000.</span> The core hy­poth­e­sis can be test­ed, the first valu­able asset cre­at­ed or the first pay­ing cus­tomer won with­out manda­to­ry out­side fund­ing.</p><p class="ci"><span class="cn">12.</span> <span class="ct">Limited risk and high optionality.</span> A failed ex­per­i­ment does not de­stroy cap­i­tal. Com­mit­ments are con­trolled, the project can be stopped, and there are al­ter­na­tive ways to use the re­sults.</p></div>
+<p class="lede"><span class="li">All criteria are</span> manda­to­ry. Strong re­sults on some points do not com­pen­sate for fail­ing oth­ers.</p>
+<p>Each point is given a sta­tus: con­firmed, un­con­firmed or re­fut­ed.</p>
+<p>A busi­ness pass­es the se­lec­tion only once all twelve con­di­tions are con­firmed.</p>
+<h3 id="part-v-three-stress-tests">Three Stress Tests</h3>
+<p>In ad­di­tion, every model must pass three tests.</p>
+<aside class="note" data-dup="1" aria-hidden="true">If a business fails even one test, it must be reworked or excluded.</aside>
+<p class="stress"><span class="term">First:</span> <span class="ac">AI</span> has be­come a hun­dred times more pow­er­ful and cheap­er. <em>Why does the value of our busi­ness in­crease rather than de­crease?</em></p>
+<p class="stress"><span class="term">Second:</span> com­peti­tors have gained ac­cess to the same <span class="ac">AI</span>. <em>Why can they not re­pro­duce our ad­van­tage and wipe out our mar­gin?</em></p>
+<p class="stress"><span class="term">Third:</span> tech­nol­o­gy has de­vel­oped along a com­plete­ly un­ex­pect­ed path. <em>Which as­sets sur­vive, which op­por­tu­ni­ties ap­pear, and how lim­it­ed are the loss­es?</em></p>
+<p>If a busi­ness fails even one test, it must be re­worked or ex­clud­ed.</p>
+</div></section>
+<section class="ch" id="part-vi" data-stop="VI" data-title="Practical Strategy">
+<header class="ch-head"><h2 class="ch-h" id="part-vi-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Part VI</span><span class="vh">6. </span><a class="self ch-title" href="#part-vi">Practical Strategy</a></h2><p class="listen" data-dup="1">Read<span class="listen-d">1 min</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>Ini­tial cap­i­tal is used above all to find and test asym­met­ric op­por­tu­ni­ties, not for large ir­re­versible in­vest­ments.</p></blockquote>
+<p class="lede"><span class="li">The working cycle:</span> re­search struc­tur­al change, iden­ti­fy new de­mand or scarci­ty, form a busi­ness hy­poth­e­sis, test it against the twelve cri­te­ria, run a small mar­ket ex­per­i­ment, se­cure the eco­nom­ic rights, and then scale.</p>
+<p>Pri­or­i­ty goes to projects where one can first con­firm de­mand or ob­tain the right to an op­por­tu­ni­ty, and only then raise cap­i­tal to pur­sue it.</p>
+<aside class="note" data-dup="1" aria-hidden="true"><b class="nlab">AI-resistant:</b> an activity retains its value as <span class="ac">AI</span> develops.</aside>
+<p><span class="term">The main measures of progress:</span> the share of in­come not di­rect­ly tied to per­son­al time; the value of the eco­nom­ic as­sets under con­trol; the qual­i­ty and speed of test­ing hy­pothe­ses; the amount of risk per ex­per­i­ment; the sys­tem’s abil­i­ty to pre­serve and ex­pand its op­tions as tech­nol­o­gy changes.</p>
+<p>Over a ten-year hori­zon, the task is not nec­es­sar­i­ly to build one large com­pa­ny, but to as­sem­ble a port­fo­lio of in­de­pen­dent as­sets and busi­ness sys­tems with pos­i­tive asym­me­try.</p>
+</div></section>
+<section class="ch" id="part-vii" data-stop="VII" data-title="Personal Strategy">
+<header class="ch-head"><h2 class="ch-h" id="part-vii-title"><span class="ch-kicker" data-dup="1" aria-hidden="true">Part VII</span><span class="vh">7. </span><a class="self ch-title" href="#part-vii">Personal Strategy</a></h2><p class="listen" data-dup="1">Read<span class="listen-d">1 min</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>Ul­ti­mate­ly, eco­nom­ic an­tifragili­ty should serve per­son­al free­dom.</p></blockquote>
+<p class="lede"><span class="li">The aim is</span> to re­duce de­pen­dence on any par­tic­u­lar pro­fes­sion, em­ploy­er, tech­nol­o­gy plat­form, and on the need to keep sell­ing one’s own time.</p>
+<p>In­stead of try­ing to keep in­di­vid­ual pro­fes­sion­al skills rel­e­vant for­ev­er, one should de­vel­op the abil­i­ty to un­der­stand change, choose di­rec­tions, or­ga­nize re­sources and own the re­sults.</p>
+<aside class="note" data-dup="1" aria-hidden="true"><b class="nlab">The goal:</b> greater freedom, more capital and the ability to use uncertainty as a source of new opportunities.</aside>
+<p>At the same time, health, re­la­tion­ships, cre­ativ­i­ty and per­son­al ex­pe­ri­ence should not be treat­ed mere­ly as in­stru­ments of eco­nom­ic pro­duc­tiv­i­ty. They have value in their own right and give us the free­dom to choose our own goals.</p>
+</div></section>
+<section class="ch" id="coda" data-stop="" data-title="Conclusion">
+<header class="ch-head"><h2 class="ch-h" id="coda-title"><a class="self ch-title" href="#coda">Conclusion</a></h2><p class="listen" data-dup="1">Read<span class="listen-d">1 min</span></p></header>
+<div class="prose">
+<blockquote class="scripture"><p>Per­son­al An­tifragili­ty Ar­chi­tec­ture brings to­geth­er three in­ter­con­nect­ed process­es: human de­vel­op­ment, the ac­cu­mu­la­tion of cap­i­tal, and the use of <span class="ac">AI</span> as a uni­ver­sal tool for ex­pand­ing pos­si­bil­i­ties.</p></blockquote>
+<p class="lede"><span class="li">The main principle:</span> not to com­pete with an ac­cel­er­at­ing ar­ti­fi­cial in­tel­li­gence at pro­duc­ing what it does ever bet­ter and more cheap­ly, but to use its de­vel­op­ment to ac­quire and cre­ate eco­nom­i­cal­ly valu­able as­sets that are hard to re­pro­duce or re­place.</p>
+<p>At the same time, we should not bet every­thing on a sin­gle fore­cast of the fu­ture. We need a port­fo­lio of op­por­tu­ni­ties with lim­it­ed risk, ca­pa­ble of win­ning under dif­fer­ent tech­no­log­i­cal sce­nar­ios.</p>
+<p>The ul­ti­mate goal is not max­i­mum au­toma­tion, nor even max­i­mum in­come.</p>
+<p class="ni strong">The goal: greater free­dom, more cap­i­tal and the abil­i­ty to use un­cer­tain­ty as a source of new op­por­tu­ni­ties.</p>
+</div></section>
+</article>
+<footer class="colophon col" data-dup="1"><div class="colo-rule"></div><p class="colo-names">Nikolai Grigoriev</p><p class="colo-place">2026</p><p class="colo-top"><a class="colo-up" href="#top">to the top</a></p></footer>
+</main>
+<script>
+(function(){
+  var rail=document.querySelector('.rail'),fill=rail&&rail.querySelector('.rail-fill'),
+      top=document.querySelector('.topline'),hero=document.querySelector('.hero'),
+      secs=[].slice.call(document.querySelectorAll('.ch')),
+      stops=[].slice.call(document.querySelectorAll('.stop')),
+      first=secs[0],last=secs[secs.length-1],start=0,span=1,ticking=false;
+  function layout(){
+    start=first.offsetTop; var end=last.offsetTop+last.offsetHeight;
+    span=Math.max(1,end-start-innerHeight*0.5);
+    stops.forEach(function(a,i){a.style.top=((secs[i].offsetTop-start)/(end-start)*100).toFixed(3)+'%';});
+    update();
+  }
+  function update(){
+    ticking=false;
+    var y=scrollY,p=Math.min(1,Math.max(0,(y-start+innerHeight*0.4)/span));
+    var docP=Math.min(1,Math.max(0,y/Math.max(1,document.documentElement.scrollHeight-innerHeight)));
+    if(top)top.style.setProperty('--p',docP);
+    if(!rail)return;
+    rail.classList.toggle('on',y>hero.offsetHeight*0.6);
+    var mark=y+innerHeight*0.4,cur=-1;
+    secs.forEach(function(s,i){if(s.offsetTop<=mark)cur=i;});
+    stops.forEach(function(a,i){a.classList.toggle('on',i===cur);a.classList.toggle('past',i<cur);
+      if(i===cur)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current');});
+    var curTop=cur>=0?parseFloat(stops[cur].style.top)/100:0,
+        nxtTop=cur+1<stops.length?parseFloat(stops[cur+1].style.top)/100:1,
+        sec=secs[Math.max(cur,0)],f=cur<0?0:Math.min(1,Math.max(0,(mark-sec.offsetTop)/sec.offsetHeight));
+    fill.style.setProperty('--p',cur<0?0:(curTop+(nxtTop-curTop)*f).toFixed(4));
+  }
+  addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(update);}},{passive:true});
+  addEventListener('resize',layout);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layout);
+  addEventListener('load',layout);
+  layout();
+})();
+
+</script>
+</body>
+</html>
