@@ -1766,6 +1766,14 @@ http.createServer((req, res) => {
           alive: (loadRecord96().days || []).map((d) => d.d), incomplete: [],
         });
       })(),
+      // S6-05 reads the path S6-03 reads, so it lives on the same calendar.
+      '98': (() => {
+        const m96 = meta96();
+        return Object.assign({}, common, {
+          ratio: ratio('98'), birth: m96.birth, last: m96.calendarEnd, lastData: m96.lastDataDay,
+          alive: (loadRecord96().days || []).map((d) => d.d), incomplete: [],
+        });
+      })(),
       '89': Object.assign({}, common, { ratio: ratio('89'), alive: alive89, incomplete: [] }),
       'archipelago': Object.assign({}, common, {
         ratio: ratio('archipelago'),

@@ -305,5 +305,50 @@
       "seed": "The seed of a day is its date; the same day always makes the same painting.",
       "foot": "First recorded day {birth}.<br>The rule was written in 2026. The sheet is turned by the body’s nights, not by the calendar."
     }
+  },
+  "98": {
+    "title": "S6-05",
+    "begun": "2026-11-09",
+    "listed": true,
+    "selected": false,
+    "medium": "Software, pen and ink on the ground crossed by a living body, written daily by an unchanging rule, screen. Dimensions variable. The rule and the days since 2026.",
+    "canvas": {
+      "w": 920,
+      "h": 1350,
+      "density": 1
+    },
+    "ground": "#eee9dd",
+    "silence": "over",
+    "engine": {
+      "painter": "98/painter.js",
+      "data": "/96/data.json",
+      "dateField": "d",
+      "readback": "2d"
+    },
+    "state": {
+      "w": 920,
+      "h": 1350,
+      "quality": 0.88
+    },
+    "rule": {
+      "laws": [
+        "Each day, one painting: the ground the body crossed that day, written by one pen in one ink.",
+        "The painting is made from that day’s record of one living body, where it went, how it moved, how its heart worked and the night that opened the day, and from nothing else.",
+        "Nothing is arranged by hand.",
+        "The pen writes the way in loops. Where the body moved slowly and its heart worked hard, the loops widen and crowd; where it moved fast, they stretch out. Neither the pace nor the heart can be read back from a loop: each is weighed against that day’s own range, and the two are woven together.",
+        "Wherever the body stood for twenty seconds or more, the pen rests and the ink runs as it would run in cloth: the longer the body stood, the wider the stain, up to a limit.",
+        "The ink of a day runs from vermilion to carmine: the further its hours lie from the middle of the day and the more height the body climbed, the deeper the red.",
+        "The sheet is turned by the body’s nights: each day adds the turn of the night that opened it, up to forty-five degrees either way.",
+        "A day is laid down only after it has closed, at 09:30 the next morning in Barcelona.",
+        "A day is weighed against its own range and against the nights of this body that came before it, never against those that follow.",
+        "A circle of two hundred and fifty metres around the house is never written.",
+        "The seed of a day is its date; the same day always makes the same painting.",
+        "A day that has been painted is never repainted.",
+        "A day without a walk leaves the sheet bare. When no day arrives from the instrument, the last painting is held; from the second day of silence it fades.",
+        "Every day the work has lived is kept."
+      ],
+      "seed": "The seed of a day is its date; the same day always makes the same painting.",
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026. It reads the record S6-03 reads and parts from it in what is painted: one day alone, in ink. The cloth is not shown, only the way it took the ink."
+    }
   }
 }
