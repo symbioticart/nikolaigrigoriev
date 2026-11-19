@@ -58,7 +58,7 @@
     user-select:none;-webkit-user-select:none}  /* drag = draw, not text-select */
   input,textarea{user-select:text;-webkit-user-select:text}
   a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid currentColor;outline-offset:3px}
-  #apply,#call{scroll-margin-top:24px}
+  #apply,#call,#evening{scroll-margin-top:24px}
 
   /* paper texture — white ground, texture fades to clean edges (radial mask) */
   #grain{position:fixed;inset:0;z-index:-1;pointer-events:none;
@@ -249,6 +249,14 @@
   .formmsg{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.05em;color:var(--bone-80);min-height:1em;margin:0}
   .apply-band .thanks{font-family:var(--serif);font-size:var(--fs-5);line-height:1.5;color:var(--bone);max-width:34ch;margin:8px 0 0}
 
+  /* screening evening 29.11 */
+  .evening .fields{margin:26px 0 8px}
+  .evening .fields.order{margin-top:10px}
+  .evening .fields .fn{width:auto;white-space:nowrap}
+  .evening .fields.order li{grid-template-columns:52px 1fr}
+  .evening .ordh{margin-top:34px}
+  .apply-band .closed{font-family:var(--mono);font-size:var(--fs-6);letter-spacing:.14em;text-transform:uppercase;color:var(--bone);margin:28px 0 0}
+
   /* footer */
   footer{position:relative;background:var(--ink);color:var(--bone);padding:54px var(--pad) 66px}
   .foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;
@@ -322,10 +330,10 @@
   </div>
   <div class="topright">
     <nav class="langsw" aria-label="Language"><a href="/wit36" class="on">EN</a><a href="/wit36/es">ES</a><span class="off">CA</span></nav>
-    <a class="cta apply-top" href="#apply">Apply <span>&rarr;</span></a>
+    <a class="cta apply-top" href="#evening">Register <span>&rarr;</span></a>
   </div>
   <div class="hint" id="hint">Move to draw</div>
-  <div class="opendates"><span class="odl">Applications open</span><span class="odv">20 July &ndash; 10 August 2026</span></div>
+  <div class="opendates"><span class="odl">Screening</span><span class="odv">Sunday 29 November 2026, 18:00</span></div>
   <a class="cue" href="#call">Read the call <span class="ch">&darr;</span></a>
 </section>
 
@@ -337,6 +345,43 @@
     <span>MONOMO &middot; Gr&agrave;cia, Barcelona</span>
     <span>36 &times; 180&prime;</span>
   </div>
+
+  <section class="apply-band evening" id="evening">
+    <div class="apply-inner">
+      <div class="idx"><span class="n">29 &middot; 11</span><span class="lab">The screening</span><span>18:00 &rarr; 21:06</span></div>
+      <div class="body">
+        <h2>Sunday 29&nbsp;November. Six works, seen for&nbsp;the&nbsp;first time.</h2>
+        <p>The six works of&nbsp;Cycle&nbsp;I are screened in&nbsp;one evening at&nbsp;MONOMO, Gr&agrave;cia. The&nbsp;artists have not seen their frames: they see them with you, in&nbsp;the&nbsp;same room, at&nbsp;the&nbsp;same moment.</p>
+        <p>During the screening the&nbsp;same camera works again, under the&nbsp;same rules: 36&nbsp;frames at&nbsp;moments drawn by&nbsp;the&nbsp;quantum generator, no&nbsp;choosing, no&nbsp;editing. Everyone in&nbsp;the&nbsp;room becomes an&nbsp;author of&nbsp;the&nbsp;seventh work of&nbsp;the&nbsp;cycle. By&nbsp;registering, you accept this.</p>
+        <ul class="fields">
+          <li><span class="fn">01</span><p class="q">Doors 17:00 &middot; Screening 18:00&ndash;21:06</p></li>
+          <li><span class="fn">02</span><p class="q">MONOMO, Carrer del Torrent de les Flors, 61, bajos B, 08024 Barcelona (Gr&agrave;cia)</p></li>
+          <li><span class="fn">03</span><p class="q">Free entry, registration required</p></li>
+        </ul>
+        <div class="fl ordh">Order of the screening</div>
+        <ul class="fields order">
+          <li><span class="fn">18:00</span><p class="q">Aleksandr Urvachev</p></li>
+          <li><span class="fn">18:31</span><p class="q">Ulises Mendicutty</p></li>
+          <li><span class="fn">19:02</span><p class="q">Alberto de Blobs</p></li>
+          <li><span class="fn">19:33</span><p class="q">Eugeni Pulido Mart&iacute;n &amp; Jaime D&iacute;az Otero N&uacute;&ntilde;ez</p></li>
+          <li><span class="fn">20:04</span><p class="q">Txemy Basualto &amp; Ane Basualto</p></li>
+          <li><span class="fn">20:35</span><p class="q">Nikolai Grigoriev</p></li>
+          <li><span class="fn">21:06</span><p class="q">End</p></li>
+        </ul>
+        <form class="applyform" id="rsvpForm" method="post" action="/wit36/rsvp" novalidate>
+          <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <label class="fld"><span class="fl">01 &middot; Your name</span>
+            <input type="text" name="name" required maxlength="200" autocomplete="name"></label>
+          <label class="fld"><span class="fl">02 &middot; An email we can reach you at</span>
+            <input type="email" name="email" required maxlength="200" autocomplete="email"></label>
+          <label class="fld consent"><input type="checkbox" name="consent">
+            <span class="cl">I understand that the room&rsquo;s camera may photograph me during the screening and that these images form the seventh, collective work of Cycle I. I accept the <a href="/wit36/terms" target="_blank" rel="noopener">Terms &amp; Privacy</a>.</span></label>
+          <button class="cta" type="submit" id="rsvpBtn">Register <span>&rarr;</span></button>
+          <p class="formmsg" id="rsvpmsg" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </section>
 
   <div class="sheet">
 
@@ -387,27 +432,11 @@
 
   <section class="apply-band" id="apply">
     <div class="apply-inner">
-      <div class="idx"><span class="n">&sect; 04</span><span class="lab">Apply</span><span>Four fields</span></div>
+      <div class="idx"><span class="n">&sect; 04</span><span class="lab">Apply</span><span>Closed</span></div>
       <div class="body">
         <h2>Take part</h2>
         <p>We&nbsp;invite artists. The&nbsp;studio decides who&nbsp;takes part, privately. Reasons are not&nbsp;given.</p>
-        <form class="applyform" id="applyForm" method="post" action="/wit36/apply" novalidate>
-          <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <label class="fld"><span class="fl">01 &middot; Your name</span>
-            <input type="text" name="name" required maxlength="120" autocomplete="name"></label>
-          <label class="fld"><span class="fl">02 &middot; An email we can reach you at</span>
-            <input type="email" name="email" required maxlength="200" autocomplete="email"></label>
-          <label class="fld"><span class="fl">03 &middot; A link to your practice</span>
-            <input type="url" name="link" required maxlength="300" placeholder="https://" autocomplete="url"></label>
-          <label class="fld"><span class="fl">04 &middot; What will you do for three hours, alone with yourself?</span>
-            <textarea name="statement" required rows="6" maxlength="1400"></textarea>
-            <span class="fh"><span id="wc">0</span> / 150 words &middot; your answer is not published</span></label>
-          <label class="fld consent"><input type="checkbox" name="consent">
-            <span class="cl">I have read and accept the <a href="/wit36/terms" target="_blank" rel="noopener">Terms &amp; Privacy</a>. Monomo Estudios SL processes these details only to run this call.</span></label>
-          <button class="cta" type="submit" id="applyBtn">Send application <span>&rarr;</span></button>
-          <p class="formmsg" id="formmsg" aria-live="polite"></p>
-        </form>
-        <p class="note">There is&nbsp;no&nbsp;fee to&nbsp;apply, and&nbsp;none to&nbsp;take part. Travel and&nbsp;materials are yours; the&nbsp;room, the&nbsp;machine and&nbsp;the&nbsp;printing are ours.</p>
+        <p class="closed">Applications for Cycle&nbsp;I are closed.</p>
       </div>
     </div>
   </section>
@@ -416,7 +445,7 @@
 <footer>
   <div class="foot">
     <div><span class="top">WITHOUT WITNESS &middot; Sense testimoni</span><br>MONOMO &mdash; self-portrait studio &middot; Gr&agrave;cia, Barcelona</div>
-    <div>Cycle I &middot; Applications open 20 July &ndash; 10 August 2026<div class="langs"><a href="/wit36" class="on">EN</a><a href="/wit36/es">ES</a><span class="off">CA</span></div></div>
+    <div>Cycle I &middot; Screening 29 November 2026<div class="langs"><a href="/wit36" class="on">EN</a><a href="/wit36/es">ES</a><span class="off">CA</span></div></div>
   </div>
 </footer>
 
@@ -730,9 +759,30 @@ const PrintTexture=(function(){
   });
 })();
 
+/* screening registration — submit to /wit36/rsvp */
+(() => {
+  const f=document.getElementById('rsvpForm'); if(!f) return;
+  const msg=document.getElementById('rsvpmsg');
+  f.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const name=f.elements.name.value.trim(), email=f.elements.email.value.trim();
+    if(!name||!email){ msg.textContent='Please fill in your name and email.'; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='That email does not look right.'; return; }
+    if(!f.elements.consent.checked){ msg.textContent='Please accept the camera and the Terms & Privacy.'; return; }
+    msg.textContent='Sending…';
+    try{
+      const r=await fetch('/wit36/rsvp',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name,email,consent:true,lang:'en',website:f.elements.website.value})});
+      const d=await r.json().catch(()=>({}));
+      if(r.ok&&d.ok){ f.innerHTML='<p class="thanks">You&rsquo;re registered. Sunday 29 November, doors at 17:00 &mdash; MONOMO, Carrer del Torrent de les Flors, 61, Gr&agrave;cia. See you there.</p>'; }
+      else { msg.textContent=(d&&d.error)||'Something went wrong. Please try again.'; }
+    }catch(err){ msg.textContent='Network error. Please try again.'; }
+  });
+})();
+
 /* top-right Apply → smooth-scroll to the Take Part form, then focus the first field */
 (() => {
-  const btn=document.querySelector('.apply-top'), target=document.getElementById('apply');
+  const btn=document.querySelector('.apply-top'), target=document.getElementById('evening');
   if(!btn||!target) return;
   btn.addEventListener('click', e=>{
     e.preventDefault();

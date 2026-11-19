@@ -24,10 +24,11 @@ const R = [
   // ---- hero ----
   ['<div class="bmeta">You move. The machine chooses &mdash; which frame, and when.</div>',
    '<div class="bmeta">Tú te mueves. La máquina elige &mdash; qué capta, y cuándo.</div>'],
-  ['>Apply <span>&rarr;</span></a>', '>Apúntate <span>&rarr;</span></a>'],
+  ['>Register <span>&rarr;</span></a>', '>Inscríbete <span>&rarr;</span></a>'],
+  ['>Register <span>&rarr;</span></button>', '>Inscríbete <span>&rarr;</span></button>'],
   ['<div class="hint" id="hint">Move to draw</div>', '<div class="hint" id="hint">Mueve para dibujar</div>'],
-  ['<span class="odl">Applications open</span><span class="odv">20 July &ndash; 10 August 2026</span>',
-   '<span class="odl">Convocatoria abierta</span><span class="odv">20 de julio &ndash; 10 de agosto de 2026</span>'],
+  ['<span class="odl">Screening</span><span class="odv">Sunday 29 November 2026, 18:00</span>',
+   '<span class="odl">Proyección</span><span class="odv">Domingo 29 de noviembre de 2026, 18:00</span>'],
   ['>Read the call <span class="ch">&darr;</span></a>', '>Lee la convocatoria <span class="ch">&darr;</span></a>'],
 
   // ---- masthead ----
@@ -78,27 +79,41 @@ const R = [
    '<dt>La máquina &middot; el azar</dt><dd>Un ojo indiferente. Dispara 36 veces; solo el azar decide cuándo. Nadie &mdash; ni siquiera l@ artista &mdash; conoce los momentos. No puedes preverlo y no puedes influir en ello.</dd>'],
 
   // ---- § 04 ----
-  ['<span class="lab">Apply</span><span>Four fields</span>', '<span class="lab">Solicitud</span><span>Cuatro campos</span>'],
+  ['<span class="lab">Apply</span><span>Closed</span>', '<span class="lab">Solicitud</span><span>Cerrada</span>'],
+  ['<p class="closed">Applications for Cycle I are closed.</p>', '<p class="closed">La convocatoria del Ciclo I está cerrada.</p>'],
   ['<h2>Take part</h2>', '<h2>Participa</h2>'],
   ['<p>We invite artists. The studio decides who takes part, privately. Reasons are not given.</p>',
    '<p>Invitamos a artistas. El estudio decide quién participa, en privado. No se dan razones.</p>'],
   ['<span class="fl">01 &middot; Your name</span>', '<span class="fl">01 &middot; Tu nombre</span>'],
   ['<span class="fl">02 &middot; An email we can reach you at</span>', '<span class="fl">02 &middot; Un email donde localizarte</span>'],
-  ['<span class="fl">03 &middot; A link to your practice</span>', '<span class="fl">03 &middot; Un enlace a tu práctica</span>'],
-  ['<span class="fl">04 &middot; What will you do for three hours, alone with yourself?</span>', '<span class="fl">04 &middot; ¿Qué harás durante tres horas a solas?</span>'],
-  ['<span class="fh"><span id="wc">0</span> / 150 words &middot; your answer is not published</span>',
-   '<span class="fh"><span id="wc">0</span> / 150 palabras &middot; tu respuesta no se publica</span>'],
-  ['<span class="cl">I have read and accept the <a href="/wit36/terms" target="_blank" rel="noopener">Terms &amp; Privacy</a>. Monomo Estudios SL processes these details only to run this call.</span>',
-   '<span class="cl">He leído y acepto los <a href="/wit36/es/terms" target="_blank" rel="noopener">Términos y Privacidad</a>. Monomo Estudios SL trata estos datos únicamente para gestionar esta convocatoria.</span>'],
-  ['>Send application <span>&rarr;</span></button>', '>Enviar solicitud <span>&rarr;</span></button>'],
-  ['<p class="note">There is no fee to apply, and none to take part. Travel and materials are yours; the room, the machine and the printing are ours.</p>',
-   '<p class="note">No hay cuota por solicitar ni por participar. Viaje y materiales son de tu parte; la sala, la máquina y la impresión, de la nuestra.</p>'],
+
+  // ---- screening evening 29.11 ----
+  ['<span class="lab">The screening</span>', '<span class="lab">La proyección</span>'],
+  ['<h2>Sunday 29 November. Six works, seen for the first time.</h2>', '<h2>Domingo 29 de noviembre. Seis obras, vistas por primera vez.</h2>'],
+  ['<p>The six works of Cycle I are screened in one evening at MONOMO, Gr&agrave;cia. The artists have not seen their frames: they see them with you, in the same room, at the same moment.</p>',
+   '<p>Las seis obras del Ciclo I se proyectan en una sola noche en MONOMO, Gr&agrave;cia. Los artistas no han visto sus fotogramas: los verán contigo, en la misma sala y en el mismo momento.</p>'],
+  ['<p>During the screening the same camera works again, under the same rules: 36 frames at moments drawn by the quantum generator, no choosing, no editing. Everyone in the room becomes an author of the seventh work of the cycle. By registering, you accept this.</p>',
+   '<p>Durante la proyección, la misma cámara vuelve a funcionar con las mismas reglas: 36 fotogramas en momentos que extrae el generador cuántico, sin elegir ni editar. Todas las personas presentes firman la séptima obra del ciclo. Al inscribirte, lo aceptas.</p>'],
+  ['<p class="q">Doors 17:00 &middot; Screening 18:00&ndash;21:06</p>', '<p class="q">Puertas 17:00 &middot; Proyección 18:00&ndash;21:06</p>'],
+  ['<p class="q">Free entry, registration required</p>', '<p class="q">Entrada libre, con inscripción</p>'],
+  ['<div class="fl ordh">Order of the screening</div>', '<div class="fl ordh">Orden de la proyección</div>'],
+  ['<p class="q">Eugeni Pulido Mart&iacute;n &amp; Jaime D&iacute;az Otero N&uacute;&ntilde;ez</p>', '<p class="q">Eugeni Pulido Mart&iacute;n y Jaime D&iacute;az Otero N&uacute;&ntilde;ez</p>'],
+  ['<p class="q">Txemy Basualto &amp; Ane Basualto</p>', '<p class="q">Txemy Basualto y Ane Basualto</p>'],
+  ['<p class="q">End</p>', '<p class="q">Final</p>'],
+  ['<span class="cl">I understand that the room&rsquo;s camera may photograph me during the screening and that these images form the seventh, collective work of Cycle I. I accept the <a href="/wit36/terms" target="_blank" rel="noopener">Terms &amp; Privacy</a>.</span>',
+   '<span class="cl">Entiendo que la cámara de la sala puede fotografiarme durante la proyección y que esas imágenes forman la séptima obra, colectiva, del Ciclo I. Acepto los <a href="/wit36/es/terms" target="_blank" rel="noopener">Términos y la Privacidad</a>.</span>'],
+  ["msg.textContent='Please fill in your name and email.'", "msg.textContent='Escribe tu nombre y tu email, por favor.'"],
+  ["msg.textContent='That email does not look right.'", "msg.textContent='Ese email no parece correcto.'"],
+  ["msg.textContent='Please accept the camera and the Terms & Privacy.'", "msg.textContent='Acepta la cámara y los Términos y la Privacidad, por favor.'"],
+  ["f.innerHTML='<p class=\"thanks\">You&rsquo;re registered. Sunday 29 November, doors at 17:00 &mdash; MONOMO, Carrer del Torrent de les Flors, 61, Gr&agrave;cia. See you there.</p>'",
+   "f.innerHTML='<p class=\"thanks\">Inscripción hecha. Domingo 29 de noviembre, puertas a las 17:00 &mdash; MONOMO, Carrer del Torrent de les Flors, 61, Gr&agrave;cia. Nos vemos.</p>'"],
+  ["consent:true,lang:'en',website", "consent:true,lang:'es',website"],
 
   // ---- footer ----
   ['<span class="top">WITHOUT WITNESS &middot; Sense testimoni</span><br>MONOMO &mdash; self-portrait studio &middot; Gr&agrave;cia, Barcelona',
    '<span class="top">WITHOUT WITNESS &middot; Sense testimoni</span><br>MONOMO &mdash; estudio de autorretrato &middot; Gr&agrave;cia, Barcelona'],
-  ['Cycle I &middot; Applications open 20 July &ndash; 10 August 2026<div class="langs">',
-   'Ciclo I &middot; Convocatoria abierta del 20 de julio al 10 de agosto de 2026<div class="langs">'],
+  ['Cycle I &middot; Screening 29 November 2026<div class="langs">',
+   'Ciclo I &middot; Proyección el 29 de noviembre de 2026<div class="langs">'],
 
   // ---- language switch: ES active, EN -> /wit36 (base markup already anchors) ----
   ['<nav class="langsw" aria-label="Language"><a href="/wit36" class="on">EN</a><a href="/wit36/es">ES</a><span class="off">CA</span></nav>',
@@ -109,17 +124,10 @@ const R = [
   // ---- JS strings ----
   ["hintEl.textContent='Drag to draw'", "hintEl.textContent='Arrastra para dibujar'"],
   ["framesBtn.title = framesOnly ? 'Show photographs' : 'Hide photographs';", "framesBtn.title = framesOnly ? 'Mostrar fotografías' : 'Ocultar fotografías';"],
-  ["msg.textContent='Please fill all four fields.'", "msg.textContent='Rellena los cuatro campos, por favor.'"],
-  ["msg.textContent='That email doesn&#39;t look right.'", "msg.textContent='Ese email no parece correcto.'"],
-  ["msg.textContent='Your statement is over 150 words.'", "msg.textContent='Tu respuesta supera las 150 palabras.'"],
-  ["msg.textContent='Please accept the Terms & Privacy.'", "msg.textContent='Acepta los Términos y Privacidad, por favor.'"],
   ["msg.textContent='Sending…'", "msg.textContent='Enviando…'"],
-  ["f.innerHTML='<p class=\"thanks\">Thank you. We&rsquo;ve received your application. We&rsquo;ll be in touch.</p>'",
-   "f.innerHTML='<p class=\"thanks\">Gracias. Hemos recibido tu solicitud. Te escribiremos.</p>'"],
   ["msg.textContent=(d&&d.error)||'Something went wrong. Please try again.'", "msg.textContent=(d&&d.error)||'Algo ha fallado. Inténtalo de nuevo.'"],
   ["msg.textContent='Network error. Please try again.'", "msg.textContent='Error de red. Inténtalo de nuevo.'"],
-  ["consent:true,lang:'en',website", "consent:true,lang:'es',website"],
-  // (switcher CSS already lives in the shared index.html; es.html inherits it)
+    // (switcher CSS already lives in the shared index.html; es.html inherits it)
 ];
 
 let missing = [];

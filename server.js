@@ -228,6 +228,8 @@ const OPS = {
   lastDigestDate: null,  // Barcelona date of the last evening digest
   lastNotifiedDay: null, // last data day announced to the channel
   apps: [],              // wit36 applications since boot: { ts, name, lang }
+  rsvps: [],             // wit36 screening registrations (29.11) since boot: { ts, name, lang }, last 500
+  rsvpTotal: 0,          // all registrations since boot (the list above is capped)
   lastSyncSlot: null,    // Barcelona slot key of the last scheduled sync
   lastFullSync: null,    // ISO timestamp of the last full-history pull
   // What the outside watchers found, latest per source. They no longer speak to
@@ -544,6 +546,11 @@ function runCommand(text, chatId) {
     reply(`Заявки WIT36 за 7 дней: ${week.length}\n${lines.join('\n') || '— пока нет'}\n\nПолные тексты приходят отдельными сообщениями. Считаю с запуска сервера, ${ruAgo(Date.now() - BOOT_TIME)}.`);
     return;
   }
+  if (cmd === '/rsvp') {
+    const last = OPS.rsvps.slice(-10).map(r => `• ${r.ts.slice(0, 16).replace('T', ' ')} — ${r.name} (${r.lang.toUpperCase()})`);
+    reply(`Регистрации на вечер 29.11: ${OPS.rsvpTotal}\n${last.join('\n') || '— пока нет'}\n\nКаждая регистрация приходит отдельным сообщением. Считаю с запуска сервера, ${ruAgo(Date.now() - BOOT_TIME)}.`);
+    return;
+  }
   if (cmd === '/mute') {
     const h = Math.min(Math.max(parseInt(parts[1], 10) || 12, 1), 168);
     OPS.muteUntil = Date.now() + h * 3600e3;
@@ -557,6 +564,7 @@ function runCommand(text, chatId) {
     + '/status — как дела у сайта и у картины\n'
     + '/89 — проект 89\n'
     + '/apps — заявки WIT36\n'
+    + '/rsvp — регистрации на вечер 29.11\n'
     + '/deploy — что на проде\n'
     + '/health — сырой JSON\n'
     + '/mute [часов] — тишина\n'
@@ -597,6 +605,22 @@ function notifyApplication(rec) {
     `Consent: ${rec.consent === true ? 'yes' : 'no'}\n` +
     `Submitted: ${rec.ts}\n\n` +
     `Statement:\n${rec.statement || '—'}`;
+  tgApi('sendMessage', { chat_id: chat, text, disable_web_page_preview: true });
+}
+
+// Each guest registration for the screening evening (29.11.2026) — same channel,
+// same rule: never muted, nothing written to disk. The counter is the in-memory list.
+function notifyRsvp(rec) {
+  const chat = process.env.TG_CHAT_ID;
+  if (!chat) return;
+  const text =
+    `🎟 WITHOUT WITNESS — регистрация на вечер 29.11\n` +
+    `Имя: ${rec.name || '—'}\n` +
+    `Email: ${rec.email || '—'}\n` +
+    `Язык: ${rec.lang === 'es' ? 'ES' : 'EN'}\n` +
+    `Согласие на съёмку и условия: ${rec.consent === true ? 'да' : 'нет'}\n` +
+    `Время: ${rec.ts}\n` +
+    `Всего регистраций с запуска сервера: ${OPS.rsvpTotal}`;
   tgApi('sendMessage', { chat_id: chat, text, disable_web_page_preview: true });
 }
 
@@ -1702,6 +1726,34 @@ http.createServer((req, res) => {
       OPS.apps.push({ ts: rec.ts, name: rec.name, lang: rec.lang });   // /apps counter (in-memory)
       if (OPS.apps.length > 200) OPS.apps.shift();
       res.writeHead(200, head({ 'Content-Type': 'application/json' })); res.end('{"ok":true}');
+    });
+    req.on('error', () => { try { res.writeHead(400); res.end(); } catch (e) {} });
+    return;
+  }
+
+  // WIT36 screening evening (29.11.2026) — guest registration, POST /wit36/rsvp.
+  // Same limiter and honeypot as /apply; Telegram is the sole store.
+  if (req.method === 'POST' && req.url.split('?')[0] === '/wit36/rsvp') {
+    const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '?').toString().split(',')[0].trim();
+    const say = (code, obj) => { res.writeHead(code, head({ 'Content-Type': 'application/json' })); res.end(JSON.stringify(obj)); };
+    if (wit36Limited(ip)) { say(429, { ok: false, error: 'Too many attempts. Try again in a minute.' }); return; }
+    let body = '';
+    req.on('data', c => { body += c; if (body.length > 16384) req.destroy(); });
+    req.on('end', () => {
+      let d = {}; try { d = JSON.parse(body || '{}'); } catch (e) {}
+      if (d.website) { say(200, { ok: true }); return; } // honeypot filled → drop
+      const name = (d.name || '').toString().trim(), email = (d.email || '').toString().trim();
+      if (!name || !email) { say(400, { ok: false, error: 'Please fill in your name and email.' }); return; }
+      if (name.length > 200 || email.length > 200) { say(400, { ok: false, error: 'That is too long.' }); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say(400, { ok: false, error: "That email doesn't look right." }); return; }
+      if (d.consent !== true) { say(400, { ok: false, error: 'Please accept the camera and the Terms & Privacy.' }); return; }
+      const rec = { ts: new Date().toISOString(), name, email, consent: true, lang: d.lang === 'es' ? 'es' : 'en' };
+      console.log('[wit36] RSVP', rec.ts, rec.name, rec.lang);
+      OPS.rsvpTotal++;
+      OPS.rsvps.push({ ts: rec.ts, name: rec.name, lang: rec.lang });   // /rsvp counter (in-memory)
+      if (OPS.rsvps.length > 500) OPS.rsvps.shift();
+      notifyRsvp(rec);   // Telegram is the sole store — nothing written to disk
+      say(200, { ok: true });
     });
     req.on('error', () => { try { res.writeHead(400); res.end(); } catch (e) {} });
     return;
