@@ -265,6 +265,23 @@ function tgApi(method, payload) {
     req.write(body); req.end();
   } catch (e) { /* never let telegram break the server */ }
 }
+// Like tgApi, but waits for Telegram and resolves true only on {ok:true}.
+function tgApiConfirmed(method, payload) {
+  return new Promise(resolve => {
+    const tok = process.env.TG_BOT_TOKEN;
+    if (!tok) { resolve(false); return; }
+    try {
+      const body = JSON.stringify(payload);
+      const mod = TG_API.startsWith('http://') ? http : https;
+      const req = mod.request(`${TG_API}/bot${tok}/${method}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } },
+        r => { let d = ''; r.on('data', c => { d += c; }); r.on('end', () => { try { resolve(JSON.parse(d).ok === true); } catch (e) { resolve(false); } }); });
+      req.on('error', () => resolve(false));
+      req.setTimeout(8000, () => { req.destroy(); resolve(false); });
+      req.write(body); req.end();
+    } catch (e) { resolve(false); }
+  });
+}
 function tgSend(text, opts = {}) {
   const chat = opts.chatId || process.env.TG_CHAT_ID;
   if (!chat) return;
@@ -474,6 +491,7 @@ function registerBotMenu() {
     { command: 'status', description: 'Как дела у сайта и у картины' },
     { command: '89',     description: 'Проект 89 — последний день' },
     { command: 'apps',   description: 'Заявки WIT36 за неделю' },
+    { command: 'rsvp',   description: 'Регистрации на вечер 29.11' },
     { command: 'deploy', description: 'Какая версия на проде' },
     { command: 'health', description: 'Сырой JSON состояния' },
     { command: 'mute',   description: 'Тишина на N часов, по умолчанию 12' },
@@ -612,7 +630,7 @@ function notifyApplication(rec) {
 // same rule: never muted, nothing written to disk. The counter is the in-memory list.
 function notifyRsvp(rec) {
   const chat = process.env.TG_CHAT_ID;
-  if (!chat) return;
+  if (!chat) return Promise.resolve(false);
   const text =
     `🎟 WITHOUT WITNESS — регистрация на вечер 29.11\n` +
     `Имя: ${rec.name || '—'}\n` +
@@ -621,7 +639,7 @@ function notifyRsvp(rec) {
     `Согласие на съёмку и условия: ${rec.consent === true ? 'да' : 'нет'}\n` +
     `Время: ${rec.ts}\n` +
     `Всего регистраций с запуска сервера: ${OPS.rsvpTotal}`;
-  tgApi('sendMessage', { chat_id: chat, text, disable_web_page_preview: true });
+  return tgApiConfirmed('sendMessage', { chat_id: chat, text, disable_web_page_preview: true });
 }
 
 // ---------- upstream HTTP ----------
@@ -1737,23 +1755,30 @@ http.createServer((req, res) => {
     const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '?').toString().split(',')[0].trim();
     const say = (code, obj) => { res.writeHead(code, head({ 'Content-Type': 'application/json' })); res.end(JSON.stringify(obj)); };
     if (wit36Limited(ip)) { say(429, { ok: false, error: 'Too many attempts. Try again in a minute.' }); return; }
+    if (!/^application\/json\b/i.test(req.headers['content-type'] || '')) { say(415, { ok: false, error: 'Bad request.' }); return; }
     let body = '';
     req.on('data', c => { body += c; if (body.length > 16384) req.destroy(); });
     req.on('end', () => {
       let d = {}; try { d = JSON.parse(body || '{}'); } catch (e) {}
       if (d.website) { say(200, { ok: true }); return; } // honeypot filled → drop
-      const name = (d.name || '').toString().trim(), email = (d.email || '').toString().trim();
+      // one line each: no newlines or control characters can forge lines in the Telegram message
+      const clean = v => (v || '').toString().replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]+/g, ' ').replace(/\s+/g, ' ').trim();
+      const name = clean(d.name), email = clean(d.email);
       if (!name || !email) { say(400, { ok: false, error: 'Please fill in your name and email.' }); return; }
       if (name.length > 200 || email.length > 200) { say(400, { ok: false, error: 'That is too long.' }); return; }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say(400, { ok: false, error: "That email doesn't look right." }); return; }
       if (d.consent !== true) { say(400, { ok: false, error: 'Please accept the camera and the Terms & Privacy.' }); return; }
       const rec = { ts: new Date().toISOString(), name, email, consent: true, lang: d.lang === 'es' ? 'es' : 'en' };
-      console.log('[wit36] RSVP', rec.ts, rec.name, rec.lang);
       OPS.rsvpTotal++;
-      OPS.rsvps.push({ ts: rec.ts, name: rec.name, lang: rec.lang });   // /rsvp counter (in-memory)
-      if (OPS.rsvps.length > 500) OPS.rsvps.shift();
-      notifyRsvp(rec);   // Telegram is the sole store — nothing written to disk
-      say(200, { ok: true });
+      // Telegram is the sole store — nothing written to disk, no names in the logs.
+      // Success only once Telegram has the message; otherwise the guest is asked to retry.
+      notifyRsvp(rec).then(sent => {
+        console.log('[wit36] RSVP', rec.ts, rec.lang, sent ? 'sent' : 'NOT SENT');
+        if (!sent) { OPS.rsvpTotal--; say(503, { ok: false, error: 'We could not save your registration. Please try again in a minute or write to nikolai@monomo.space.' }); return; }
+        OPS.rsvps.push({ ts: rec.ts, name: rec.name, lang: rec.lang });   // /rsvp counter (in-memory)
+        if (OPS.rsvps.length > 500) OPS.rsvps.shift();
+        say(200, { ok: true });
+      });
     });
     req.on('error', () => { try { res.writeHead(400); res.end(); } catch (e) {} });
     return;
