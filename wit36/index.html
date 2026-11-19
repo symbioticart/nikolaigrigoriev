@@ -769,14 +769,16 @@ const PrintTexture=(function(){
     if(!name||!email){ msg.textContent='Please fill in your name and email.'; return; }
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='That email does not look right.'; return; }
     if(!f.elements.consent.checked){ msg.textContent='Please accept the camera and the Terms & Privacy.'; return; }
+    const btn=document.getElementById('rsvpBtn'); if(btn.disabled) return; btn.disabled=true;
     msg.textContent='Sending…';
     try{
       const r=await fetch('/wit36/rsvp',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({name,email,consent:true,lang:'en',website:f.elements.website.value})});
       const d=await r.json().catch(()=>({}));
       if(r.ok&&d.ok){ f.innerHTML='<p class="thanks">You&rsquo;re registered. Sunday 29 November, doors at 17:00 &mdash; MONOMO, Carrer del Torrent de les Flors, 61, Gr&agrave;cia. See you there.</p>'; }
-      else { msg.textContent=(d&&d.error)||'Something went wrong. Please try again.'; }
-    }catch(err){ msg.textContent='Network error. Please try again.'; }
+      else if(r.status===503){ msg.textContent='We could not save your registration. Please try again in a minute or write to nikolai@monomo.space.'; btn.disabled=false; }
+      else { msg.textContent=(d&&d.error)||'Something went wrong. Please try again.'; btn.disabled=false; }
+    }catch(err){ msg.textContent='Network error. Please try again.'; btn.disabled=false; }
   });
 })();
 
@@ -788,7 +790,7 @@ const PrintTexture=(function(){
     e.preventDefault();
     const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
     target.scrollIntoView({ behavior: reduce?'auto':'smooth', block:'start' });
-    const first=target.querySelector('input,textarea');
+    const first=target.querySelector('input:not(.hp),textarea');
     if(first) setTimeout(()=>{ try{ first.focus({ preventScroll:true }); }catch(e){} }, reduce?0:600);
   });
 })();

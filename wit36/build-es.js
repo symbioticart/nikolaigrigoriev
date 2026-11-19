@@ -102,6 +102,7 @@ const R = [
   ['<p class="q">End</p>', '<p class="q">Final</p>'],
   ['<span class="cl">I understand that the room&rsquo;s camera may photograph me during the screening and that these images form the seventh, collective work of Cycle I. I accept the <a href="/wit36/terms" target="_blank" rel="noopener">Terms &amp; Privacy</a>.</span>',
    '<span class="cl">Entiendo que la cámara de la sala puede fotografiarme durante la proyección y que esas imágenes forman la séptima obra, colectiva, del Ciclo I. Acepto los <a href="/wit36/es/terms" target="_blank" rel="noopener">Términos y la Privacidad</a>.</span>'],
+  ["msg.textContent='We could not save your registration. Please try again in a minute or write to nikolai@monomo.space.'", "msg.textContent='No hemos podido guardar tu inscripción. Inténtalo de nuevo en un minuto o escribe a nikolai@monomo.space.'"],
   ["msg.textContent='Please fill in your name and email.'", "msg.textContent='Escribe tu nombre y tu email, por favor.'"],
   ["msg.textContent='That email does not look right.'", "msg.textContent='Ese email no parece correcto.'"],
   ["msg.textContent='Please accept the camera and the Terms & Privacy.'", "msg.textContent='Acepta la cámara y los Términos y la Privacidad, por favor.'"],
