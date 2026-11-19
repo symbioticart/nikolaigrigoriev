@@ -121,7 +121,7 @@ const mimeTypes = {
 const BASE_HEADERS = {
   'Content-Security-Policy':
     "default-src 'none'; script-src 'self' 'unsafe-inline'; " +
-    "style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; " +
+    "style-src 'self' 'unsafe-inline'; font-src 'self' data:; connect-src 'self'; " +
     "img-src 'self' data:; frame-src 'self'; child-src 'self'; " +
     "base-uri 'none'; form-action 'none'; frame-ancestors 'self'",
   'X-Content-Type-Options': 'nosniff',
