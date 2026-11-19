@@ -58,7 +58,7 @@
     user-select:none;-webkit-user-select:none}  /* drag = draw, not text-select */
   input,textarea{user-select:text;-webkit-user-select:text}
   a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid currentColor;outline-offset:3px}
-  #apply,#call{scroll-margin-top:24px}
+  #apply,#call,#evening{scroll-margin-top:24px}
 
   /* paper texture — white ground, texture fades to clean edges (radial mask) */
   #grain{position:fixed;inset:0;z-index:-1;pointer-events:none;
@@ -249,6 +249,14 @@
   .formmsg{font-family:var(--mono);font-size:var(--fs-7);letter-spacing:.05em;color:var(--bone-80);min-height:1em;margin:0}
   .apply-band .thanks{font-family:var(--serif);font-size:var(--fs-5);line-height:1.5;color:var(--bone);max-width:34ch;margin:8px 0 0}
 
+  /* screening evening 29.11 */
+  .evening .fields{margin:26px 0 8px}
+  .evening .fields.order{margin-top:10px}
+  .evening .fields .fn{width:auto;white-space:nowrap}
+  .evening .fields.order li{grid-template-columns:52px 1fr}
+  .evening .ordh{margin-top:34px}
+  .apply-band .closed{font-family:var(--mono);font-size:var(--fs-6);letter-spacing:.14em;text-transform:uppercase;color:var(--bone);margin:28px 0 0}
+
   /* footer */
   footer{position:relative;background:var(--ink);color:var(--bone);padding:54px var(--pad) 66px}
   .foot{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;
@@ -322,10 +330,10 @@
   </div>
   <div class="topright">
     <nav class="langsw" aria-label="Idioma"><a href="/wit36">EN</a><a href="/wit36/es" class="on">ES</a><span class="off">CA</span></nav>
-    <a class="cta apply-top" href="#apply">Apúntate <span>&rarr;</span></a>
+    <a class="cta apply-top" href="#evening">Inscríbete <span>&rarr;</span></a>
   </div>
   <div class="hint" id="hint">Mueve para dibujar</div>
-  <div class="opendates"><span class="odl">Convocatoria abierta</span><span class="odv">20 de julio &ndash; 10 de agosto de 2026</span></div>
+  <div class="opendates"><span class="odl">Proyección</span><span class="odv">Domingo 29 de noviembre de 2026, 18:00</span></div>
   <a class="cue" href="#call">Lee la convocatoria <span class="ch">&darr;</span></a>
 </section>
 
@@ -337,6 +345,43 @@
     <span>MONOMO &middot; Gr&agrave;cia, Barcelona</span>
     <span>36 &times; 180&prime;</span>
   </div>
+
+  <section class="apply-band evening" id="evening">
+    <div class="apply-inner">
+      <div class="idx"><span class="n">29 &middot; 11</span><span class="lab">La proyección</span><span>18:00 &rarr; 21:06</span></div>
+      <div class="body">
+        <h2>Domingo 29 de noviembre. Seis obras, vistas por primera vez.</h2>
+        <p>Las&nbsp;seis obras del&nbsp;Ciclo I se&nbsp;proyectan en&nbsp;una&nbsp;sola noche en&nbsp;MONOMO, Gr&agrave;cia. Los&nbsp;artistas no han visto sus&nbsp;fotogramas: los&nbsp;verán contigo, en&nbsp;la&nbsp;misma sala y&nbsp;en&nbsp;el&nbsp;mismo momento.</p>
+        <p>Durante la&nbsp;proyección, la&nbsp;misma cámara vuelve a&nbsp;funcionar con&nbsp;las&nbsp;mismas reglas: 36&nbsp;fotogramas en&nbsp;momentos que&nbsp;extrae el&nbsp;generador cuántico, sin&nbsp;elegir ni&nbsp;editar. Todas las&nbsp;personas presentes firman la&nbsp;séptima obra del&nbsp;ciclo. Al&nbsp;inscribirte, lo&nbsp;aceptas.</p>
+        <ul class="fields">
+          <li><span class="fn">01</span><p class="q">Puertas 17:00 &middot; Proyección 18:00&ndash;21:06</p></li>
+          <li><span class="fn">02</span><p class="q">MONOMO, Carrer del&nbsp;Torrent de&nbsp;les Flors, 61, bajos B, 08024&nbsp;Barcelona (Gr&agrave;cia)</p></li>
+          <li><span class="fn">03</span><p class="q">Entrada libre, con&nbsp;inscripción</p></li>
+        </ul>
+        <div class="fl ordh">Orden de la proyección</div>
+        <ul class="fields order">
+          <li><span class="fn">18:00</span><p class="q">Aleksandr Urvachev</p></li>
+          <li><span class="fn">18:31</span><p class="q">Ulises Mendicutty</p></li>
+          <li><span class="fn">19:02</span><p class="q">Alberto de&nbsp;Blobs</p></li>
+          <li><span class="fn">19:33</span><p class="q">Eugeni Pulido Mart&iacute;n y&nbsp;Jaime D&iacute;az Otero N&uacute;&ntilde;ez</p></li>
+          <li><span class="fn">20:04</span><p class="q">Txemy Basualto y&nbsp;Ane Basualto</p></li>
+          <li><span class="fn">20:35</span><p class="q">Nikolai Grigoriev</p></li>
+          <li><span class="fn">21:06</span><p class="q">Final</p></li>
+        </ul>
+        <form class="applyform" id="rsvpForm" method="post" action="/wit36/rsvp" novalidate>
+          <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <label class="fld"><span class="fl">01 &middot; Tu nombre</span>
+            <input type="text" name="name" required maxlength="200" autocomplete="name"></label>
+          <label class="fld"><span class="fl">02 &middot; Un email donde localizarte</span>
+            <input type="email" name="email" required maxlength="200" autocomplete="email"></label>
+          <label class="fld consent"><input type="checkbox" name="consent">
+            <span class="cl">Entiendo que la cámara de la sala puede fotografiarme durante la proyección y que esas imágenes forman la séptima obra, colectiva, del Ciclo I. Acepto los <a href="/wit36/es/terms" target="_blank" rel="noopener">Términos y la Privacidad</a>.</span></label>
+          <button class="cta" type="submit" id="rsvpBtn">Inscríbete <span>&rarr;</span></button>
+          <p class="formmsg" id="rsvpmsg" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </section>
 
   <div class="sheet">
 
@@ -387,27 +432,11 @@
 
   <section class="apply-band" id="apply">
     <div class="apply-inner">
-      <div class="idx"><span class="n">&sect; 04</span><span class="lab">Solicitud</span><span>Cuatro campos</span></div>
+      <div class="idx"><span class="n">&sect; 04</span><span class="lab">Solicitud</span><span>Cerrada</span></div>
       <div class="body">
         <h2>Participa</h2>
         <p>Invitamos a&nbsp;artistas. El&nbsp;estudio decide quién participa, en&nbsp;privado. No se&nbsp;dan razones.</p>
-        <form class="applyform" id="applyForm" method="post" action="/wit36/apply" novalidate>
-          <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <label class="fld"><span class="fl">01 &middot; Tu nombre</span>
-            <input type="text" name="name" required maxlength="120" autocomplete="name"></label>
-          <label class="fld"><span class="fl">02 &middot; Un email donde localizarte</span>
-            <input type="email" name="email" required maxlength="200" autocomplete="email"></label>
-          <label class="fld"><span class="fl">03 &middot; Un enlace a tu práctica</span>
-            <input type="url" name="link" required maxlength="300" placeholder="https://" autocomplete="url"></label>
-          <label class="fld"><span class="fl">04 &middot; ¿Qué harás durante tres horas a solas?</span>
-            <textarea name="statement" required rows="6" maxlength="1400"></textarea>
-            <span class="fh"><span id="wc">0</span> / 150 palabras &middot; tu respuesta no se publica</span></label>
-          <label class="fld consent"><input type="checkbox" name="consent">
-            <span class="cl">He leído y acepto los <a href="/wit36/es/terms" target="_blank" rel="noopener">Términos y Privacidad</a>. Monomo Estudios SL trata estos datos únicamente para gestionar esta convocatoria.</span></label>
-          <button class="cta" type="submit" id="applyBtn">Enviar solicitud <span>&rarr;</span></button>
-          <p class="formmsg" id="formmsg" aria-live="polite"></p>
-        </form>
-        <p class="note">No hay cuota por&nbsp;solicitar ni&nbsp;por&nbsp;participar. Viaje y&nbsp;materiales son&nbsp;de&nbsp;tu&nbsp;parte; la&nbsp;sala, la&nbsp;máquina y&nbsp;la&nbsp;impresión, de&nbsp;la&nbsp;nuestra.</p>
+        <p class="closed">La&nbsp;convocatoria del&nbsp;Ciclo I está cerrada.</p>
       </div>
     </div>
   </section>
@@ -416,7 +445,7 @@
 <footer>
   <div class="foot">
     <div><span class="top">WITHOUT WITNESS &middot; Sense testimoni</span><br>MONOMO &mdash; estudio de autorretrato &middot; Gr&agrave;cia, Barcelona</div>
-    <div>Ciclo I &middot; Convocatoria abierta del 20 de julio al 10 de agosto de 2026<div class="langs"><a href="/wit36">EN</a><a href="/wit36/es" class="on">ES</a><span class="off">CA</span></div></div>
+    <div>Ciclo I &middot; Proyección el 29 de noviembre de 2026<div class="langs"><a href="/wit36">EN</a><a href="/wit36/es" class="on">ES</a><span class="off">CA</span></div></div>
   </div>
 </footer>
 
@@ -715,16 +744,37 @@ const PrintTexture=(function(){
   f.addEventListener('submit',async e=>{
     e.preventDefault();
     const name=f.elements.name.value.trim(), email=f.elements.email.value.trim(), link=f.elements.link.value.trim(), st=ta.value.trim();
-    if(!name||!email||!link||!st){ msg.textContent='Rellena los cuatro campos, por favor.'; return; }
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='Ese email no parece correcto.'; return; }
-    if(count(st)>150){ msg.textContent='Tu respuesta supera las 150 palabras.'; return; }
-    if(!f.elements.consent.checked){ msg.textContent='Acepta los Términos y Privacidad, por favor.'; return; }
+    if(!name||!email||!link||!st){ msg.textContent='Please fill all four fields.'; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='That email doesn&#39;t look right.'; return; }
+    if(count(st)>150){ msg.textContent='Your statement is over 150 words.'; return; }
+    if(!f.elements.consent.checked){ msg.textContent='Please accept the Terms & Privacy.'; return; }
     msg.textContent='Enviando…';
     try{
       const r=await fetch('/wit36/apply',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({name,email,link,statement:st,consent:true,lang:'es',website:f.elements.website.value})});
       const d=await r.json().catch(()=>({}));
-      if(r.ok&&d.ok){ f.innerHTML='<p class="thanks">Gracias. Hemos recibido tu solicitud. Te escribiremos.</p>'; }
+      if(r.ok&&d.ok){ f.innerHTML='<p class="thanks">Thank you. We&rsquo;ve received your application. We&rsquo;ll be in touch.</p>'; }
+      else { msg.textContent=(d&&d.error)||'Algo ha fallado. Inténtalo de nuevo.'; }
+    }catch(err){ msg.textContent='Error de red. Inténtalo de nuevo.'; }
+  });
+})();
+
+/* screening registration — submit to /wit36/rsvp */
+(() => {
+  const f=document.getElementById('rsvpForm'); if(!f) return;
+  const msg=document.getElementById('rsvpmsg');
+  f.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const name=f.elements.name.value.trim(), email=f.elements.email.value.trim();
+    if(!name||!email){ msg.textContent='Escribe tu nombre y tu email, por favor.'; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ msg.textContent='Ese email no parece correcto.'; return; }
+    if(!f.elements.consent.checked){ msg.textContent='Acepta la cámara y los Términos y la Privacidad, por favor.'; return; }
+    msg.textContent='Enviando…';
+    try{
+      const r=await fetch('/wit36/rsvp',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name,email,consent:true,lang:'es',website:f.elements.website.value})});
+      const d=await r.json().catch(()=>({}));
+      if(r.ok&&d.ok){ f.innerHTML='<p class="thanks">Inscripción hecha. Domingo 29 de noviembre, puertas a las 17:00 &mdash; MONOMO, Carrer del Torrent de les Flors, 61, Gr&agrave;cia. Nos vemos.</p>'; }
       else { msg.textContent=(d&&d.error)||'Algo ha fallado. Inténtalo de nuevo.'; }
     }catch(err){ msg.textContent='Error de red. Inténtalo de nuevo.'; }
   });
@@ -732,7 +782,7 @@ const PrintTexture=(function(){
 
 /* top-right Apply → smooth-scroll to the Take Part form, then focus the first field */
 (() => {
-  const btn=document.querySelector('.apply-top'), target=document.getElementById('apply');
+  const btn=document.querySelector('.apply-top'), target=document.getElementById('evening');
   if(!btn||!target) return;
   btn.addEventListener('click', e=>{
     e.preventDefault();
