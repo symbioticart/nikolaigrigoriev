@@ -1730,6 +1730,7 @@ http.createServer((req, res) => {
     req.on('data', c => { body += c; if (body.length > 65536) req.destroy(); });
     req.on('end', () => {
       let d = {}; try { d = JSON.parse(body || '{}'); } catch (e) {}
+      if (!d || typeof d !== 'object') d = {};   // a body of null, a number or a string must not crash the server
       if (d.website) { res.writeHead(200, head({ 'Content-Type': 'application/json' })); res.end('{"ok":true}'); return; } // honeypot filled → drop
       const name = (d.name || '').toString().trim(), email = (d.email || '').toString().trim(), link = (d.link || '').toString().trim(), st = (d.statement || '').toString().trim();
       if (!name || !email || !link || !st) { res.writeHead(400, head({ 'Content-Type': 'application/json' })); res.end(JSON.stringify({ ok: false, error: 'Please fill all four fields.' })); return; }
@@ -1760,6 +1761,7 @@ http.createServer((req, res) => {
     req.on('data', c => { body += c; if (body.length > 16384) req.destroy(); });
     req.on('end', () => {
       let d = {}; try { d = JSON.parse(body || '{}'); } catch (e) {}
+      if (!d || typeof d !== 'object') d = {};   // a body of null, a number or a string must not crash the server
       if (d.website) { say(200, { ok: true }); return; } // honeypot filled → drop
       // one line each: no newlines or control characters can forge lines in the Telegram message
       const clean = v => (v || '').toString().replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]+/g, ' ').replace(/\s+/g, ' ').trim();
