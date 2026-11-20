@@ -350,5 +350,52 @@
       "seed": "The seed of a day is its date; the same day always makes the same painting.",
       "foot": "First recorded day {birth}.<br>The rule was written in 2026. It reads the record S6-03 reads and parts from it in what is painted: one day alone, in ink. The cloth is not shown, only the way it took the ink."
     }
+  },
+  "99": {
+    "title": "S6-06",
+    "begun": "2026-11-20",
+    "unit": "night",
+    "listed": false,
+    "selected": false,
+    "medium": "Software, threads spun from a sleeping body, written nightly by an unchanging rule, screen. Dimensions variable. The rule since 2026, the nights since 2022.",
+    "canvas": {
+      "w": 900,
+      "h": 1125,
+      "density": 1
+    },
+    "ground": "#c9c5ae",
+    "silence": "over",
+    "engine": {
+      "painter": "99/painter.js",
+      "data": "/archipelago/data.json?all=1",
+      "dateField": "day",
+      "readback": "2d"
+    },
+    "state": {
+      "w": 900,
+      "h": 1125,
+      "quality": 0.88
+    },
+    "rule": {
+      "laws": [
+        "Each night, one painting: one sprout leaves the centre of the sheet and joins every sprout already there.",
+        "The painting is made from that night’s record of one sleeping body, and from nothing else.",
+        "Nothing is arranged by hand.",
+        "A sprout runs further the higher the variability of the heart and the longer the sleep; it runs straighter the lower the resting heart and the nearer the hour of falling asleep came to its habit.",
+        "A sprout is spun from many threads. There are more of them after deep sleep and a slow breath; hairs rise along them with movement in sleep and time awake; it branches with dream sleep and with how quickly sleep came.",
+        "Along its length each thread follows the phases of the night in their order: deep sleep in dark moss, dream sleep in copper, light sleep in olive, waking in pale lichen. Each phase is stretched by how hard the heart worked during it.",
+        "A sprout sets off where the one before it pointed, turned by the warmth of the body and by its breath that night.",
+        "No measurement can be read back from a sprout: every feature is woven from two signals, each weighed against the ninety nights of this body that came before it, never against those that follow.",
+        "On the morning of its night the new sprout stands at full strength, and every other sprout is dimmed by one step.",
+        "No sprout is ever removed. With age a sprout loses its threads and its colour and settles into the felt of the ground.",
+        "A night the ring did not record leaves no sprout; an empty grey spore marks its place.",
+        "The seed of a night is its date; the same night always makes the same painting.",
+        "A night that has been painted is never repainted.",
+        "When no night arrives from the instrument, the last painting is held; from the second day of silence it fades.",
+        "Every night the work has lived is kept."
+      ],
+      "seed": "The seed of a night is its date; the same night always makes the same painting.",
+      "foot": "First recorded night {birth}.<br>The rule was written in 2026; the nights it reads begin in 2022, because the body had already been recording them. It reads the record S5-01 reads and parts from it in what is painted: not one night alone, but every night the body has slept, gathered into one colony."
+    }
   }
 }
