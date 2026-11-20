@@ -27,7 +27,7 @@
 (function () {
   'use strict';
 
-  const W = 900, H = 1125, CX = W / 2, CY = H / 2;
+  const W = 920, H = 1350, CX = W / 2, CY = H / 2;
   const RULE = {
     window: 90,          // nights each signal is ranked against
     minHistory: 7,       // fewer nights than this behind it: the night sits in the middle
