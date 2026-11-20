@@ -359,8 +359,8 @@
     "selected": false,
     "medium": "Software, threads spun from a sleeping body, written nightly by an unchanging rule, screen. Dimensions variable. The rule since 2026, the nights since 2022.",
     "canvas": {
-      "w": 900,
-      "h": 1125,
+      "w": 920,
+      "h": 1350,
       "density": 1
     },
     "ground": "#c9c5ae",
@@ -372,8 +372,8 @@
       "readback": "2d"
     },
     "state": {
-      "w": 900,
-      "h": 1125,
+      "w": 920,
+      "h": 1350,
       "quality": 0.88
     },
     "rule": {
