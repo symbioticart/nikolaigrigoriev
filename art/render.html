@@ -129,6 +129,18 @@
       days: (D) => D.days,
       paint: (p, day, D, w, h, sil) => window.V92Painter.paintDay(p, day, D, w, h),
     },
+    '99': {
+      // S6-06 reads the night record Archipelago reads. A painting is every night
+      // up to the one asked for, gathered into one colony, so the painter is
+      // handed the whole record. It composes in 2D.
+      // Silence never reaches it: the host holds the last painting and fades it.
+      birth: (D) => D.nights[0] && D.nights[0].day,
+      last:  (D) => D.nights[D.nights.length - 1] && D.nights[D.nights.length - 1].day,
+      today: (D) => D.meta && D.meta.serverDate,
+      live:  (D) => !D.meta || D.meta.live !== false,
+      days: (D) => D.nights,
+      paint: (p, day, D, w, h, sil) => window.S606Painter.paintDay(p, day, D, w, h),
+    },
     'archipelago': {
       // LIVE: /archipelago/data.json returns { nights:[…the night itself…], meta }.
       // A third work on this domain, and the first that is painted from ONE
