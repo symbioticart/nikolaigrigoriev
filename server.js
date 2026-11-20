@@ -1862,6 +1862,15 @@ http.createServer((req, res) => {
         // an hour of sleep is too little to be a night; it is marked, not hidden
         incomplete: nights.filter(n => (n.tst || 0) < 3600).map(n => n.day),
       }),
+      // S6-06 reads Archipelago's nights, so it lives on the same calendar. Every
+      // night is a sprout, however short the sleep: nothing is marked incomplete.
+      '99': Object.assign({}, common, {
+        ratio: ratio('99'),
+        birth: nm.birth,
+        last: nm.calendarEnd, lastData: nm.lastDataDay,
+        alive: nights.map(n => n.day),
+        incomplete: [],
+      }),
       '92': Object.assign({}, common, {
         ratio: ratio('92'),
         birth: days91.length ? days91[0].day : m.birth,
