@@ -355,7 +355,7 @@
     "title": "S6-06",
     "begun": "2026-11-20",
     "unit": "night",
-    "listed": false,
+    "listed": true,
     "selected": false,
     "medium": "Software, threads spun from a sleeping body, written nightly by an unchanging rule, screen. Dimensions variable. The rule since 2026, the nights since 2022.",
     "canvas": {
