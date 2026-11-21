@@ -923,6 +923,76 @@ function meta96() {
            live: !!fresh, receivedAt: rec.receivedAt || null, count: days.length };
 }
 
+// ---------- S6-07: the day and the night, as the house lets them out ----------
+// The house keeps beats, milliseconds and steps. None of that comes here. Each
+// morning the house sends the public form of every closed day: each measure as
+// its rank against the ninety days before it, the day's activity class and the
+// night's phases in five-minute steps, the rare events as sizes against their
+// thresholds, and a seed hashed from the day's record. The copy shipped in the
+// repository is the seed record, as for S6-03.
+const record100Path = () => path.join(path.dirname(ARCHIVE_DIR), 'days-100.json');
+const seed100Path = () => path.join(__dirname, 'data', 'days-100.json');
+const DAY100_KEYS = new Set(['d', 's', 'p', 'cls', 'ph', 'isl']);
+const RANK100_KEYS = new Set(['hrv', 'tst', 'rhr', 'steps', 'active', 'sed', 'rest']);
+const ISL100_KINDS = new Set(['walk', 'steps', 'nap', 'practice']);
+
+function loadRecord100() {
+  if (!STATE.record100) {
+    STATE.record100 = { days: [], receivedAt: null };
+    for (const [f, seed] of [[record100Path(), false], [seed100Path(), true]]) {
+      try {
+        const r = JSON.parse(fs.readFileSync(f, 'utf8'));
+        if (r.days && r.days.length) { STATE.record100 = seed ? { days: r.days, receivedAt: null } : r; break; }
+      } catch { /* next */ }
+    }
+  }
+  return STATE.record100;
+}
+
+// Only ranks, classes and phases may arrive. A form that carries anything else
+// is refused whole.
+function checkForm100(form) {
+  if (!form || !Array.isArray(form.days)) return 'no days';
+  let prev = '';
+  for (const d of form.days) {
+    if (!d || !/^\d{4}-\d{2}-\d{2}$/.test(d.d || '')) return 'a day without a date';
+    if (d.d <= prev) return 'days out of order at ' + d.d;
+    prev = d.d;
+    for (const k of Object.keys(d)) if (!DAY100_KEYS.has(k)) return `a field that is not public: ${k}`;
+    if (!/^[0-9a-f]{16}$/.test(d.s || '')) return 'no seed at ' + d.d;
+    if (!d.p || typeof d.p !== 'object') return 'no ranks at ' + d.d;
+    for (const [k, v] of Object.entries(d.p)) {
+      if (!RANK100_KEYS.has(k)) return `a rank that is not public: ${k}`;
+      if (typeof v !== 'number' || v < 0 || v > 1) return `a rank outside 0..1 at ${d.d}: ${k}`;
+    }
+    if (typeof d.cls !== 'string' || !/^[0-5]{0,288}$/.test(d.cls)) return 'a broken activity line at ' + d.d;
+    if (typeof d.ph !== 'string' || !/^[1-4]{0,300}$/.test(d.ph)) return 'a broken night at ' + d.d;
+    if (!Array.isArray(d.isl)) return 'no events at ' + d.d;
+    for (const e of d.isl) {
+      if (!Array.isArray(e) || e.length !== 2 || !ISL100_KINDS.has(e[0]) || typeof e[1] !== 'number' || e[1] < 1 || e[1] > 50)
+        return 'a broken event at ' + d.d;
+    }
+  }
+  return null;
+}
+
+function meta100() {
+  const rec = loadRecord100();
+  const days = rec.days || [];
+  const serverDate = isoDate(new Date());
+  const last = days.length ? days[days.length - 1].d : null;
+  // A day is laid down the next morning: a record that keeps arriving ends its
+  // calendar on that morning, and only a house unheard for a day and a half
+  // lets the calendar run on to today and the silence begin.
+  const fresh = rec.receivedAt && Date.now() - Date.parse(rec.receivedAt) < 36 * 3600e3;
+  const morning = last ? isoDate(new Date(Date.parse(last + 'T00:00:00Z') + 864e5)) : null;
+  const calendarEnd = !last ? null
+    : fresh ? (morning < serverDate ? morning : serverDate)
+    : (serverDate > last ? serverDate : last);
+  return { birth: days.length ? days[0].d : null, lastDataDay: last, serverDate, calendarEnd,
+           live: !!fresh, receivedAt: rec.receivedAt || null, count: days.length };
+}
+
 // ---------- raw upstream -> the night itself ----------
 // Archipelago (a third work on this domain) is painted from ONE night, not from
 // the day it closed. Every five minutes of sleep becomes a charge whose weight
@@ -1653,7 +1723,57 @@ http.createServer((req, res) => {
   // does not answer at all" comes through this door, and one voice decides what
   // is worth saying and when. Uptime keeps its own voice on purpose — it speaks
   // precisely when this door cannot be reached.
-  if (req.method === 'POST' && req.url.split('?')[0] === '/ops/report') {
+    // S6-07: the house sends the public form of the closed days.
+  if (req.method === 'POST' && req.url.split('?')[0] === '/ops/100') {
+    const secret = process.env.OPS_SECRET;
+    const got = Buffer.from(String(req.headers['x-ops-secret'] || ''));
+    const want = Buffer.from(secret || '');
+    if (!secret || got.length !== want.length || !crypto.timingSafeEqual(got, want)) {
+      res.writeHead(403, head({})); res.end(); return;
+    }
+    const chunks = []; let size = 0; let answered = false;
+    const say = (code, obj) => {
+      if (answered) return;
+      answered = true;
+      try { res.writeHead(code, head({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' })); res.end(JSON.stringify(obj)); }
+      catch (e) { /* the house hung up */ }
+    };
+    req.setTimeout(30000, () => { say(408, { ok: false, error: 'took too long to send' }); req.destroy(); });
+    req.on('data', (c) => {
+      size += c.length;
+      if (size > 32 << 20) { say(413, { ok: false, error: 'form too large' }); req.destroy(); return; }
+      chunks.push(c);
+    });
+    req.on('end', () => {
+      if (answered) return;
+      let form;
+      try { form = JSON.parse(Buffer.concat(chunks).toString('utf8')); }
+      catch { say(400, { ok: false, error: 'not json' }); return; }
+      const bad = checkForm100(form);
+      if (bad) { say(400, { ok: false, error: bad }); return; }
+      // A frozen day is never repainted: a form that would change a day
+      // already kept is refused, not merged.
+      const kept = loadRecord100().days || [];
+      const sent = new Map(form.days.map((d) => [d.d, JSON.stringify(d)]));
+      for (const d of kept) {
+        if (!sent.has(d.d)) { say(409, { ok: false, error: 'a kept day is missing: ' + d.d }); return; }
+        if (sent.get(d.d) !== JSON.stringify(d)) { say(409, { ok: false, error: 'a kept day would change: ' + d.d }); return; }
+      }
+      const rec = { days: form.days, receivedAt: new Date().toISOString() };
+      try {
+        fs.mkdirSync(path.dirname(record100Path()), { recursive: true });
+        const tmp = record100Path() + '.tmp';
+        fs.writeFileSync(tmp, JSON.stringify(rec));
+        fs.renameSync(tmp, record100Path());
+      } catch (e) { say(500, { ok: false, error: 'not written' }); return; }
+      STATE.record100 = rec;
+      say(200, { ok: true, days: rec.days.length, last: meta100().lastDataDay, added: rec.days.length - kept.length });
+    });
+    req.on('error', () => {});
+    return;
+  }
+
+if (req.method === 'POST' && req.url.split('?')[0] === '/ops/report') {
     const secret = process.env.OPS_SECRET;
     const got = Buffer.from(String(req.headers['x-ops-secret'] || ''));
     const want = Buffer.from(secret || '');
@@ -1862,6 +1982,15 @@ http.createServer((req, res) => {
         // an hour of sleep is too little to be a night; it is marked, not hidden
         incomplete: nights.filter(n => (n.tst || 0) < 3600).map(n => n.day),
       }),
+      // S6-07 lives on the calendar of the form the house sends: it begins with
+      // the first recorded day and ends on the morning the last one closed.
+      '100': (() => {
+        const m100 = meta100();
+        return Object.assign({}, common, {
+          ratio: ratio('100'), birth: m100.birth, last: m100.calendarEnd, lastData: m100.lastDataDay,
+          alive: (loadRecord100().days || []).map((d) => d.d), incomplete: [],
+        });
+      })(),
       // S6-06 reads Archipelago's nights, so it lives on the same calendar. Every
       // night is a sprout, however short the sleep: nothing is marked incomplete.
       '99': Object.assign({}, common, {
@@ -1922,6 +2051,11 @@ http.createServer((req, res) => {
   // ── S6-03 — the path in its public form ──
   if (url === '/96/data.json') {
     serveJSON(req, res, { days: loadRecord96().days || [], meta: meta96() });
+    return;
+  }
+  // ── S6-07 — the day and the night in their public form ──
+  if (url === '/100/data.json') {
+    serveJSON(req, res, { days: loadRecord100().days || [], meta: meta100() });
     return;
   }
   // ── Archipelago — the night itself, its own data contract ──
