@@ -397,5 +397,51 @@
       "seed": "The seed of a night is its date; the same night always makes the same painting.",
       "foot": "First recorded night {birth}.<br>The rule was written in 2026; the nights it reads begin in 2022, because the body had already been recording them. It reads the record S5-01 reads and parts from it in what is painted: not one night alone, but every night the body has slept, gathered into one colony."
     }
+  },
+  "100": {
+    "title": "S6-07",
+    "begun": "2026-11-21",
+    "listed": false,
+    "selected": false,
+    "medium": "Software, a cell grown from the day and the night of a living body, written daily by an unchanging rule, screen. Dimensions variable. The rule since 2026, the days since 2022.",
+    "canvas": {
+      "w": 920,
+      "h": 1350,
+      "density": 1
+    },
+    "ground": "#e4e4d8",
+    "silence": "over",
+    "engine": {
+      "painter": "100/painter.js",
+      "data": "/100/data.json",
+      "dateField": "d",
+      "readback": "2d"
+    },
+    "state": {
+      "w": 920,
+      "h": 1350,
+      "quality": 0.88
+    },
+    "rule": {
+      "laws": [
+        "Each day, one painting: one cell of cobalt on paper.",
+        "The painting is made from that day’s record of one living body, the day itself and the night that opened it, and from nothing else.",
+        "Nothing is arranged by hand.",
+        "The better the day was for this body, the nearer the cell comes to a circle or an oval. A hard day folds its edge. Night and day weigh equally: the variability of the heart, the length of sleep and the resting heart; the steps, the time spent moving and the time spent sitting.",
+        "The edge of the cell is the clock of the day. It is divided by its length into twenty-four equal hours from four in the morning, so the clock holds whatever shape the edge takes.",
+        "Rings run outward from the edge. An hour in which the body moved gives more rings, and wider ones; an hour of sitting or sleep gives few and narrow. Where the activity changed often within the hour, their edges fray. Where the ring was taken off, they thin and break.",
+        "The cell is filled with fibres. The night lies in it in layers, from falling asleep at the edge to waking at the centre: deep sleep darker, waking lighter, and the layers weigh more the longer the night was.",
+        "The fibres are combed by the variability of the heart and the resting heart and lengthened by sleep and calm. Steps and time spent moving thicken them. Restless sleep and a short night leave pale vacuoles.",
+        "A day that holds an event this body meets once in several days, a walk of more than an hour and a quarter, twenty thousand steps, a nap of an hour, a practice, opens an island inside the cell, ringed like the cell itself. Its size is the size of the event, weighed by the day.",
+        "No measurement can be read back from the cell: every feature is woven from at least two signals, each weighed against the ninety days of this body that came before it, never against those that follow.",
+        "A day is laid down only after it has closed, the next morning.",
+        "The seed of a day is drawn from that day’s record alone; the date plays no part in it, and the same record always makes the same painting.",
+        "A day that has been painted is never repainted.",
+        "When no day arrives from the instrument, the last painting is held; from the second day of silence it fades.",
+        "Every day the work has lived is kept."
+      ],
+      "seed": "The seed of a day is drawn from that day’s record alone; the date plays no part in it, and the same record always makes the same painting.",
+      "foot": "First recorded day {birth}.<br>The rule was written in 2026; the days it reads begin in 2022, because the body had already been recording them. Before a day leaves the house it is reduced to ranks, the classes of its hours and the phases of its night; no measurement of the body reaches this page."
+    }
   }
 }

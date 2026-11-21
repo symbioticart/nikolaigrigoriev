@@ -434,6 +434,23 @@ test("S6-03 serves the path without the house or the beat of the heart", async (
   }
 });
 
+// ── S6-07: the day leaves the house only as ranks, classes and phases ──────────
+test("S6-07 serves the day without a single measurement of the body", async () => {
+  const d = await (await fetch(`${BASE}/100/data.json`)).json();
+  assert.ok(d.days.length > 0, "S6-07 has nothing to show");
+  for (const day of d.days) {
+    assert.deepEqual(Object.keys(day).sort(), ["cls", "d", "isl", "p", "ph", "s"]);
+    for (const [k, v] of Object.entries(day.p)) assert.ok(v >= 0 && v <= 1, `${day.d} carries ${k}=${v}, not a rank`);
+    assert.match(day.cls, /^[0-5]*$/); assert.match(day.ph, /^[1-4]*$/);
+  }
+});
+
+test("S6-07 takes a record only from the house", async () => {
+  const r = await fetch(`${BASE}/ops/100`, { method: "POST", body: JSON.stringify({ days: [] }),
+    headers: { "Content-Type": "application/json", "x-ops-secret": "guess" } });
+  assert.equal(r.status, 403);
+});
+
 test("S6-03 takes a record only from the house", async () => {
   const r = await fetch(`${BASE}/ops/96`, { method: "POST", body: JSON.stringify({ days: [] }),
     headers: { "Content-Type": "application/json", "x-ops-secret": "guess" } });
